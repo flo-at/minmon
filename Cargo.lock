@@ -3,6 +3,17 @@
 version = 3
 
 [[package]]
+name = "async-trait"
+version = "0.1.58"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e805d94e6b5001b651426cf4cd446b1ab5f319d27bab5c644f61de0a804360c"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -428,12 +439,14 @@ checksum = "2a60c7ce501c71e03a9c9c0d35b861413ae925bd979cc7a4e30d060069aaac8d"
 name = "minmon"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "env_logger",
  "log",
  "nix",
  "reqwest",
  "serde",
  "systemd",
+ "text_placeholder",
  "tokio",
  "toml",
  "uuid",
@@ -825,6 +838,12 @@ dependencies = [
  "remove_dir_all",
  "winapi",
 ]
+
+[[package]]
+name = "text_placeholder"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cbd6afcbe8d748e35406f4c3a79b60567a5104b451f1b618097f139294969ef4"
 
 [[package]]
 name = "tinyvec"

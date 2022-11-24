@@ -13,6 +13,7 @@ I wrote this because the [exsiting alternatives](#existing-alternatives) I could
 - Simple, clean, bloat-free code.
 - Depending on your configuration, there might be similar or identical blocks in the config file. This is a consequence of the flexibility and simpleness of the config file format (and thus the code).
 - All times and dates are UTC. No fiddling with local times and time zones.
+- MinMon does not store it's internal state between restarts.
 
 # Checks
 - Filesystem usage

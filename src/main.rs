@@ -4,6 +4,7 @@ mod action;
 mod alarm;
 mod check;
 mod config;
+mod placeholder;
 #[cfg(feature = "systemd")]
 mod systemd;
 #[cfg(feature = "systemd")]
@@ -12,7 +13,7 @@ extern crate systemd as systemd_ext;
 use std::collections::HashMap;
 
 // TODO check/handle unwraps!
-// TODO initial checks (e.g. file system exists), mathing check/alarm config types
+// TODO initial checks (e.g. file system exists), matching check/alarm config types
 // NOTE FilesystemUsage uses "available blocks" (not "free blocks") i.e. blocks available to
 //      unpriv. users
 
@@ -63,10 +64,10 @@ fn init_actions(config: &config::Config) -> HashMap<String, Box<dyn action::Trig
             continue;
         }
         match &action_config.type_ {
-            config::ActionType::WebHook(web_hook_config) => {
+            config::ActionType::WebHook(_) => {
                 res.insert(
                     action_config.name.clone(),
-                    Box::new(action::WebHook::from(web_hook_config)),
+                    Box::new(action::WebHook::from(action_config)),
                 );
             }
         }
