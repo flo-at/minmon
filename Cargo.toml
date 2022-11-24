@@ -1,0 +1,19 @@
+[package]
+name = "minmon"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+toml = "0.5"
+reqwest = { version = "0.11", features = ["json"] }
+tokio = { version = "1", features = ["full"] }
+systemd = { version = "0.10", features = ["journal"], default-features = false, optional = true}
+serde = { version = "1.0", features = ["derive"] }
+uuid = "1.2"
+nix = "0.25"
+log = { version = "0.4", features = ["std"] }
+env_logger = { version = "0.9", features = ["humantime"], default-features = false }
+
+[features]
+default = ["systemd"]
+systemd = ["dep:systemd"]
