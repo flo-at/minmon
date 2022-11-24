@@ -1,7 +1,8 @@
+mod action;
 #[allow(unused_variables)] // TODO temporary
 #[allow(dead_code)] // TODO temporary!
 mod alarm;
-mod checks;
+mod check;
 mod config;
 #[cfg(feature = "systemd")]
 mod systemd;
@@ -49,6 +50,35 @@ fn init_logging(config: &config::Config) {
     }
 }
 
+fn init_actions(config: &config::Config) -> HashMap<String, Box<dyn action::Trigger>> {
+    log::info!("Initializing {} actions(s)..", config.actions.len());
+    let mut res: HashMap<String, Box<dyn action::Trigger>> = HashMap::new();
+    for action_config in config.actions.iter() {
+        if action_config.disable {
+            log::info!(
+                "Action {}::'{}' is disabled.",
+                action_config.type_,
+                action_config.name
+            );
+            continue;
+        }
+        match &action_config.type_ {
+            config::ActionType::WebHook(web_hook_config) => {
+                res.insert(
+                    action_config.name.clone(),
+                    Box::new(action::WebHook::from(web_hook_config)),
+                );
+            }
+        }
+        log::info!(
+            "Action {}::'{}' initialized.",
+            action_config.type_,
+            action_config.name
+        );
+    }
+    res
+}
+
 fn init_checks(config: &config::Config) {
     log::info!("Initializing {} check(s)..", config.checks.len());
     for check_config in config.checks.iter() {
@@ -67,13 +97,13 @@ fn init_checks(config: &config::Config) {
             check_config.interval
         );
         let mut level_checks: Vec<(
-            Box<dyn checks::LevelSource>,
+            Box<dyn check::LevelSource>,
             HashMap<String, Box<dyn alarm::LevelSink>>,
         )> = Vec::new();
         match &check_config.type_ {
             config::CheckType::FilesystemUsage(filesystem_usage_config) => {
-                use checks::MeasurementIds;
-                let level_check = Box::new(checks::FilesystemUsage::from(filesystem_usage_config));
+                use check::MeasurementIds;
+                let level_check = Box::new(check::FilesystemUsage::from(filesystem_usage_config));
                 let mut level_alarms: HashMap<String, Box<dyn alarm::LevelSink>> = HashMap::new();
                 for alarm_config in check_config.alarms.iter() {
                     if alarm_config.disable {
@@ -114,5 +144,6 @@ async fn main() {
     {
         systemd::init();
     }
+    init_actions(&config);
     init_checks(&config);
 }

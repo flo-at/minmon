@@ -102,6 +102,14 @@ pub enum ActionType {
     WebHook(ActionWebHook),
 }
 
+impl std::fmt::Display for ActionType {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match *self {
+            ActionType::WebHook(_) => write!(f, "WebHook"),
+        }
+    }
+}
+
 #[derive(Deserialize, PartialEq, Debug)]
 pub struct ActionWebHook {
     pub url: String,
@@ -114,7 +122,7 @@ pub struct ActionWebHook {
     pub body: String,
 }
 
-#[derive(Deserialize, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Debug, Clone, Copy)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum HttpMethod {
     GET,
