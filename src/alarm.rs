@@ -1,8 +1,8 @@
 use crate::config;
 
-// for alarms that expect a "level" (u8 in [0..100])
-pub trait LevelSink {
-    fn level(&mut self, level: u8);
+pub trait DataSink {
+    type Item;
+    fn put_data(&mut self, id: &str, data: &Self::Item);
 }
 
 pub struct Alarm {
@@ -75,10 +75,16 @@ impl From<&config::Alarm> for Level {
     }
 }
 
-impl LevelSink for Level {
-    fn level(&mut self, level: u8) {
-        log::debug!("Got level {} for alarm '{}'", level, self.alarm.name);
-        if level >= self.level {
+impl DataSink for Level {
+    type Item = u8;
+    fn put_data(&mut self, id: &str, data: &Self::Item) {
+        log::debug!(
+            "Got level {} for alarm '{}' at id '{}'",
+            data,
+            self.alarm.name,
+            id
+        );
+        if *data >= self.level {
             if self.alarm.bad() {
                 log::debug!("BAD action triggered!");
             }

@@ -12,6 +12,9 @@ extern crate systemd as systemd_ext;
 
 use std::collections::HashMap;
 
+type ActionMap = HashMap<String, Box<dyn action::Trigger>>;
+
+// TODO implement report
 // TODO check/handle unwraps!
 // TODO initial checks (e.g. file system exists), matching check/alarm config types
 // NOTE FilesystemUsage uses "available blocks" (not "free blocks") i.e. blocks available to
@@ -51,7 +54,7 @@ fn init_logging(config: &config::Config) {
     }
 }
 
-fn init_actions(config: &config::Config) -> HashMap<String, Box<dyn action::Trigger>> {
+fn init_actions(config: &config::Config) -> ActionMap {
     log::info!("Initializing {} actions(s)..", config.actions.len());
     let mut res: HashMap<String, Box<dyn action::Trigger>> = HashMap::new();
     for action_config in config.actions.iter() {
@@ -80,8 +83,9 @@ fn init_actions(config: &config::Config) -> HashMap<String, Box<dyn action::Trig
     res
 }
 
-fn init_checks(config: &config::Config) {
+fn init_checks(config: &config::Config, actions: &ActionMap) -> Vec<Box<dyn check::Report>> {
     log::info!("Initializing {} check(s)..", config.checks.len());
+    let mut res: Vec<Box<dyn check::Report>> = Vec::new();
     for check_config in config.checks.iter() {
         if check_config.disable {
             log::info!(
@@ -97,42 +101,9 @@ fn init_checks(config: &config::Config) {
             check_config.name,
             check_config.interval
         );
-        let mut level_checks: Vec<(
-            Box<dyn check::LevelSource>,
-            HashMap<String, Box<dyn alarm::LevelSink>>,
-        )> = Vec::new();
-        match &check_config.type_ {
-            config::CheckType::FilesystemUsage(filesystem_usage_config) => {
-                use check::MeasurementIds;
-                let level_check = Box::new(check::FilesystemUsage::from(filesystem_usage_config));
-                let mut level_alarms: HashMap<String, Box<dyn alarm::LevelSink>> = HashMap::new();
-                for alarm_config in check_config.alarms.iter() {
-                    if alarm_config.disable {
-                        log::info!("Alarm '{}' is disabled.", alarm_config.name);
-                        continue;
-                    }
-                    log::info!(
-                        "Alarm '{}' will be triggered after {} cycles.",
-                        alarm_config.name,
-                        alarm_config.cycles
-                    );
-                    for measurement_id in level_check.measurement_ids().iter() {
-                        let level_alarm = Box::new(alarm::Level::from(alarm_config));
-                        level_alarms.insert(measurement_id.clone(), level_alarm);
-                    }
-                }
-                level_checks.push((level_check, level_alarms));
-            }
-        };
-        // TODO use tasks
-        for _ in 1..20 {
-            for (level_check, level_alarms) in level_checks.iter_mut() {
-                for (id, level) in level_check.get_levels() {
-                    level_alarms.get_mut(&id).unwrap().level(level);
-                }
-            }
-        }
+        res.push(check::from_check_config(check_config, actions))
     }
+    res
 }
 
 #[tokio::main]
@@ -145,6 +116,12 @@ async fn main() {
     {
         systemd::init();
     }
-    init_actions(&config);
-    init_checks(&config);
+    let actions = init_actions(&config);
+    let mut checks = init_checks(&config, &actions);
+    // TODO use tasks
+    for _ in 1..20 {
+        for check in checks.iter_mut() {
+            check.trigger();
+        }
+    }
 }
