@@ -19,7 +19,18 @@ I wrote this because the [exsiting alternatives](#existing-alternatives) I could
 - Filesystem usage
 - Memory
 
-## Ideas
+# Actions
+- WebHook
+
+# Report
+The absence of alarms can mean two things: everything is okay or the monitoring/alarming failed.
+That's why MinMon can trigger regular report actions to let you know that it's up and running.
+
+# Roadmap
+## Action ideas
+- E-mail
+
+## Check ideas
 - Filesystem inode usage
 - Folder size
 - S.M.A.R.T.
@@ -28,15 +39,8 @@ I wrote this because the [exsiting alternatives](#existing-alternatives) I could
 - Ping
 - HTTP
 
-# Actions
-- WebHook
-
-## Ideas
-- E-mail
-
-# Report
-The absence of alarms can mean two things: everything is okay or the monitoring/alarming failed.
-That's why MinMon can trigger regular report actions to let you know that it's up and running.
+## General
+- Store measurements/status in time-based database (e.g. rrdtool) and visualize on Webinterface.
 
 # Existing alternatives
 

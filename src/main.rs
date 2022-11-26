@@ -12,7 +12,7 @@ extern crate systemd as systemd_ext;
 
 use std::collections::HashMap;
 
-type ActionMap = HashMap<String, Box<dyn action::Trigger>>;
+type ActionMap = HashMap<String, std::sync::Arc<dyn action::Trigger>>;
 
 // TODO implement report
 // TODO check/handle unwraps!
@@ -56,7 +56,7 @@ fn init_logging(config: &config::Config) {
 
 fn init_actions(config: &config::Config) -> ActionMap {
     log::info!("Initializing {} actions(s)..", config.actions.len());
-    let mut res: HashMap<String, Box<dyn action::Trigger>> = HashMap::new();
+    let mut res = ActionMap::new();
     for action_config in config.actions.iter() {
         if action_config.disable {
             log::info!(
@@ -70,7 +70,7 @@ fn init_actions(config: &config::Config) -> ActionMap {
             config::ActionType::WebHook(_) => {
                 res.insert(
                     action_config.name.clone(),
-                    Box::new(action::WebHook::from(action_config)),
+                    std::sync::Arc::new(action::WebHook::from(action_config)),
                 );
             }
         }
@@ -83,9 +83,9 @@ fn init_actions(config: &config::Config) -> ActionMap {
     res
 }
 
-fn init_checks(config: &config::Config, actions: &ActionMap) -> Vec<Box<dyn check::Report>> {
+fn init_checks(config: &config::Config, actions: &ActionMap) -> Vec<Box<dyn check::Check>> {
     log::info!("Initializing {} check(s)..", config.checks.len());
-    let mut res: Vec<Box<dyn check::Report>> = Vec::new();
+    let mut res: Vec<Box<dyn check::Check>> = Vec::new();
     for check_config in config.checks.iter() {
         if check_config.disable {
             log::info!(
@@ -95,18 +95,18 @@ fn init_checks(config: &config::Config, actions: &ActionMap) -> Vec<Box<dyn chec
             );
             continue;
         }
+        let check = check::from_check_config(check_config, actions);
         log::info!(
-            "Check {}::'{}' will be triggered every {} seconds.",
-            check_config.type_,
-            check_config.name,
-            check_config.interval
+            "Check {} will be triggered every {} seconds.",
+            check.name(),
+            check.interval().as_secs()
         );
-        res.push(check::from_check_config(check_config, actions))
+        res.push(check);
     }
     res
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 //async fn main() -> Result<(), Box<dyn std::error::Error>> {
 async fn main() {
     let config_file_path = get_config_file_path().expect("TODO handle this / pass on!");
@@ -117,11 +117,20 @@ async fn main() {
         systemd::init();
     }
     let actions = init_actions(&config);
-    let mut checks = init_checks(&config, &actions);
-    // TODO use tasks
-    for _ in 1..20 {
-        for check in checks.iter_mut() {
-            check.trigger();
-        }
+    let checks = init_checks(&config, &actions);
+    for mut check in checks {
+        tokio::spawn(async move {
+            let mut interval = tokio::time::interval(check.interval());
+            loop {
+                interval.tick().await;
+                check.trigger().await;
+            }
+        });
     }
+
+    //let sigint = tokio::signal::unix::SignalKind::terminate().flatten_stream();
+
+    let mut stream =
+        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()).unwrap();
+    stream.recv().await;
 }

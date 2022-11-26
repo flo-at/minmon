@@ -19,7 +19,7 @@ impl std::fmt::Display for Error {
 }
 
 #[async_trait]
-pub trait Trigger {
+pub trait Trigger: Send + Sync {
     async fn trigger(
         &self,
         placeholders: &PlaceholderMap,
@@ -84,6 +84,7 @@ impl Trigger for WebHook {
                 .chain(std::iter::once(("action_name", &self.name[..])))
                 .collect(),
         );
+        println!("Body: {}", body);
         let client = reqwest::Client::new();
         let headers: reqwest::header::HeaderMap<reqwest::header::HeaderValue> = self
             .headers
