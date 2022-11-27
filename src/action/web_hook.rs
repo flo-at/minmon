@@ -21,7 +21,7 @@ impl WebHook {
         name: String,
         url: String,
         method: reqwest::Method,
-        headers: &HashMap<String, String>,
+        headers: reqwest::header::HeaderMap<reqwest::header::HeaderValue>,
         timeout: u32,
         body: String,
     ) -> Self {
@@ -29,7 +29,7 @@ impl WebHook {
             name,
             url,
             method,
-            headers: Self::transform_header_map(headers)?,
+            headers,
             timeout,
             body,
         }
@@ -125,7 +125,7 @@ mod test {
             String::from("Test WebHook"),
             String::from("https://httpbin.org/status/200"),
             reqwest::Method::GET,
-            &HashMap::new(),
+            WebHook::transform_header_map(&HashMap::new()).unwrap(),
             5,
             String::from(""),
         );
@@ -138,7 +138,7 @@ mod test {
             String::from("Test WebHook"),
             String::from("https://httpbin.org/status/400"),
             reqwest::Method::GET,
-            &HashMap::new(),
+            WebHook::transform_header_map(&HashMap::new()).unwrap(),
             5,
             String::from(""),
         );
