@@ -10,18 +10,18 @@ pub struct WebHook {
     name: String,
     url: String,
     method: reqwest::Method,
-    headers: HashMap<String, String>,
+    headers: reqwest::header::HeaderMap<reqwest::header::HeaderValue>,
     timeout: u32,
     body: String,
 }
 
-#[cfg(test)]
 impl WebHook {
+    #[cfg(test)]
     fn new(
         name: String,
         url: String,
         method: reqwest::Method,
-        headers: HashMap<String, String>,
+        headers: &HashMap<String, String>,
         timeout: u32,
         body: String,
     ) -> Self {
@@ -29,31 +29,50 @@ impl WebHook {
             name,
             url,
             method,
-            headers,
+            headers: Self::transform_header_map(headers)?,
             timeout,
             body,
         }
     }
+
+    fn transform_header_map(
+        headers: &HashMap<String, String>,
+    ) -> Result<reqwest::header::HeaderMap<reqwest::header::HeaderValue>> {
+        use std::str::FromStr;
+        headers
+            .iter()
+            .map(
+                |(k, v)| -> Result<(reqwest::header::HeaderName, reqwest::header::HeaderValue)> {
+                    let name = reqwest::header::HeaderName::from_str(k)
+                        .map_err(|x| Error(format!("Could not parse header name: {}", x)))?;
+                    let value = reqwest::header::HeaderValue::from_str(v)
+                        .map_err(|x| Error(format!("Could not parse header value: {}", x)))?;
+                    Ok((name, value))
+                },
+            )
+            .collect()
+    }
 }
 
-impl From<&config::Action> for WebHook {
-    fn from(action: &config::Action) -> Self {
+impl TryFrom<&config::Action> for WebHook {
+    type Error = Error;
+
+    fn try_from(action: &config::Action) -> std::result::Result<Self, Self::Error> {
         let config::ActionType::WebHook(web_hook) = &action.type_;
-        Self {
+        Ok(Self {
             name: action.name.clone(),
             url: web_hook.url.clone(),
             method: reqwest::Method::from(web_hook.method),
-            headers: web_hook.headers.clone(),
+            headers: Self::transform_header_map(&web_hook.headers)?,
             timeout: web_hook.timeout,
             body: web_hook.body.clone(),
-        }
+        })
     }
 }
 
 #[async_trait]
 impl Trigger for WebHook {
     async fn trigger(&self, placeholders: &PlaceholderMap) -> Result<()> {
-        use std::str::FromStr;
         let template = text_placeholder::Template::new(&self.body[..]);
         let body = template.fill_with_hashmap(
             &placeholders
@@ -64,20 +83,10 @@ impl Trigger for WebHook {
         );
         println!("Body: {}", body);
         let client = reqwest::Client::new();
-        let headers: reqwest::header::HeaderMap<reqwest::header::HeaderValue> = self
-            .headers
-            .iter()
-            .map(|(k, v)| {
-                (
-                    reqwest::header::HeaderName::from_str(k).unwrap(),
-                    reqwest::header::HeaderValue::from_str(v).unwrap(),
-                )
-            })
-            .collect();
         let response = client
             .request(self.method.clone(), &self.url)
             .timeout(std::time::Duration::from_secs(self.timeout.into()))
-            .headers(headers)
+            .headers(self.headers.clone())
             .body(body)
             .send()
             .await
@@ -116,7 +125,7 @@ mod test {
             String::from("Test WebHook"),
             String::from("https://httpbin.org/status/200"),
             reqwest::Method::GET,
-            HashMap::new(),
+            &HashMap::new(),
             5,
             String::from(""),
         );
@@ -129,7 +138,7 @@ mod test {
             String::from("Test WebHook"),
             String::from("https://httpbin.org/status/400"),
             reqwest::Method::GET,
-            HashMap::new(),
+            &HashMap::new(),
             5,
             String::from(""),
         );

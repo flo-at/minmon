@@ -62,6 +62,7 @@ impl DataSource for MemoryUsage {
         let mut mem_total: Option<usize> = None;
         let mut mem_available: Option<usize> = None;
         for line in buffer.lines().flatten() {
+            // TODO flatten is not correct!
             if line.starts_with("MemTotal") {
                 mem_total = Some(Self::get_number("MemTotal", &line)?);
             } else if line.starts_with("MemAvailable") {

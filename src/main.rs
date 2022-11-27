@@ -66,7 +66,7 @@ fn init_logging(config: &config::Config) {
     }
 }
 
-fn init_actions(config: &config::Config) -> ActionMap {
+fn init_actions(config: &config::Config) -> Result<ActionMap> {
     log::info!("Initializing {} actions(s)..", config.actions.len());
     let mut res = ActionMap::new();
     for action_config in config.actions.iter() {
@@ -82,7 +82,7 @@ fn init_actions(config: &config::Config) -> ActionMap {
             config::ActionType::WebHook(_) => {
                 res.insert(
                     action_config.name.clone(),
-                    std::sync::Arc::new(action::WebHook::from(action_config)),
+                    std::sync::Arc::new(action::WebHook::try_from(action_config)?),
                 );
             }
         }
@@ -92,7 +92,7 @@ fn init_actions(config: &config::Config) -> ActionMap {
             action_config.name
         );
     }
-    res
+    Ok(res)
 }
 
 fn init_checks(config: &config::Config, actions: &ActionMap) -> Vec<Box<dyn check::Check>> {
@@ -128,7 +128,7 @@ async fn main() {
     {
         systemd::init();
     }
-    let actions = init_actions(&config);
+    let actions = init_actions(&config).unwrap(); // TODO
     let checks = init_checks(&config, &actions);
     for mut check in checks {
         tokio::spawn(async move {
