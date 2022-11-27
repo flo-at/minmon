@@ -1,6 +1,7 @@
 use crate::alarm;
 use crate::alarm::Alarm;
 use crate::config;
+use crate::placeholder::PlaceholderMap;
 use crate::{Error, Result};
 use async_trait::async_trait;
 
@@ -37,6 +38,7 @@ where
     name: String,
     data_source: T,
     alarms: Vec<Vec<U>>,
+    placeholders: PlaceholderMap,
 }
 
 impl<T, U> CheckBase<T, U>
@@ -44,12 +46,19 @@ where
     T: DataSource,
     U: Alarm<Item = T::Item>,
 {
-    fn new(interval: u32, name: String, data_source: T, alarms: Vec<Vec<U>>) -> Self {
+    fn new(
+        interval: u32,
+        name: String,
+        data_source: T,
+        alarms: Vec<Vec<U>>,
+        placeholders: PlaceholderMap,
+    ) -> Self {
         Self {
             interval,
             name,
             data_source,
             alarms,
+            placeholders,
         }
     }
 }
@@ -68,7 +77,7 @@ where
             .map_err(|x| Error(format!("Failed to get data: {}", x)))?;
         for (data, alarms) in data_vec.iter().zip(self.alarms.iter_mut()) {
             for alarm in alarms.iter_mut() {
-                alarm.put_data(data).await?;
+                alarm.put_data(data, self.placeholders.clone()).await?;
             }
         }
         Ok(())
@@ -87,12 +96,19 @@ where
     }
 }
 
+fn placeholders_from_config(check_config: &config::Check) -> Result<PlaceholderMap> {
+    let mut res = PlaceholderMap::new();
+    res.insert(String::from("check_name"), check_config.name.clone());
+    Ok(res)
+}
+
 fn factory<'a, T, U>(check_config: &'a config::Check, actions: &ActionMap) -> Result<Box<dyn Check>>
 where
     T: DataSource + TryFrom<&'a config::Check, Error = Error> + 'static, // TODO warum 'static?
     U: Alarm<Item = T::Item> + 'static,                                  // TODO warum 'static?
 {
     let data_source = T::try_from(check_config)?;
+    let placeholders = placeholders_from_config(check_config)?;
     let mut all_alarms: Vec<Vec<U>> = Vec::new();
     for measurement_id in data_source.measurement_ids().iter() {
         let mut alarms: Vec<U> = Vec::new();
@@ -117,6 +133,7 @@ where
         check_config.name.clone(),
         data_source,
         all_alarms,
+        placeholders,
     )))
 }
 

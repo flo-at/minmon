@@ -14,7 +14,8 @@ pub trait Alarm: Send + Sync {
     type Item: Send + Sync;
 
     fn new(measurement_id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Self;
-    async fn put_data(&mut self, data: &Self::Item) -> Result<()>;
+    async fn put_data(&mut self, data: &Self::Item, mut placeholders: PlaceholderMap)
+        -> Result<()>;
 }
 
 pub struct AlarmBase {
@@ -33,7 +34,7 @@ pub struct AlarmBase {
 }
 
 impl AlarmBase {
-    async fn bad(&mut self) -> Result<()> {
+    async fn bad(&mut self, placeholders: PlaceholderMap) -> Result<()> {
         self.good_cycles = 0;
         self.bad_cycles += 1;
         if self.bad_cycles >= self.cycles {
@@ -43,26 +44,27 @@ impl AlarmBase {
                 || (self.repeat_cycles > 0
                     && (self.bad_cycles - self.cycles) % self.repeat_cycles == 0)
             {
-                self.trigger(&PlaceholderMap::new()).await?;
+                self.trigger(placeholders).await?;
             }
         }
         Ok(())
     }
 
-    async fn good(&mut self) -> Result<()> {
+    async fn good(&mut self, placeholders: PlaceholderMap) -> Result<()> {
         self.bad_cycles = 0;
         self.good_cycles += 1;
         if self.good_cycles == self.recover_cycles {
             let good_old = self.good;
             self.good = true;
             if !good_old {
-                self.trigger_recover(&PlaceholderMap::new()).await?;
+                self.trigger_recover(placeholders).await?;
             }
         }
         Ok(())
     }
 
-    async fn trigger(&self, placeholders: &PlaceholderMap) -> Result<()> {
+    async fn trigger(&self, mut placeholders: PlaceholderMap) -> Result<()> {
+        placeholders = self.add_placeholders(placeholders)?;
         match &self.action {
             Some(action) => {
                 log::debug!("Action '{}' triggered.", self.name);
@@ -75,11 +77,17 @@ impl AlarmBase {
         }
     }
 
-    async fn trigger_recover(&self, placeholders: &PlaceholderMap) -> Result<()> {
+    async fn trigger_recover(&self, mut placeholders: PlaceholderMap) -> Result<()> {
+        placeholders = self.add_placeholders(placeholders)?;
         match &self.recover_action {
             Some(action) => action.trigger(placeholders).await,
             None => Ok(()),
         }
+    }
+
+    fn add_placeholders(&self, mut placeholders: PlaceholderMap) -> Result<PlaceholderMap> {
+        placeholders.insert(String::from("alarm_name"), self.name.clone());
+        Ok(placeholders)
     }
 }
 

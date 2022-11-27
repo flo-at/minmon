@@ -75,7 +75,7 @@ impl TryFrom<&config::Action> for WebHook {
 
 #[async_trait]
 impl Action for WebHook {
-    async fn trigger(&self, placeholders: &PlaceholderMap) -> Result<()> {
+    async fn trigger(&self, placeholders: PlaceholderMap) -> Result<()> {
         let template = text_placeholder::Template::new(&self.body[..]);
         let body = template.fill_with_hashmap(
             &placeholders

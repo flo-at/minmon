@@ -1,3 +1,4 @@
+use crate::placeholder::PlaceholderMap;
 use crate::Result;
 use async_trait::async_trait;
 
@@ -25,17 +26,23 @@ impl Alarm for Level {
         }
     }
 
-    async fn put_data(&mut self, data: &Self::Item) -> Result<()> {
+    async fn put_data(
+        &mut self,
+        data: &Self::Item,
+        mut placeholders: PlaceholderMap,
+    ) -> Result<()> {
+        placeholders.insert(String::from("alarm_level"), format!("{}", data));
         log::debug!(
             "Got level {} for alarm '{}' at id '{}'",
             data,
             self.alarm.name,
             self.alarm.id
         );
+        // TODO pass on placeholders to bad() and good()
         if *data >= self.level {
-            self.alarm.bad().await?;
+            self.alarm.bad(placeholders).await?;
         } else {
-            self.alarm.good().await?;
+            self.alarm.good(placeholders).await?;
         }
         Ok(())
     }

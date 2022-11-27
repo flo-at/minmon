@@ -26,7 +26,7 @@ impl TryFrom<&config::Action> for Log {
 
 #[async_trait]
 impl Action for Log {
-    async fn trigger(&self, placeholders: &PlaceholderMap) -> Result<()> {
+    async fn trigger(&self, placeholders: PlaceholderMap) -> Result<()> {
         let template = text_placeholder::Template::new(&self.template[..]);
         let text = template.fill_with_hashmap(
             &placeholders

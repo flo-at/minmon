@@ -9,5 +9,5 @@ pub use web_hook::WebHook;
 
 #[async_trait]
 pub trait Action: Send + Sync {
-    async fn trigger(&self, placeholders: &PlaceholderMap) -> Result<()>;
+    async fn trigger(&self, mut placeholders: PlaceholderMap) -> Result<()>;
 }
