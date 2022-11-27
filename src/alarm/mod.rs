@@ -2,6 +2,7 @@ use crate::action;
 use crate::config;
 use crate::placeholder::PlaceholderMap;
 use crate::ActionMap;
+use crate::Result;
 use async_trait::async_trait;
 
 mod level;
@@ -56,10 +57,7 @@ impl AlarmBase {
         false
     }
 
-    async fn trigger(
-        &self,
-        placeholders: &PlaceholderMap,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn trigger(&self, placeholders: &PlaceholderMap) -> Result<()> {
         match &self.action {
             Some(action) => {
                 log::debug!("Action '{}' triggered.", self.name);
@@ -72,10 +70,7 @@ impl AlarmBase {
         }
     }
 
-    async fn trigger_recover(
-        &self,
-        placeholders: &PlaceholderMap,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn trigger_recover(&self, placeholders: &PlaceholderMap) -> Result<()> {
         match &self.recover_action {
             Some(action) => action.trigger(placeholders).await,
             None => Ok(()),

@@ -1,9 +1,10 @@
 use super::DataSource;
 use crate::config;
+use crate::{Error, Result};
 use async_trait::async_trait;
 
 pub struct FilesystemUsage {
-    mountpoints: Vec<String>, // TODO possible to store a reference?
+    mountpoints: Vec<String>,
 }
 
 impl From<&config::Check> for FilesystemUsage {
@@ -13,7 +14,7 @@ impl From<&config::Check> for FilesystemUsage {
                 mountpoints: filesystem_usage_config.mountpoints.clone(),
             }
         } else {
-            panic!(); // TODO
+            panic!();
         }
     }
 }
@@ -22,19 +23,20 @@ impl From<&config::Check> for FilesystemUsage {
 impl DataSource for FilesystemUsage {
     type Item = u8;
 
-    fn validate(&self) -> bool {
+    fn validate(&self) -> Result<()> {
         // TODO validate existance of mountpoints
-        true
+        Ok(())
     }
 
-    async fn get_data(&self) -> Vec<Self::Item> {
+    async fn get_data(&self) -> Result<Vec<Self::Item>> {
         let mut res = Vec::new();
         for mountpoint in self.mountpoints.iter() {
-            let stat = nix::sys::statvfs::statvfs(&mountpoint[..]).unwrap();
+            let stat = nix::sys::statvfs::statvfs(&mountpoint[..])
+                .map_err(|x| Error(format!("Call to 'statvfs' failed: {}", x)))?;
             let usage = (stat.blocks() - stat.blocks_available()) * 100 / stat.blocks();
             res.push(usage as u8);
         }
-        res
+        Ok(res)
     }
 
     fn measurement_ids(&self) -> &[String] {

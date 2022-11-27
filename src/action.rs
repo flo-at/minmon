@@ -2,28 +2,12 @@ use std::collections::HashMap;
 
 use crate::config;
 use crate::placeholder::PlaceholderMap;
+use crate::{Error, Result};
 use async_trait::async_trait;
-
-#[derive(Debug)]
-struct Error(String, String);
-impl std::error::Error for Error {}
-
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(
-            f,
-            "Error while action '{}' was triggered: {}",
-            self.0, self.1
-        )
-    }
-}
 
 #[async_trait]
 pub trait Trigger: Send + Sync {
-    async fn trigger(
-        &self,
-        placeholders: &PlaceholderMap,
-    ) -> Result<(), Box<dyn std::error::Error>>;
+    async fn trigger(&self, placeholders: &PlaceholderMap) -> Result<()>;
 }
 
 pub struct WebHook {
@@ -35,6 +19,7 @@ pub struct WebHook {
     body: String,
 }
 
+#[cfg(test)]
 impl WebHook {
     fn new(
         name: String,
@@ -71,10 +56,7 @@ impl From<&config::Action> for WebHook {
 
 #[async_trait]
 impl Trigger for WebHook {
-    async fn trigger(
-        &self,
-        placeholders: &PlaceholderMap,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn trigger(&self, placeholders: &PlaceholderMap) -> Result<()> {
         use std::str::FromStr;
         let template = text_placeholder::Template::new(&self.body[..]);
         let body = template.fill_with_hashmap(
@@ -102,14 +84,15 @@ impl Trigger for WebHook {
             .headers(headers)
             .body(body)
             .send()
-            .await?;
+            .await
+            .map_err(|x| Error(format!("HTTP request failed: {}", x)))?;
         let status = response.status();
         if status.is_success() {
             Ok(())
         } else {
-            Err(Box::new(Error(
-                self.name.clone(),
-                format!("HTTP status code {} indicates error.", status.as_u16()),
+            Err(Error(format!(
+                "HTTP status code {} indicates error.",
+                status.as_u16()
             )))
         }
     }
@@ -133,7 +116,7 @@ mod test {
 
     #[tokio::test]
     async fn test_web_hook_ok() {
-        let mut web_hook = WebHook::new(
+        let web_hook = WebHook::new(
             String::from("Test WebHook"),
             String::from("https://httpbin.org/status/200"),
             reqwest::Method::GET,
@@ -146,7 +129,7 @@ mod test {
 
     #[tokio::test]
     async fn test_web_hook_err() {
-        let mut web_hook = WebHook::new(
+        let web_hook = WebHook::new(
             String::from("Test WebHook"),
             String::from("https://httpbin.org/status/400"),
             reqwest::Method::GET,

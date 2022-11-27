@@ -1,6 +1,7 @@
 use crate::alarm;
 use crate::alarm::Alarm;
 use crate::config;
+use crate::Result;
 use async_trait::async_trait;
 
 mod filesystem_usage;
@@ -13,7 +14,7 @@ use crate::ActionMap;
 
 #[async_trait]
 pub trait Check: Send + Sync {
-    async fn trigger(&mut self);
+    async fn trigger(&mut self) -> Result<()>;
     fn interval(&self) -> std::time::Duration;
     fn report(&self) -> String; // TODO implement
     fn name(&self) -> &str;
@@ -23,8 +24,8 @@ pub trait Check: Send + Sync {
 pub trait DataSource: Send + Sync {
     type Item: Send + Sync;
 
-    fn validate(&self) -> bool;
-    async fn get_data(&self) -> Vec<Self::Item>;
+    fn validate(&self) -> Result<()>;
+    async fn get_data(&self) -> Result<Vec<Self::Item>>;
     fn measurement_ids(&self) -> &[String];
 }
 
@@ -60,14 +61,15 @@ where
     T: DataSource,
     U: Alarm<Item = T::Item>,
 {
-    async fn trigger(&mut self) {
-        let data_vec = self.data_source.get_data().await;
+    async fn trigger(&mut self) -> Result<()> {
+        let data_vec = self.data_source.get_data().await?;
         // TODO use iter::zip
         for (i, data) in data_vec.iter().enumerate() {
             for alarm in &mut self.alarms[i] {
                 alarm.put_data(data).await;
             }
         }
+        Ok(())
     }
 
     fn interval(&self) -> std::time::Duration {
@@ -83,13 +85,13 @@ where
     }
 }
 
-fn factory<'a, T, U>(check_config: &'a config::Check, actions: &ActionMap) -> Box<dyn Check>
+fn factory<'a, T, U>(check_config: &'a config::Check, actions: &ActionMap) -> Result<Box<dyn Check>>
 where
     T: DataSource + From<&'a config::Check> + 'static, // TODO warum 'static?
     U: Alarm<Item = T::Item> + 'static,                // TODO warum 'static?
 {
     let data_source = T::from(check_config);
-    data_source.validate(); // TODO pass on error
+    data_source.validate()?;
     let mut all_alarms: Vec<Vec<U>> = Vec::new();
     for measurement_id in data_source.measurement_ids().iter() {
         let mut alarms: Vec<U> = Vec::new();
@@ -104,26 +106,30 @@ where
                 alarm_config.cycles,
                 alarm_config.recover_cycles
             );
-            let level_alarm = U::new(measurement_id, alarm_config, actions);
+            let level_alarm = U::new(measurement_id, alarm_config, actions); // TODO ?
             alarms.push(level_alarm);
         }
         all_alarms.push(alarms);
     }
-    Box::new(CheckBase::new(
+    Ok(Box::new(CheckBase::new(
         check_config.interval,
         check_config.name.clone(),
         data_source,
         all_alarms,
-    ))
+    )))
 }
 
-pub fn from_check_config(check_config: &config::Check, actions: &ActionMap) -> Box<dyn Check> {
+pub fn from_check_config(
+    check_config: &config::Check,
+    actions: &ActionMap,
+) -> Result<Box<dyn Check>> {
     match &check_config.type_ {
+        // NOTE Add mapping here when implementing new data source / alarms.
         config::CheckType::FilesystemUsage(_) => {
             factory::<FilesystemUsage, alarm::Level>(check_config, actions)
         }
         config::CheckType::MemoryUsage => {
             factory::<MemoryUsage, alarm::Level>(check_config, actions)
-        } // TODO add mapping here when implementing new data source / alarms
+        }
     }
 }

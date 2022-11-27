@@ -14,17 +14,29 @@ use std::collections::HashMap;
 
 type ActionMap = HashMap<String, std::sync::Arc<dyn action::Trigger>>;
 
+#[derive(Debug)]
+pub struct Error(String);
+impl std::error::Error for Error {}
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+pub type Result<T> = std::result::Result<T, Error>;
+
 // TODO implement report
 // TODO check/handle unwraps!
 // TODO initial checks (e.g. file system exists), matching check/alarm config types
 // NOTE FilesystemUsage uses "available blocks" (not "free blocks") i.e. blocks available to
 //      unpriv. users
 
-fn get_config_file_path() -> Result<std::path::PathBuf, &'static str> {
+fn get_config_file_path() -> Result<std::path::PathBuf> {
     if let Some(path_str) = std::env::args().nth(1) {
         Ok(std::path::PathBuf::from(path_str))
     } else {
-        Err("Config file path not specified.")
+        Err(Error(String::from("Config file path not specified.")))
     }
 }
 
@@ -95,7 +107,7 @@ fn init_checks(config: &config::Config, actions: &ActionMap) -> Vec<Box<dyn chec
             );
             continue;
         }
-        let check = check::from_check_config(check_config, actions);
+        let check = check::from_check_config(check_config, actions).unwrap(); // TODO
         log::info!(
             "Check {} will be triggered every {} seconds.",
             check.name(),
@@ -123,7 +135,13 @@ async fn main() {
             let mut interval = tokio::time::interval(check.interval());
             loop {
                 interval.tick().await;
-                check.trigger().await;
+                if let Err(error) = check.trigger().await {
+                    log::error!(
+                        "Error while check '{}' was triggered: {}",
+                        check.name(),
+                        error
+                    );
+                }
             }
         });
     }
