@@ -20,10 +20,10 @@ pub trait Alarm: Send + Sync {
 pub struct AlarmBase {
     name: String,
     id: String,
-    action: Option<std::sync::Arc<dyn action::Trigger>>,
+    action: Option<std::sync::Arc<dyn action::Action>>,
     cycles: u32,
     repeat_cycles: u32,
-    recover_action: Option<std::sync::Arc<dyn action::Trigger>>,
+    recover_action: Option<std::sync::Arc<dyn action::Action>>,
     recover_cycles: u32,
     // --
     bad_cycles: u32,

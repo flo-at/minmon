@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::Trigger;
+use super::Action;
 use crate::config;
 use crate::placeholder::PlaceholderMap;
 use crate::{Error, Result};
@@ -71,7 +71,7 @@ impl TryFrom<&config::Action> for WebHook {
 }
 
 #[async_trait]
-impl Trigger for WebHook {
+impl Action for WebHook {
     async fn trigger(&self, placeholders: &PlaceholderMap) -> Result<()> {
         let template = text_placeholder::Template::new(&self.body[..]);
         let body = template.fill_with_hashmap(

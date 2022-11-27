@@ -12,7 +12,7 @@ extern crate systemd as systemd_ext;
 
 use std::collections::HashMap;
 
-type ActionMap = HashMap<String, std::sync::Arc<dyn action::Trigger>>;
+type ActionMap = HashMap<String, std::sync::Arc<dyn action::Action>>;
 
 #[derive(Debug)]
 pub struct Error(String);
