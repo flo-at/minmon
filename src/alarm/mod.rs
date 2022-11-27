@@ -14,7 +14,7 @@ pub trait Alarm: Send + Sync {
     type Item: Send + Sync;
 
     fn new(measurement_id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Self;
-    async fn put_data(&mut self, data: &Self::Item);
+    async fn put_data(&mut self, data: &Self::Item) -> Result<()>;
 }
 
 pub struct AlarmBase {
@@ -33,28 +33,33 @@ pub struct AlarmBase {
 }
 
 impl AlarmBase {
-    fn bad(&mut self) -> bool {
+    async fn bad(&mut self) -> Result<()> {
         self.good_cycles = 0;
         self.bad_cycles += 1;
         if self.bad_cycles >= self.cycles {
             let good_old = self.good;
             self.good = false;
-            return good_old
+            if good_old
                 || (self.repeat_cycles > 0
-                    && (self.bad_cycles - self.cycles) % self.repeat_cycles == 0);
+                    && (self.bad_cycles - self.cycles) % self.repeat_cycles == 0)
+            {
+                self.trigger(&PlaceholderMap::new()).await?;
+            }
         }
-        false
+        Ok(())
     }
 
-    fn good(&mut self) -> bool {
+    async fn good(&mut self) -> Result<()> {
         self.bad_cycles = 0;
         self.good_cycles += 1;
         if self.good_cycles == self.recover_cycles {
             let good_old = self.good;
             self.good = true;
-            return !good_old;
+            if !good_old {
+                self.trigger_recover(&PlaceholderMap::new()).await?;
+            }
         }
-        false
+        Ok(())
     }
 
     async fn trigger(&self, placeholders: &PlaceholderMap) -> Result<()> {

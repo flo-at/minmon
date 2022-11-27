@@ -12,6 +12,7 @@ pub struct MemoryUsage {
     id: Vec<String>,
 }
 
+// TODO implement swap
 impl MemoryUsage {
     fn get_number(id: &str, line: &str) -> Result<usize> {
         {
@@ -61,8 +62,8 @@ impl DataSource for MemoryUsage {
             .map_err(|x| Error(format!("Could not read from {}: {}", MEMINFO_PATH, x)))?;
         let mut mem_total: Option<usize> = None;
         let mut mem_available: Option<usize> = None;
-        for line in buffer.lines().flatten() {
-            // TODO flatten is not correct!
+        for line in buffer.lines() {
+            let line = line.map_err(|x| Error(format!("Error reading line: {}", x)))?;
             if line.starts_with("MemTotal") {
                 mem_total = Some(Self::get_number("MemTotal", &line)?);
             } else if line.starts_with("MemAvailable") {

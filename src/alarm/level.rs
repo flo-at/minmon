@@ -1,8 +1,8 @@
+use crate::Result;
 use async_trait::async_trait;
 
 use super::config;
 use super::{Alarm, AlarmBase};
-use crate::placeholder::PlaceholderMap;
 use crate::ActionMap; // TODO move
 
 pub struct Level {
@@ -22,7 +22,7 @@ impl Alarm for Level {
         }
     }
 
-    async fn put_data(&mut self, data: &Self::Item) {
+    async fn put_data(&mut self, data: &Self::Item) -> Result<()> {
         log::debug!(
             "Got level {} for alarm '{}' at id '{}'",
             data,
@@ -30,18 +30,10 @@ impl Alarm for Level {
             self.alarm.id
         );
         if *data >= self.level {
-            if self.alarm.bad() {
-                self.alarm.trigger(&PlaceholderMap::new()).await.unwrap(); // TODO handle
-                log::debug!("BAD action triggered!");
-            }
+            self.alarm.bad().await?;
         } else {
-            if self.alarm.good() {
-                self.alarm
-                    .trigger_recover(&PlaceholderMap::new())
-                    .await
-                    .unwrap(); // TODO handle
-                log::debug!("GOOD action triggered!");
-            }
+            self.alarm.good().await?;
         }
+        Ok(())
     }
 }

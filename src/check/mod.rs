@@ -61,11 +61,14 @@ where
     U: Alarm<Item = T::Item>,
 {
     async fn trigger(&mut self) -> Result<()> {
-        let data_vec = self.data_source.get_data().await?;
-        // TODO use iter::zip
-        for (i, data) in data_vec.iter().enumerate() {
-            for alarm in &mut self.alarms[i] {
-                alarm.put_data(data).await;
+        let data_vec = self
+            .data_source
+            .get_data()
+            .await
+            .map_err(|x| Error(format!("Failed to get data: {}", x)))?;
+        for (data, alarms) in data_vec.iter().zip(self.alarms.iter_mut()) {
+            for alarm in alarms.iter_mut() {
+                alarm.put_data(data).await?;
             }
         }
         Ok(())
