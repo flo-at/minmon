@@ -4,8 +4,10 @@ use crate::config;
 use async_trait::async_trait;
 
 mod filesystem_usage;
+mod memory_usage;
 
-pub use filesystem_usage::FilesystemUsage;
+use filesystem_usage::FilesystemUsage;
+use memory_usage::MemoryUsage;
 
 use crate::ActionMap;
 
@@ -17,11 +19,12 @@ pub trait Check: Send + Sync {
     fn name(&self) -> &str;
 }
 
+#[async_trait]
 pub trait DataSource: Send + Sync {
     type Item: Send + Sync;
 
     fn validate(&self) -> bool;
-    fn get_data(&self) -> Vec<Self::Item>;
+    async fn get_data(&self) -> Vec<Self::Item>;
     fn measurement_ids(&self) -> &[String];
 }
 
@@ -58,7 +61,8 @@ where
     U: Alarm<Item = T::Item>,
 {
     async fn trigger(&mut self) {
-        let data_vec = self.data_source.get_data();
+        let data_vec = self.data_source.get_data().await;
+        // TODO use iter::zip
         for (i, data) in data_vec.iter().enumerate() {
             for alarm in &mut self.alarms[i] {
                 alarm.put_data(data).await;
@@ -117,6 +121,9 @@ pub fn from_check_config(check_config: &config::Check, actions: &ActionMap) -> B
     match &check_config.type_ {
         config::CheckType::FilesystemUsage(_) => {
             factory::<FilesystemUsage, alarm::Level>(check_config, actions)
+        }
+        config::CheckType::MemoryUsage => {
+            factory::<MemoryUsage, alarm::Level>(check_config, actions)
         } // TODO add mapping here when implementing new data source / alarms
     }
 }

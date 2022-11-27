@@ -1,6 +1,6 @@
-use crate::config;
-
 use super::DataSource;
+use crate::config;
+use async_trait::async_trait;
 
 pub struct FilesystemUsage {
     mountpoints: Vec<String>, // TODO possible to store a reference?
@@ -8,13 +8,17 @@ pub struct FilesystemUsage {
 
 impl From<&config::Check> for FilesystemUsage {
     fn from(check: &config::Check) -> Self {
-        let config::CheckType::FilesystemUsage(filesystem_usage_config) = &check.type_;
-        Self {
-            mountpoints: filesystem_usage_config.mountpoints.clone(),
+        if let config::CheckType::FilesystemUsage(filesystem_usage_config) = &check.type_ {
+            Self {
+                mountpoints: filesystem_usage_config.mountpoints.clone(),
+            }
+        } else {
+            panic!(); // TODO
         }
     }
 }
 
+#[async_trait]
 impl DataSource for FilesystemUsage {
     type Item = u8;
 
@@ -23,7 +27,7 @@ impl DataSource for FilesystemUsage {
         true
     }
 
-    fn get_data(&self) -> Vec<Self::Item> {
+    async fn get_data(&self) -> Vec<Self::Item> {
         let mut res = Vec::new();
         for mountpoint in self.mountpoints.iter() {
             let stat = nix::sys::statvfs::statvfs(&mountpoint[..]).unwrap();

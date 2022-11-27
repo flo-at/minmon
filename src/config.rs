@@ -149,12 +149,14 @@ pub struct Check {
 #[serde(tag = "type")]
 pub enum CheckType {
     FilesystemUsage(CheckFilesystemUsage),
+    MemoryUsage,
 }
 
 impl std::fmt::Display for CheckType {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
             CheckType::FilesystemUsage(_) => write!(f, "FilesystemUsage"),
+            CheckType::MemoryUsage => write!(f, "MemoryUsage"),
         }
     }
 }
