@@ -1,14 +1,10 @@
 use std::collections::HashMap;
 
+use super::Trigger;
 use crate::config;
 use crate::placeholder::PlaceholderMap;
 use crate::{Error, Result};
 use async_trait::async_trait;
-
-#[async_trait]
-pub trait Trigger: Send + Sync {
-    async fn trigger(&self, placeholders: &PlaceholderMap) -> Result<()>;
-}
 
 pub struct WebHook {
     name: String,
