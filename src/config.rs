@@ -1,3 +1,4 @@
+use crate::Error;
 use std::collections::HashMap;
 
 use serde::Deserialize;
@@ -223,31 +224,24 @@ mod default {
     }
 }
 
-//impl TryFrom<&String> for Config {
-//    type Error = Box<dyn std::error::Error>;
-//
-//    fn try_from(text: &String) -> Result<Self, Self::Error> {
-//        Self::from(&text[..])
-//    }
-//}
-
 impl TryFrom<&str> for Config {
-    type Error = Box<dyn std::error::Error>;
+    type Error = Error;
 
     fn try_from(text: &str) -> Result<Self, Self::Error> {
-        let config: Config = toml::from_str(text)?;
+        let config: Config = toml::from_str(text).map_err(|x| Error(format!("{}", x)))?;
         Ok(config) // TODO this is not very clean
     }
 }
 
 impl TryFrom<&std::path::Path> for Config {
-    type Error = Box<dyn std::error::Error>;
+    type Error = Error;
 
     fn try_from(path: &std::path::Path) -> Result<Self, Self::Error> {
         use std::io::Read;
-        let mut file = std::fs::File::open(path)?;
+        let mut file = std::fs::File::open(path).map_err(|x| Error(format!("{}", x)))?;
         let mut content = String::new();
-        file.read_to_string(&mut content)?;
+        file.read_to_string(&mut content)
+            .map_err(|x| Error(format!("{}", x)))?;
         Config::try_from(&content[..])
     }
 }

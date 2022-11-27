@@ -133,4 +133,10 @@ pub fn from_check_config(
             factory::<MemoryUsage, alarm::Level>(check_config, actions)
         }
     }
+    .map_err(|x| {
+        Error(format!(
+            "Failed to create check '{}' from config: {}",
+            check_config.name, x
+        ))
+    })
 }

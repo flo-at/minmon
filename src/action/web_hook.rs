@@ -58,15 +58,18 @@ impl TryFrom<&config::Action> for WebHook {
     type Error = Error;
 
     fn try_from(action: &config::Action) -> std::result::Result<Self, Self::Error> {
-        let config::ActionType::WebHook(web_hook) = &action.type_;
-        Ok(Self {
-            name: action.name.clone(),
-            url: web_hook.url.clone(),
-            method: reqwest::Method::from(web_hook.method),
-            headers: Self::transform_header_map(&web_hook.headers)?,
-            timeout: web_hook.timeout,
-            body: web_hook.body.clone(),
-        })
+        if let config::ActionType::WebHook(web_hook) = &action.type_ {
+            Ok(Self {
+                name: action.name.clone(),
+                url: web_hook.url.clone(),
+                method: reqwest::Method::from(web_hook.method),
+                headers: Self::transform_header_map(&web_hook.headers)?,
+                timeout: web_hook.timeout,
+                body: web_hook.body.clone(),
+            })
+        } else {
+            panic!();
+        }
     }
 }
 

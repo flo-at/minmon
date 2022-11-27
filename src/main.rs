@@ -27,8 +27,6 @@ impl std::fmt::Display for Error {
 pub type Result<T> = std::result::Result<T, Error>;
 
 // TODO implement report
-// TODO check/handle unwraps!
-// TODO initial checks (e.g. file system exists), matching check/alarm config types
 // NOTE FilesystemUsage uses "available blocks" (not "free blocks") i.e. blocks available to
 //      unpriv. users
 
@@ -40,7 +38,7 @@ fn get_config_file_path() -> Result<std::path::PathBuf> {
     }
 }
 
-fn init_logging(config: &config::Config) {
+fn init_logging(config: &config::Config) -> Result<()> {
     match config.log.target {
         config::LogTarget::Stdout => {
             let mut builder = env_logger::Builder::from_default_env();
@@ -61,9 +59,11 @@ fn init_logging(config: &config::Config) {
         }
         #[cfg(feature = "systemd")]
         config::LogTarget::Journal => {
-            systemd_ext::journal::JournalLog::init().unwrap();
+            systemd_ext::journal::JournalLog::init()
+                .map_err(|x| Error(format!("Could not initialize journal logger: {}", x)))?;
         }
     }
+    Ok(())
 }
 
 fn init_actions(config: &config::Config) -> Result<ActionMap> {
@@ -95,7 +95,7 @@ fn init_actions(config: &config::Config) -> Result<ActionMap> {
     Ok(res)
 }
 
-fn init_checks(config: &config::Config, actions: &ActionMap) -> Vec<Box<dyn check::Check>> {
+fn init_checks(config: &config::Config, actions: &ActionMap) -> Result<Vec<Box<dyn check::Check>>> {
     log::info!("Initializing {} check(s)..", config.checks.len());
     let mut res: Vec<Box<dyn check::Check>> = Vec::new();
     for check_config in config.checks.iter() {
@@ -107,7 +107,7 @@ fn init_checks(config: &config::Config, actions: &ActionMap) -> Vec<Box<dyn chec
             );
             continue;
         }
-        let check = check::from_check_config(check_config, actions).unwrap(); // TODO
+        let check = check::from_check_config(check_config, actions)?;
         log::info!(
             "Check {} will be triggered every {} seconds.",
             check.name(),
@@ -115,21 +115,20 @@ fn init_checks(config: &config::Config, actions: &ActionMap) -> Vec<Box<dyn chec
         );
         res.push(check);
     }
-    res
+    Ok(res)
 }
 
-#[tokio::main(flavor = "current_thread")]
-//async fn main() -> Result<(), Box<dyn std::error::Error>> {
-async fn main() {
-    let config_file_path = get_config_file_path().expect("TODO handle this / pass on!");
-    let config = config::Config::try_from(config_file_path.as_path()).unwrap();
-    init_logging(&config);
+async fn main_wrapper() -> Result<()> {
+    let config_file_path = get_config_file_path()?;
+    let config = config::Config::try_from(config_file_path.as_path())
+        .map_err(|x| Error(format!("Failed to parse config file: {}", x)))?;
+    init_logging(&config)?;
     #[cfg(feature = "systemd")]
     {
         systemd::init();
     }
-    let actions = init_actions(&config).unwrap(); // TODO
-    let checks = init_checks(&config, &actions);
+    let actions = init_actions(&config)?;
+    let checks = init_checks(&config, &actions)?;
     for mut check in checks {
         tokio::spawn(async move {
             let mut interval = tokio::time::interval(check.interval());
@@ -151,4 +150,15 @@ async fn main() {
     let mut stream =
         tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()).unwrap();
     stream.recv().await;
+    Ok(())
+}
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
+    if let Err(error) = main_wrapper().await {
+        // Print to stderr here because logging might not be initialized if the config file cannot
+        // be parsed.
+        eprintln!("Exiting due to error: {}", error);
+        std::process::exit(1);
+    }
 }
