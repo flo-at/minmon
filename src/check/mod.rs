@@ -1,7 +1,7 @@
 use crate::alarm;
 use crate::alarm::Alarm;
 use crate::config;
-use crate::Result;
+use crate::{Error, Result};
 use async_trait::async_trait;
 
 mod filesystem_usage;
@@ -16,7 +16,7 @@ use crate::ActionMap;
 pub trait Check: Send + Sync {
     async fn trigger(&mut self) -> Result<()>;
     fn interval(&self) -> std::time::Duration;
-    fn report(&self) -> String; // TODO implement
+    fn report(&self) -> String;
     fn name(&self) -> &str;
 }
 
@@ -24,7 +24,6 @@ pub trait Check: Send + Sync {
 pub trait DataSource: Send + Sync {
     type Item: Send + Sync;
 
-    fn validate(&self) -> Result<()>;
     async fn get_data(&self) -> Result<Vec<Self::Item>>;
     fn measurement_ids(&self) -> &[String];
 }
@@ -87,11 +86,10 @@ where
 
 fn factory<'a, T, U>(check_config: &'a config::Check, actions: &ActionMap) -> Result<Box<dyn Check>>
 where
-    T: DataSource + From<&'a config::Check> + 'static, // TODO warum 'static?
-    U: Alarm<Item = T::Item> + 'static,                // TODO warum 'static?
+    T: DataSource + TryFrom<&'a config::Check, Error = Error> + 'static, // TODO warum 'static?
+    U: Alarm<Item = T::Item> + 'static,                                  // TODO warum 'static?
 {
-    let data_source = T::from(check_config);
-    data_source.validate()?;
+    let data_source = T::try_from(check_config)?;
     let mut all_alarms: Vec<Vec<U>> = Vec::new();
     for measurement_id in data_source.measurement_ids().iter() {
         let mut alarms: Vec<U> = Vec::new();

@@ -7,12 +7,15 @@ pub struct FilesystemUsage {
     mountpoints: Vec<String>,
 }
 
-impl From<&config::Check> for FilesystemUsage {
-    fn from(check: &config::Check) -> Self {
+impl TryFrom<&config::Check> for FilesystemUsage {
+    type Error = Error;
+
+    fn try_from(check: &config::Check) -> std::result::Result<Self, self::Error> {
         if let config::CheckType::FilesystemUsage(filesystem_usage_config) = &check.type_ {
-            Self {
+            // TODO validate existance of mountpoints
+            Ok(Self {
                 mountpoints: filesystem_usage_config.mountpoints.clone(),
-            }
+            })
         } else {
             panic!();
         }
@@ -22,11 +25,6 @@ impl From<&config::Check> for FilesystemUsage {
 #[async_trait]
 impl DataSource for FilesystemUsage {
     type Item = u8;
-
-    fn validate(&self) -> Result<()> {
-        // TODO validate existance of mountpoints
-        Ok(())
-    }
 
     async fn get_data(&self) -> Result<Vec<Self::Item>> {
         let mut res = Vec::new();

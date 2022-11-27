@@ -30,12 +30,14 @@ impl MemoryUsage {
     }
 }
 
-impl From<&config::Check> for MemoryUsage {
-    fn from(check: &config::Check) -> Self {
+impl TryFrom<&config::Check> for MemoryUsage {
+    type Error = Error;
+
+    fn try_from(check: &config::Check) -> std::result::Result<Self, self::Error> {
         if let config::CheckType::MemoryUsage = &check.type_ {
-            Self {
+            Ok(Self {
                 id: vec![String::from("Memory")],
-            }
+            })
         } else {
             panic!();
         }
@@ -45,10 +47,6 @@ impl From<&config::Check> for MemoryUsage {
 #[async_trait]
 impl DataSource for MemoryUsage {
     type Item = u8;
-
-    fn validate(&self) -> Result<()> {
-        Ok(())
-    }
 
     async fn get_data(&self) -> Result<Vec<Self::Item>> {
         let mut file = tokio::fs::File::open(MEMINFO_PATH).await.map_err(|x| {
