@@ -14,20 +14,20 @@ pub struct Level {
 impl Alarm for Level {
     type Item = u8;
 
-    fn new(alarm: &config::Alarm, actions: &ActionMap) -> Self {
+    fn new(measurement_id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Self {
         let config::AlarmType::Level(level_config) = &alarm.type_;
         Self {
-            alarm: AlarmBase::new(alarm, actions),
+            alarm: AlarmBase::new(measurement_id, alarm, actions),
             level: level_config.level,
         }
     }
 
-    async fn put_data(&mut self, id: &str, data: &Self::Item) {
+    async fn put_data(&mut self, data: &Self::Item) {
         log::debug!(
             "Got level {} for alarm '{}' at id '{}'",
             data,
             self.alarm.name,
-            id
+            self.alarm.id
         );
         if *data >= self.level {
             if self.alarm.bad() {

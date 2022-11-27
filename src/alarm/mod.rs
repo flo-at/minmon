@@ -12,12 +12,13 @@ pub use level::Level;
 pub trait Alarm: Send + Sync {
     type Item: Send + Sync;
 
-    fn new(alarm: &config::Alarm, actions: &ActionMap) -> Self;
-    async fn put_data(&mut self, id: &str, data: &Self::Item);
+    fn new(measurement_id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Self;
+    async fn put_data(&mut self, data: &Self::Item);
 }
 
 pub struct AlarmBase {
     name: String,
+    id: String,
     action: Option<std::sync::Arc<dyn action::Trigger>>,
     cycles: u32,
     repeat_cycles: u32,
@@ -83,9 +84,10 @@ impl AlarmBase {
 }
 
 impl AlarmBase {
-    pub fn new(alarm: &config::Alarm, actions: &ActionMap) -> Self {
+    pub fn new(measurement_id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Self {
         Self {
             name: alarm.name.clone(),
+            id: measurement_id.to_string(),
             action: actions.get(&alarm.action).cloned(),
             cycles: alarm.cycles,
             repeat_cycles: alarm.repeat_cycles,

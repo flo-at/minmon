@@ -7,8 +7,6 @@ mod filesystem_usage;
 
 pub use filesystem_usage::FilesystemUsage;
 
-use std::collections::HashMap;
-
 use crate::ActionMap;
 
 #[async_trait]
@@ -22,8 +20,8 @@ pub trait Check: Send + Sync {
 pub trait DataSource: Send + Sync {
     type Item: Send + Sync;
 
-    fn validate(&self) -> bool; // TODO call validate early on
-    fn get_data(&self) -> Vec<(String, Self::Item)>;
+    fn validate(&self) -> bool;
+    fn get_data(&self) -> Vec<Self::Item>;
     fn measurement_ids(&self) -> &[String];
 }
 
@@ -35,7 +33,7 @@ where
     interval: u32,
     name: String,
     data_source: T,
-    alarms: HashMap<String, Vec<U>>, // TODO Vec<Vec<U>> should also work
+    alarms: Vec<Vec<U>>,
 }
 
 impl<T, U> CheckBase<T, U>
@@ -43,7 +41,7 @@ where
     T: DataSource,
     U: Alarm<Item = T::Item>,
 {
-    fn new(interval: u32, name: String, data_source: T, alarms: HashMap<String, Vec<U>>) -> Self {
+    fn new(interval: u32, name: String, data_source: T, alarms: Vec<Vec<U>>) -> Self {
         Self {
             interval,
             name,
@@ -61,10 +59,9 @@ where
 {
     async fn trigger(&mut self) {
         let data_vec = self.data_source.get_data();
-        for (id, data) in data_vec.iter() {
-            let alarms = self.alarms.get_mut(id).unwrap();
-            for alarm in alarms.iter_mut() {
-                alarm.put_data(id, data).await;
+        for (i, data) in data_vec.iter().enumerate() {
+            for alarm in &mut self.alarms[i] {
+                alarm.put_data(data).await;
             }
         }
     }
@@ -88,7 +85,8 @@ where
     U: Alarm<Item = T::Item> + 'static,                // TODO warum 'static?
 {
     let data_source = T::from(check_config);
-    let mut alarm_map: HashMap<String, Vec<U>> = HashMap::new();
+    data_source.validate(); // TODO pass on error
+    let mut all_alarms: Vec<Vec<U>> = Vec::new();
     for measurement_id in data_source.measurement_ids().iter() {
         let mut alarms: Vec<U> = Vec::new();
         for alarm_config in check_config.alarms.iter() {
@@ -102,16 +100,16 @@ where
                 alarm_config.cycles,
                 alarm_config.recover_cycles
             );
-            let level_alarm = U::new(alarm_config, actions);
+            let level_alarm = U::new(measurement_id, alarm_config, actions);
             alarms.push(level_alarm);
         }
-        alarm_map.insert(measurement_id.clone(), alarms);
+        all_alarms.push(alarms);
     }
     Box::new(CheckBase::new(
         check_config.interval,
         check_config.name.clone(),
         data_source,
-        alarm_map,
+        all_alarms,
     ))
 }
 

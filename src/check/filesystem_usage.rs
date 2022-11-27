@@ -23,12 +23,12 @@ impl DataSource for FilesystemUsage {
         true
     }
 
-    fn get_data(&self) -> Vec<(String, Self::Item)> {
+    fn get_data(&self) -> Vec<Self::Item> {
         let mut res = Vec::new();
         for mountpoint in self.mountpoints.iter() {
             let stat = nix::sys::statvfs::statvfs(&mountpoint[..]).unwrap();
             let usage = (stat.blocks() - stat.blocks_available()) * 100 / stat.blocks();
-            res.push((mountpoint.clone(), usage as u8));
+            res.push(usage as u8);
         }
         res
     }
