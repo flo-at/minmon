@@ -26,6 +26,7 @@ impl std::fmt::Display for Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
+// TODO placeholders!
 // TODO implement report
 // NOTE FilesystemUsage uses "available blocks" (not "free blocks") i.e. blocks available to
 //      unpriv. users
@@ -78,14 +79,17 @@ fn init_actions(config: &config::Config) -> Result<ActionMap> {
             );
             continue;
         }
-        match &action_config.type_ {
-            config::ActionType::WebHook(_) => {
-                res.insert(
-                    action_config.name.clone(),
-                    std::sync::Arc::new(action::WebHook::try_from(action_config)?),
-                );
-            }
-        }
+        res.insert(
+            action_config.name.clone(),
+            match &action_config.type_ {
+                config::ActionType::WebHook(_) => {
+                    std::sync::Arc::new(action::WebHook::try_from(action_config)?)
+                }
+                config::ActionType::Log(_) => {
+                    std::sync::Arc::new(action::Log::try_from(action_config)?)
+                }
+            },
+        );
         log::info!(
             "Action {}::'{}' initialized.",
             action_config.type_,

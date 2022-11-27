@@ -84,7 +84,6 @@ impl Action for WebHook {
                 .chain(std::iter::once(("action_name", &self.name[..])))
                 .collect(),
         );
-        println!("Body: {}", body);
         let client = reqwest::Client::new();
         let response = client
             .request(self.method.clone(), &self.url)

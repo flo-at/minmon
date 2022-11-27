@@ -101,12 +101,14 @@ pub struct Action {
 #[serde(tag = "type")]
 pub enum ActionType {
     WebHook(ActionWebHook),
+    Log(ActionLog),
 }
 
 impl std::fmt::Display for ActionType {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
             ActionType::WebHook(_) => write!(f, "WebHook"),
+            ActionType::Log(_) => write!(f, "Log"),
         }
     }
 }
@@ -121,6 +123,11 @@ pub struct ActionWebHook {
     pub timeout: u32,
     #[serde(default)]
     pub body: String,
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
+pub struct ActionLog {
+    pub template: String,
 }
 
 #[derive(Deserialize, PartialEq, Debug, Clone, Copy)]
