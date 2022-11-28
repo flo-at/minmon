@@ -9,12 +9,13 @@ reqwest = { version = "0.11", features = ["json"] }
 tokio = { version = "1", features = ["full"] }
 systemd = { version = "0.10", features = ["journal"], default-features = false, optional = true}
 serde = { version = "1.0", features = ["derive"] }
-uuid = "1.2"
+uuid = { version = "1.2", features = ["v4", "fast-rng"] }
 nix = "0.25"
 log = { version = "0.4", features = ["std"] }
 env_logger = { version = "0.9", features = ["humantime"], default-features = false }
 async-trait = "0.1"
 text_placeholder = "0.4"
+chrono = { version = "0.4", features = ["std", "clock"], default-features = false }
 
 [features]
 default = ["systemd"]

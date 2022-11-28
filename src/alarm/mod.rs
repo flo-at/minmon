@@ -8,6 +8,10 @@ mod level;
 
 pub use level::Level;
 
+fn get_utc_now() -> String {
+    chrono::offset::Utc::now().format("%FT%T").to_string()
+}
+
 #[async_trait]
 pub trait Alarm: Send + Sync + Sized {
     type Item: Send + Sync;
@@ -34,7 +38,8 @@ pub struct AlarmBase {
     good_cycles: u32,
     error_cycles: u32,
     good: bool,
-    // TODO UUID, timestamp
+    alarm_uuid: String,
+    timestamp: String,
 }
 
 impl AlarmBase {
@@ -50,28 +55,36 @@ impl AlarmBase {
         Ok(())
     }
 
-    async fn bad(&mut self, placeholders: PlaceholderMap) -> Result<()> {
+    async fn bad(&mut self, mut placeholders: PlaceholderMap) -> Result<()> {
         self.good_cycles = 0;
         self.bad_cycles += 1;
         if self.bad_cycles >= self.cycles {
             let good_old = self.good;
             self.good = false;
+            if good_old {
+                self.alarm_uuid = uuid::Uuid::new_v4().to_string();
+                self.timestamp = get_utc_now();
+            }
             if good_old
                 || (self.repeat_cycles > 0
                     && (self.bad_cycles - self.cycles) % self.repeat_cycles == 0)
             {
+                placeholders.insert(String::from("alarm_uuid"), self.alarm_uuid.clone());
+                placeholders.insert(String::from("timestamp"), self.timestamp.clone());
                 self.trigger(placeholders).await?;
             }
         }
         Ok(())
     }
 
-    async fn good(&mut self, placeholders: PlaceholderMap) -> Result<()> {
+    async fn good(&mut self, mut placeholders: PlaceholderMap) -> Result<()> {
         self.bad_cycles = 0;
         self.good_cycles += 1;
         if self.good_cycles == self.recover_cycles {
             let good_old = self.good;
             self.good = true;
+            placeholders.insert(String::from("alarm_uuid"), self.alarm_uuid.clone());
+            self.alarm_uuid.clear();
             if !good_old {
                 self.trigger_recover(placeholders).await?;
             }
@@ -149,6 +162,8 @@ impl AlarmBase {
             good_cycles: 0,
             error_cycles: 0,
             good: true,
+            alarm_uuid: String::new(),
+            timestamp: get_utc_now(),
         })
     }
 }

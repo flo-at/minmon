@@ -14,7 +14,6 @@ pub struct MemoryUsage {
     swap: bool,
 }
 
-// TODO implement swap
 impl MemoryUsage {
     fn get_number(id: &str, line: &str) -> Result<usize> {
         {
