@@ -39,9 +39,15 @@ pub struct AlarmBase {
 
 impl AlarmBase {
     async fn error(&mut self, placeholders: PlaceholderMap) -> Result<()> {
+        println!("{}", self.error_repeat_cycles);
         self.error_cycles += 1;
-        // TODO implement..
-        self.trigger_error(placeholders).await
+        if self.error_cycles == 1
+            || (self.error_repeat_cycles > 0
+                && (self.error_cycles - 1) % self.error_repeat_cycles == 0)
+        {
+            self.trigger_error(placeholders).await?
+        }
+        Ok(())
     }
 
     async fn bad(&mut self, placeholders: PlaceholderMap) -> Result<()> {
@@ -137,7 +143,7 @@ impl AlarmBase {
             recover_action: Self::get_action(&alarm.recover_action, actions)?,
             recover_cycles: alarm.recover_cycles,
             error_action: Self::get_action(&alarm.error_action, actions)?,
-            error_repeat_cycles: 0,
+            error_repeat_cycles: alarm.error_repeat_cycles,
             placeholders: alarm.placeholders.clone(),
             bad_cycles: 0,
             good_cycles: 0,
