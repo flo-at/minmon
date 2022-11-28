@@ -46,7 +46,7 @@ impl Alarm for Level {
     }
 
     async fn put_error(&mut self, error: &Error, mut placeholders: PlaceholderMap) -> Result<()> {
-        placeholders.insert(String::from("error"), format!("{}", error));
+        placeholders.insert(String::from("check_error"), format!("{}", error));
         self.alarm.error(placeholders).await
     }
 }

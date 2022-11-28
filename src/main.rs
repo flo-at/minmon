@@ -5,7 +5,8 @@ extern crate systemd as systemd_ext;
 
 use minmon::{config, Error, Result};
 
-// TODO config: error on unknown key
+// TODO WebHook: replace placeholders in url
+// TODO recover_placeholders, error_placeholders
 // TODO consistent debug logging
 // TODO documentation and readme!
 // TODO implement report

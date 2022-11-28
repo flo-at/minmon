@@ -53,7 +53,7 @@ impl AlarmBase {
             || (self.error_repeat_cycles > 0
                 && (self.error_cycles - 1) % self.error_repeat_cycles == 0)
         {
-            placeholders.insert(String::from("timestamp"), self.timestamp.clone());
+            placeholders.insert(String::from("alarm_timestamp"), self.timestamp.clone());
             self.trigger_error(placeholders).await?
         }
         Ok(())
@@ -74,7 +74,7 @@ impl AlarmBase {
                     && (self.bad_cycles - self.cycles) % self.repeat_cycles == 0)
             {
                 placeholders.insert(String::from("alarm_uuid"), self.alarm_uuid.clone());
-                placeholders.insert(String::from("timestamp"), self.timestamp.clone());
+                placeholders.insert(String::from("alarm_timestamp"), self.timestamp.clone());
                 self.trigger(placeholders).await?;
             }
         }
