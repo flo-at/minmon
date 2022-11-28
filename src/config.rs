@@ -158,14 +158,14 @@ pub struct Check {
 #[serde(tag = "type")]
 pub enum CheckType {
     FilesystemUsage(CheckFilesystemUsage),
-    MemoryUsage,
+    MemoryUsage(CheckMemoryUsage),
 }
 
 impl std::fmt::Display for CheckType {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
             CheckType::FilesystemUsage(_) => write!(f, "FilesystemUsage"),
-            CheckType::MemoryUsage => write!(f, "MemoryUsage"),
+            CheckType::MemoryUsage(_) => write!(f, "MemoryUsage"),
         }
     }
 }
@@ -174,6 +174,14 @@ impl std::fmt::Display for CheckType {
 pub struct CheckFilesystemUsage {
     #[serde(default)]
     pub mountpoints: Vec<String>,
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
+pub struct CheckMemoryUsage {
+    #[serde(default = "default::check_memory_usage_memory")]
+    pub memory: bool,
+    #[serde(default = "default::check_memory_usage_swap")]
+    pub swap: bool,
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
@@ -231,6 +239,16 @@ mod default {
     pub const CHECK_ALARM_RECOVER_CYCLES: u32 = 1;
     pub fn check_alarm_recover_cycles() -> u32 {
         CHECK_ALARM_RECOVER_CYCLES
+    }
+
+    pub const CHECK_MEMORY_USAGE_MEMORY: bool = true;
+    pub fn check_memory_usage_memory() -> bool {
+        CHECK_MEMORY_USAGE_MEMORY
+    }
+
+    pub const CHECK_MEMORY_USAGE_SWAP: bool = false;
+    pub fn check_memory_usage_swap() -> bool {
+        CHECK_MEMORY_USAGE_SWAP
     }
 }
 

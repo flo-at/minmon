@@ -1,28 +1,9 @@
-mod action;
-mod alarm;
-mod check;
-mod config;
 #[cfg(feature = "systemd")]
 mod systemd;
 #[cfg(feature = "systemd")]
 extern crate systemd as systemd_ext;
 
-use std::collections::HashMap;
-
-type ActionMap = HashMap<String, std::sync::Arc<dyn action::Action>>;
-pub type PlaceholderMap = std::collections::HashMap<String, String>;
-
-#[derive(Debug)]
-pub struct Error(String);
-impl std::error::Error for Error {}
-
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-pub type Result<T> = std::result::Result<T, Error>;
+use minmon::{config, Error, Result};
 
 // TODO documentation and readme!
 // TODO implement report
@@ -65,61 +46,6 @@ fn init_logging(config: &config::Config) -> Result<()> {
     Ok(())
 }
 
-fn init_actions(config: &config::Config) -> Result<ActionMap> {
-    log::info!("Initializing {} actions(s)..", config.actions.len());
-    let mut res = ActionMap::new();
-    for action_config in config.actions.iter() {
-        if action_config.disable {
-            log::info!(
-                "Action {}::'{}' is disabled.",
-                action_config.type_,
-                action_config.name
-            );
-            continue;
-        }
-        res.insert(
-            action_config.name.clone(),
-            match &action_config.type_ {
-                config::ActionType::WebHook(_) => {
-                    std::sync::Arc::new(action::WebHook::try_from(action_config)?)
-                }
-                config::ActionType::Log(_) => {
-                    std::sync::Arc::new(action::Log::try_from(action_config)?)
-                }
-            },
-        );
-        log::info!(
-            "Action {}::'{}' initialized.",
-            action_config.type_,
-            action_config.name
-        );
-    }
-    Ok(res)
-}
-
-fn init_checks(config: &config::Config, actions: &ActionMap) -> Result<Vec<Box<dyn check::Check>>> {
-    log::info!("Initializing {} check(s)..", config.checks.len());
-    let mut res: Vec<Box<dyn check::Check>> = Vec::new();
-    for check_config in config.checks.iter() {
-        if check_config.disable {
-            log::info!(
-                "Check {}::'{}' is disabled.",
-                check_config.type_,
-                check_config.name
-            );
-            continue;
-        }
-        let check = check::from_check_config(check_config, actions)?;
-        log::info!(
-            "Check {} will be triggered every {} seconds.",
-            check.name(),
-            check.interval().as_secs()
-        );
-        res.push(check);
-    }
-    Ok(res)
-}
-
 async fn main_wrapper() -> Result<()> {
     let config_file_path = get_config_file_path()?;
     let config = config::Config::try_from(config_file_path.as_path())
@@ -129,19 +55,14 @@ async fn main_wrapper() -> Result<()> {
     {
         systemd::init();
     }
-    let actions = init_actions(&config)?;
-    let checks = init_checks(&config, &actions)?;
+    let checks = minmon::from_config(&config)?;
     for mut check in checks {
         tokio::spawn(async move {
             let mut interval = tokio::time::interval(check.interval());
             loop {
                 interval.tick().await;
                 if let Err(error) = check.trigger().await {
-                    log::error!(
-                        "Error while check '{}' was triggered: {}",
-                        check.name(),
-                        error
-                    );
+                    log::error!("Check '{}' failed: {}", check.name(), error);
                 }
             }
         });

@@ -5,13 +5,13 @@ pub fn init() {
     notify_ready();
 }
 
-pub fn notify_ready() {
+fn notify_ready() {
     log::debug!("Letting systemd know we're ready..");
     systemd::daemon::notify(false, [(systemd::daemon::STATE_READY, "1")].iter())
         .expect(GENERIC_ERROR);
 }
 
-pub fn spawn_watchdog_task() {
+fn spawn_watchdog_task() {
     let timeout_ms = systemd::daemon::watchdog_enabled(false).expect(GENERIC_ERROR);
     if timeout_ms > 0 {
         let reset_interval_ms = timeout_ms / 2; // as recommended by systemd
@@ -22,8 +22,11 @@ pub fn spawn_watchdog_task() {
 
             loop {
                 interval.tick().await;
-                systemd::daemon::notify(false, [(systemd::daemon::STATE_WATCHDOG, "1")].iter())
-                    .expect(GENERIC_ERROR);
+                if let Err(err) =
+                    systemd::daemon::notify(false, [(systemd::daemon::STATE_WATCHDOG, "1")].iter())
+                {
+                    log::error!("Failed to reset systemd watchdog: {}", err);
+                }
             }
         });
         log::info!(

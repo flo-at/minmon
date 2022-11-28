@@ -138,7 +138,7 @@ pub fn from_check_config(
         config::CheckType::FilesystemUsage(_) => {
             factory::<FilesystemUsage, alarm::Level>(check_config, actions)
         }
-        config::CheckType::MemoryUsage => {
+        config::CheckType::MemoryUsage(_) => {
             factory::<MemoryUsage, alarm::Level>(check_config, actions)
         }
     }

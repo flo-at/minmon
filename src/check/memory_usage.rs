@@ -10,6 +10,8 @@ const MEMINFO_PATH: &str = "/proc/meminfo";
 
 pub struct MemoryUsage {
     id: Vec<String>,
+    memory: bool,
+    swap: bool,
 }
 
 // TODO implement swap
@@ -35,10 +37,25 @@ impl TryFrom<&config::Check> for MemoryUsage {
     type Error = Error;
 
     fn try_from(check: &config::Check) -> std::result::Result<Self, self::Error> {
-        if let config::CheckType::MemoryUsage = &check.type_ {
-            Ok(Self {
-                id: vec![String::from("Memory")],
-            })
+        if let config::CheckType::MemoryUsage(memory_usage) = &check.type_ {
+            if !memory_usage.memory && !memory_usage.swap {
+                Err(Error(String::from(
+                    "Either 'memory' or 'swap' or both need to be enabled.",
+                )))
+            } else {
+                let mut id = Vec::new();
+                if memory_usage.memory {
+                    id.push(String::from("Memory"));
+                }
+                if memory_usage.swap {
+                    id.push(String::from("Swap"));
+                }
+                Ok(Self {
+                    id,
+                    memory: memory_usage.memory,
+                    swap: memory_usage.swap,
+                })
+            }
         } else {
             panic!();
         }
@@ -62,20 +79,55 @@ impl DataSource for MemoryUsage {
             .map_err(|x| Error(format!("Could not read from {}: {}", MEMINFO_PATH, x)))?;
         let mut mem_total: Option<usize> = None;
         let mut mem_available: Option<usize> = None;
+        let mut mem_usage: Option<u8> = None;
+        let mut swap_total: Option<usize> = None;
+        let mut swap_free: Option<usize> = None;
+        let mut swap_usage: Option<u8> = None;
         for line in buffer.lines() {
             let line = line.map_err(|x| Error(format!("Error reading line: {}", x)))?;
-            if line.starts_with("MemTotal") {
-                mem_total = Some(Self::get_number("MemTotal", &line)?);
-            } else if line.starts_with("MemAvailable") {
-                mem_available = Some(Self::get_number("MemAvailable", &line)?);
+            if self.memory {
+                if line.starts_with("MemTotal") {
+                    mem_total = Some(Self::get_number("MemTotal", &line)?);
+                } else if line.starts_with("MemAvailable") {
+                    mem_available = Some(Self::get_number("MemAvailable", &line)?);
+                }
             }
-            if let (Some(mem_total), Some(mem_available)) = (mem_total, mem_available) {
-                let usage = ((mem_total - mem_available) * 100 / mem_total) as u8;
-                log::debug!("Memory usage is {}%", usage);
-                return Ok(vec![usage]);
+            if self.swap {
+                if line.starts_with("SwapTotal") {
+                    swap_total = Some(Self::get_number("SwapTotal", &line)?);
+                } else if line.starts_with("SwapFree") {
+                    swap_free = Some(Self::get_number("SwapFree", &line)?);
+                }
             }
         }
-        Err(Error(format!("Failed to parse {}.", MEMINFO_PATH)))
+        if let (Some(mem_total), Some(mem_available)) = (mem_total, mem_available) {
+            if mem_total != 0 {
+                mem_usage = Some(((mem_total - mem_available) * 100 / mem_total) as u8);
+            }
+        }
+        if let (Some(swap_total), Some(swap_free)) = (swap_total, swap_free) {
+            if swap_total != 0 {
+                swap_usage = Some(((swap_total - swap_free) * 100 / swap_total) as u8);
+            }
+        }
+        // TODO add special "error" return value in vector so other measurements keep going if one
+        // fails
+        let mut res = Vec::new();
+        if self.memory {
+            if let Some(mem_usage) = mem_usage {
+                res.push(mem_usage);
+            } else {
+                return Err(Error(String::from("Could not parse memory usage.")));
+            }
+        }
+        if self.swap {
+            if let Some(swap_usage) = swap_usage {
+                res.push(swap_usage);
+            } else {
+                return Err(Error(String::from("Could not parse swap usage.")));
+            }
+        }
+        Ok(res)
     }
 
     fn measurement_ids(&self) -> &[String] {
