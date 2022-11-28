@@ -45,7 +45,6 @@ pub struct AlarmBase {
 // TODO das muss überarbeitet werden, blickt sonst niemand mehr durch..
 impl AlarmBase {
     async fn error(&mut self, mut placeholders: PlaceholderMap) -> Result<()> {
-        println!("{}", self.error_repeat_cycles);
         self.error_cycles += 1;
         if self.error_cycles == 1 {
             self.timestamp = get_utc_now();
@@ -142,12 +141,10 @@ impl AlarmBase {
         Ok(if action.is_empty() {
             None
         } else {
-            Some(
-                actions
-                    .get(action)
-                    .ok_or_else(|| Error(format!("Action '{}' not found.", action)))?
-                    .clone(),
-            )
+            actions
+                .get(action)
+                .ok_or_else(|| Error(format!("Action '{}' not found.", action)))?
+                .clone()
         })
     }
 

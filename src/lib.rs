@@ -5,7 +5,7 @@ pub mod config;
 
 pub type Result<T> = std::result::Result<T, Error>;
 type PlaceholderMap = std::collections::HashMap<String, String>;
-type ActionMap = std::collections::HashMap<String, std::sync::Arc<dyn action::Action>>;
+type ActionMap = std::collections::HashMap<String, Option<std::sync::Arc<dyn action::Action>>>;
 
 #[derive(Debug)]
 pub struct Error(pub String); // TODO
@@ -27,17 +27,18 @@ fn init_actions(config: &config::Config) -> Result<ActionMap> {
                 action_config.type_,
                 action_config.name
             );
+            res.insert(action_config.name.clone(), None);
             continue;
         }
         // TODO an init_checks angleichen (match ins action module verschieben)
         res.insert(
             action_config.name.clone(),
             match &action_config.type_ {
-                config::ActionType::WebHook(_) => {
-                    std::sync::Arc::new(action::WebHook::try_from(action_config)?)
-                }
+                config::ActionType::WebHook(_) => Some(std::sync::Arc::new(
+                    action::WebHook::try_from(action_config)?,
+                )),
                 config::ActionType::Log(_) => {
-                    std::sync::Arc::new(action::Log::try_from(action_config)?)
+                    Some(std::sync::Arc::new(action::Log::try_from(action_config)?))
                 }
             },
         );
