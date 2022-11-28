@@ -10,6 +10,7 @@ trait Validate {
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Config {
     #[serde(default)]
     pub log: Log,
@@ -22,6 +23,7 @@ pub struct Config {
 }
 
 #[derive(Default, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Log {
     #[serde(default)]
     pub level: LogLevel,
@@ -64,6 +66,7 @@ pub enum LogTarget {
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Report {
     #[serde(default)]
     pub disable: bool,
@@ -87,6 +90,7 @@ impl Default for Report {
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
 pub struct ReportEvent {
     pub action: String,
 }
@@ -119,6 +123,7 @@ impl std::fmt::Display for ActionType {
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
 pub struct ActionWebHook {
     pub url: String,
     pub method: HttpMethod,
@@ -131,6 +136,7 @@ pub struct ActionWebHook {
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
 pub struct ActionLog {
     #[serde(default)]
     pub level: LogLevel,
@@ -179,12 +185,14 @@ impl std::fmt::Display for CheckType {
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
 pub struct CheckFilesystemUsage {
     #[serde(default)]
     pub mountpoints: Vec<String>,
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
 pub struct CheckMemoryUsage {
     #[serde(default = "default::check_memory_usage_memory")]
     pub memory: bool,
@@ -223,6 +231,7 @@ pub enum AlarmType {
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
 pub struct AlarmLevel {
     pub level: u8,
 }
