@@ -11,10 +11,10 @@ impl TryFrom<&config::Check> for FilesystemUsage {
     type Error = Error;
 
     fn try_from(check: &config::Check) -> std::result::Result<Self, self::Error> {
-        if let config::CheckType::FilesystemUsage(filesystem_usage_config) = &check.type_ {
+        if let config::CheckType::FilesystemUsage(filesystem_usage) = &check.type_ {
             // TODO validate existance of mountpoints
             Ok(Self {
-                mountpoints: filesystem_usage_config.mountpoints.clone(),
+                mountpoints: filesystem_usage.mountpoints.clone(),
             })
         } else {
             panic!();

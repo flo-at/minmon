@@ -15,10 +15,10 @@ impl Alarm for Level {
     type Item = u8;
 
     fn new(measurement_id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Self {
-        if let config::AlarmType::Level(level_config) = &alarm.type_ {
+        if let config::AlarmType::Level(level) = &alarm.type_ {
             Self {
                 alarm: AlarmBase::new(measurement_id, alarm, actions),
-                level: level_config.level,
+                level: level.level,
             }
         } else {
             panic!();
