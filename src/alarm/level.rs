@@ -1,4 +1,4 @@
-use crate::{PlaceholderMap, Result};
+use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 
 use super::config;
@@ -17,7 +17,7 @@ impl Alarm for Level {
     fn new(measurement_id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Result<Self> {
         if let config::AlarmType::Level(level) = &alarm.type_ {
             Ok(Self {
-                alarm: AlarmBase::new(measurement_id, alarm, actions),
+                alarm: AlarmBase::new(measurement_id, alarm, actions)?,
                 level: level.level,
             })
         } else {
@@ -43,5 +43,10 @@ impl Alarm for Level {
             self.alarm.good(placeholders).await?;
         }
         Ok(())
+    }
+
+    async fn put_error(&mut self, error: &Error, mut placeholders: PlaceholderMap) -> Result<()> {
+        placeholders.insert(String::from("error"), format!("{}", error));
+        self.alarm.error(placeholders).await
     }
 }

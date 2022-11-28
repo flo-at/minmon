@@ -24,7 +24,7 @@ pub trait Check: Send + Sync {
 pub trait DataSource: Send + Sync {
     type Item: Send + Sync;
 
-    async fn get_data(&self) -> Result<Vec<Self::Item>>;
+    async fn get_data(&self) -> Result<Vec<Result<Self::Item>>>;
     fn measurement_ids(&self) -> &[String];
 }
 
@@ -69,6 +69,8 @@ where
     U: Alarm<Item = T::Item>,
 {
     async fn trigger(&mut self) -> Result<()> {
+        let mut placeholders = self.placeholders.clone();
+        placeholders.insert(String::from("check_name"), self.name.clone());
         let data_vec = self
             .data_source
             .get_data()
@@ -76,7 +78,10 @@ where
             .map_err(|x| Error(format!("Failed to get data: {}", x)))?;
         for (data, alarms) in data_vec.iter().zip(self.alarms.iter_mut()) {
             for alarm in alarms.iter_mut() {
-                alarm.put_data(data, self.placeholders.clone()).await?;
+                match data {
+                    Ok(data) => alarm.put_data(data, placeholders.clone()).await?,
+                    Err(err) => alarm.put_error(err, placeholders.clone()).await?,
+                }
             }
         }
         Ok(())
@@ -109,9 +114,11 @@ where
                 log::info!("Alarm '{}' is disabled.", alarm_config.name);
                 continue;
             }
+            // TODO deduplicate log message
             log::info!(
-                "Alarm '{}' will be triggered after {} bad cycles and recover after {} good cycles.",
+                "Alarm '{}' for id '{}' will be triggered after {} bad cycles and recover after {} good cycles.",
                 alarm_config.name,
+                measurement_id,
                 alarm_config.cycles,
                 alarm_config.recover_cycles
             );

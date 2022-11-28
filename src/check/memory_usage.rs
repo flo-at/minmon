@@ -66,7 +66,7 @@ impl TryFrom<&config::Check> for MemoryUsage {
 impl DataSource for MemoryUsage {
     type Item = u8;
 
-    async fn get_data(&self) -> Result<Vec<Self::Item>> {
+    async fn get_data(&self) -> Result<Vec<Result<Self::Item>>> {
         let mut file = tokio::fs::File::open(MEMINFO_PATH).await.map_err(|x| {
             Error(format!(
                 "Could not open {} for reading: {}",
@@ -110,22 +110,12 @@ impl DataSource for MemoryUsage {
                 swap_usage = Some(((swap_total - swap_free) * 100 / swap_total) as u8);
             }
         }
-        // TODO add special "error" return value in vector so other measurements keep going if one
-        // fails
         let mut res = Vec::new();
         if self.memory {
-            if let Some(mem_usage) = mem_usage {
-                res.push(mem_usage);
-            } else {
-                return Err(Error(String::from("Could not parse memory usage.")));
-            }
+            res.push(mem_usage.ok_or_else(|| Error(String::from("Could not parse memory usage."))));
         }
         if self.swap {
-            if let Some(swap_usage) = swap_usage {
-                res.push(swap_usage);
-            } else {
-                return Err(Error(String::from("Could not parse swap usage.")));
-            }
+            res.push(swap_usage.ok_or_else(|| Error(String::from("Could not parse swap usage."))));
         }
         Ok(res)
     }

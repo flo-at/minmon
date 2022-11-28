@@ -49,6 +49,18 @@ impl From<LogLevel> for log::LevelFilter {
     }
 }
 
+// TODO deduplicate
+impl From<LogLevel> for log::Level {
+    fn from(level: LogLevel) -> Self {
+        match level {
+            LogLevel::Debug => log::Level::Debug,
+            LogLevel::Info => log::Level::Info,
+            LogLevel::Warning => log::Level::Warn,
+            LogLevel::Error => log::Level::Error,
+        }
+    }
+}
+
 #[derive(Default, Deserialize, PartialEq, Debug)]
 pub enum LogTarget {
     #[default]
@@ -126,6 +138,8 @@ pub struct ActionWebHook {
 
 #[derive(Deserialize, PartialEq, Debug)]
 pub struct ActionLog {
+    #[serde(default)]
+    pub level: LogLevel,
     pub template: String,
 }
 
@@ -198,6 +212,10 @@ pub struct Alarm {
     pub recover_action: String,
     #[serde(default = "default::check_alarm_recover_cycles")]
     pub recover_cycles: u32,
+    #[serde(default)]
+    pub error_action: String,
+    #[serde(default)]
+    pub error_repeat_cycles: u32,
     #[serde(default)]
     pub placeholders: PlaceholderMap,
     #[serde(flatten)]

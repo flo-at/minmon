@@ -5,6 +5,7 @@ use async_trait::async_trait;
 
 pub struct Log {
     action: ActionBase,
+    level: log::Level,
     template: String,
 }
 
@@ -15,6 +16,7 @@ impl TryFrom<&config::Action> for Log {
         if let config::ActionType::Log(log) = &action.type_ {
             Ok(Self {
                 action: ActionBase::from(action),
+                level: log.level.into(),
                 template: log.template.clone(),
             })
         } else {
@@ -35,7 +37,7 @@ impl Action for Log {
                 .map(|(k, v)| (k.as_str(), v.as_str()))
                 .collect(),
         );
-        log::error!("{}", text);
+        log::log!(self.level, "{}", text);
         Ok(())
     }
 }
