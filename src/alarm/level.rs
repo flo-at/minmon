@@ -1,5 +1,4 @@
-use crate::placeholder::PlaceholderMap;
-use crate::Result;
+use crate::{PlaceholderMap, Result};
 use async_trait::async_trait;
 
 use super::config;

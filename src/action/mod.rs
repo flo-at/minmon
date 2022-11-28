@@ -1,6 +1,5 @@
 use crate::config;
-use crate::placeholder::PlaceholderMap;
-use crate::Result;
+use crate::{PlaceholderMap, Result};
 use async_trait::async_trait;
 
 mod log;

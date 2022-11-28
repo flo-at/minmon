@@ -1,8 +1,7 @@
 use crate::alarm;
 use crate::alarm::Alarm;
 use crate::config;
-use crate::placeholder::PlaceholderMap;
-use crate::{Error, Result};
+use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 
 mod filesystem_usage;

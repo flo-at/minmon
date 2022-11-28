@@ -4,7 +4,6 @@ mod action;
 mod alarm;
 mod check;
 mod config;
-mod placeholder;
 #[cfg(feature = "systemd")]
 mod systemd;
 #[cfg(feature = "systemd")]
@@ -13,6 +12,7 @@ extern crate systemd as systemd_ext;
 use std::collections::HashMap;
 
 type ActionMap = HashMap<String, std::sync::Arc<dyn action::Action>>;
+pub type PlaceholderMap = std::collections::HashMap<String, String>;
 
 #[derive(Debug)]
 pub struct Error(String);

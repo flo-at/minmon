@@ -1,4 +1,4 @@
-use crate::{placeholder::PlaceholderMap, Error};
+use crate::{Error, PlaceholderMap};
 use std::collections::HashMap;
 
 use serde::Deserialize;
