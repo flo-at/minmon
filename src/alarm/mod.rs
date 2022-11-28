@@ -42,14 +42,19 @@ pub struct AlarmBase {
     timestamp: String,
 }
 
+// TODO das muss überarbeitet werden, blickt sonst niemand mehr durch..
 impl AlarmBase {
-    async fn error(&mut self, placeholders: PlaceholderMap) -> Result<()> {
+    async fn error(&mut self, mut placeholders: PlaceholderMap) -> Result<()> {
         println!("{}", self.error_repeat_cycles);
         self.error_cycles += 1;
+        if self.error_cycles == 1 {
+            self.timestamp = get_utc_now();
+        }
         if self.error_cycles == 1
             || (self.error_repeat_cycles > 0
                 && (self.error_cycles - 1) % self.error_repeat_cycles == 0)
         {
+            placeholders.insert(String::from("timestamp"), self.timestamp.clone());
             self.trigger_error(placeholders).await?
         }
         Ok(())

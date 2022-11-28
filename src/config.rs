@@ -40,16 +40,10 @@ pub enum LogLevel {
 
 impl From<LogLevel> for log::LevelFilter {
     fn from(level: LogLevel) -> Self {
-        match level {
-            LogLevel::Debug => log::LevelFilter::Debug,
-            LogLevel::Info => log::LevelFilter::Info,
-            LogLevel::Warning => log::LevelFilter::Warn,
-            LogLevel::Error => log::LevelFilter::Error,
-        }
+        log::Level::from(level).to_level_filter()
     }
 }
 
-// TODO deduplicate
 impl From<LogLevel> for log::Level {
     fn from(level: LogLevel) -> Self {
         match level {

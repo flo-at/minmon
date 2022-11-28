@@ -107,21 +107,21 @@ where
 {
     let data_source = T::try_from(check_config)?;
     let mut all_alarms: Vec<Vec<U>> = Vec::new();
-    for measurement_id in data_source.measurement_ids().iter() {
+    for (i, measurement_id) in data_source.measurement_ids().iter().enumerate() {
         let mut alarms: Vec<U> = Vec::new();
         for alarm_config in check_config.alarms.iter() {
             if alarm_config.disable {
                 log::info!("Alarm '{}' is disabled.", alarm_config.name);
                 continue;
             }
-            // TODO deduplicate log message
-            log::info!(
-                "Alarm '{}' for id '{}' will be triggered after {} bad cycles and recover after {} good cycles.",
+            if i == 0 {
+                log::info!(
+                "Alarm '{}' will be triggered after {} bad cycles and recover after {} good cycles.",
                 alarm_config.name,
-                measurement_id,
                 alarm_config.cycles,
                 alarm_config.recover_cycles
             );
+            }
             let level_alarm = U::new(measurement_id, alarm_config, actions)?;
             alarms.push(level_alarm);
         }
