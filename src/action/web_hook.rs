@@ -131,7 +131,7 @@ mod test {
             5,
             String::from(""),
         );
-        web_hook.trigger(&HashMap::new()).await.unwrap();
+        web_hook.trigger(HashMap::new()).await.unwrap();
     }
 
     #[tokio::test]
@@ -144,6 +144,6 @@ mod test {
             5,
             String::from(""),
         );
-        assert!(web_hook.trigger(&HashMap::new()).await.is_err());
+        assert!(web_hook.trigger(HashMap::new()).await.is_err());
     }
 }

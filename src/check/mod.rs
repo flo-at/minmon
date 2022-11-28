@@ -36,9 +36,9 @@ where
 {
     interval: u32,
     name: String,
+    placeholders: PlaceholderMap,
     data_source: T,
     alarms: Vec<Vec<U>>,
-    placeholders: PlaceholderMap,
 }
 
 impl<T, U> CheckBase<T, U>
@@ -49,16 +49,16 @@ where
     fn new(
         interval: u32,
         name: String,
+        placeholders: PlaceholderMap,
         data_source: T,
         alarms: Vec<Vec<U>>,
-        placeholders: PlaceholderMap,
     ) -> Self {
         Self {
             interval,
             name,
+            placeholders,
             data_source,
             alarms,
-            placeholders,
         }
     }
 }
@@ -96,19 +96,12 @@ where
     }
 }
 
-fn placeholders_from_config(check_config: &config::Check) -> Result<PlaceholderMap> {
-    let mut res = PlaceholderMap::new();
-    res.insert(String::from("check_name"), check_config.name.clone());
-    Ok(res)
-}
-
 fn factory<'a, T, U>(check_config: &'a config::Check, actions: &ActionMap) -> Result<Box<dyn Check>>
 where
     T: DataSource + TryFrom<&'a config::Check, Error = Error> + 'static, // TODO warum 'static?
     U: Alarm<Item = T::Item> + 'static,                                  // TODO warum 'static?
 {
     let data_source = T::try_from(check_config)?;
-    let placeholders = placeholders_from_config(check_config)?;
     let mut all_alarms: Vec<Vec<U>> = Vec::new();
     for measurement_id in data_source.measurement_ids().iter() {
         let mut alarms: Vec<U> = Vec::new();
@@ -131,9 +124,9 @@ where
     Ok(Box::new(CheckBase::new(
         check_config.interval,
         check_config.name.clone(),
+        check_config.placeholders.clone(),
         data_source,
         all_alarms,
-        placeholders,
     )))
 }
 

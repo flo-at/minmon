@@ -1,4 +1,4 @@
-use crate::Error;
+use crate::{placeholder::PlaceholderMap, Error};
 use std::collections::HashMap;
 
 use serde::Deserialize;
@@ -147,6 +147,8 @@ pub struct Check {
     #[serde(default = "default::check_interval")]
     pub interval: u32,
     pub name: String,
+    #[serde(default)]
+    pub placeholders: PlaceholderMap,
     #[serde(flatten)]
     pub type_: CheckType,
     #[serde(default)]
@@ -189,6 +191,8 @@ pub struct Alarm {
     pub recover_action: String,
     #[serde(default = "default::check_alarm_recover_cycles")]
     pub recover_cycles: u32,
+    #[serde(default)]
+    pub placeholders: PlaceholderMap,
     #[serde(flatten)]
     pub type_: AlarmType,
 }

@@ -26,6 +26,7 @@ pub struct AlarmBase {
     repeat_cycles: u32,
     recover_action: Option<std::sync::Arc<dyn action::Action>>,
     recover_cycles: u32,
+    placeholders: PlaceholderMap,
     // --
     bad_cycles: u32,
     good_cycles: u32,
@@ -87,6 +88,9 @@ impl AlarmBase {
 
     fn add_placeholders(&self, mut placeholders: PlaceholderMap) -> Result<PlaceholderMap> {
         placeholders.insert(String::from("alarm_name"), self.name.clone());
+        for (key, value) in self.placeholders.iter() {
+            placeholders.insert(key.clone(), value.clone());
+        }
         Ok(placeholders)
     }
 }
@@ -101,6 +105,7 @@ impl AlarmBase {
             repeat_cycles: alarm.repeat_cycles,
             recover_action: actions.get(&alarm.recover_action).cloned(),
             recover_cycles: alarm.recover_cycles,
+            placeholders: alarm.placeholders.clone(),
             bad_cycles: 0,
             good_cycles: 0,
             good: true,
