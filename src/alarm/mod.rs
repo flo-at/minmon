@@ -93,9 +93,7 @@ impl AlarmBase {
         }
         Ok(placeholders)
     }
-}
 
-impl AlarmBase {
     pub fn new(measurement_id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Self {
         Self {
             name: alarm.name.clone(),

@@ -93,6 +93,8 @@ pub struct Action {
     #[serde(default)]
     pub disable: bool,
     pub name: String,
+    #[serde(default)]
+    pub placeholders: PlaceholderMap,
     #[serde(flatten)]
     pub type_: ActionType,
 }
@@ -253,7 +255,7 @@ impl TryFrom<&std::path::Path> for Config {
         let mut content = String::new();
         file.read_to_string(&mut content)
             .map_err(|x| Error(format!("{}", x)))?;
-        Config::try_from(&content[..])
+        Config::try_from(content.as_str())
     }
 }
 

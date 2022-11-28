@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
-use super::Action;
+use super::{Action, ActionBase};
 use crate::config;
 use crate::placeholder::PlaceholderMap;
 use crate::{Error, Result};
 use async_trait::async_trait;
 
 pub struct WebHook {
-    name: String,
+    action: ActionBase,
     url: String,
     method: reqwest::Method,
     headers: reqwest::header::HeaderMap<reqwest::header::HeaderValue>,
@@ -18,7 +18,8 @@ pub struct WebHook {
 impl WebHook {
     #[cfg(test)]
     fn new(
-        name: String,
+        name: &str,
+        placeholders: PlaceholderMap,
         url: String,
         method: reqwest::Method,
         headers: reqwest::header::HeaderMap<reqwest::header::HeaderValue>,
@@ -26,7 +27,7 @@ impl WebHook {
         body: String,
     ) -> Self {
         Self {
-            name,
+            action: ActionBase::new(name, placeholders),
             url,
             method,
             headers,
@@ -60,7 +61,7 @@ impl TryFrom<&config::Action> for WebHook {
     fn try_from(action: &config::Action) -> std::result::Result<Self, Self::Error> {
         if let config::ActionType::WebHook(web_hook) = &action.type_ {
             Ok(Self {
-                name: action.name.clone(),
+                action: ActionBase::from(action),
                 url: web_hook.url.clone(),
                 method: reqwest::Method::from(web_hook.method),
                 headers: Self::transform_header_map(&web_hook.headers)?,
@@ -76,12 +77,13 @@ impl TryFrom<&config::Action> for WebHook {
 #[async_trait]
 impl Action for WebHook {
     async fn trigger(&self, placeholders: PlaceholderMap) -> Result<()> {
-        let template = text_placeholder::Template::new(&self.body[..]);
+        // TODO irgendwie in Actionbase verschieben
+        let placeholders = self.action.add_placeholders(placeholders)?;
+        let template = text_placeholder::Template::new(self.body.as_str());
         let body = template.fill_with_hashmap(
             &placeholders
                 .iter()
-                .map(|(k, v)| (&k[..], &v[..]))
-                .chain(std::iter::once(("action_name", &self.name[..])))
+                .map(|(k, v)| (k.as_str(), v.as_str()))
                 .collect(),
         );
         let client = reqwest::Client::new();
@@ -124,7 +126,8 @@ mod test {
     #[tokio::test]
     async fn test_web_hook_ok() {
         let web_hook = WebHook::new(
-            String::from("Test WebHook"),
+            "Test WebHook",
+            PlaceholderMap::new(),
             String::from("https://httpbin.org/status/200"),
             reqwest::Method::GET,
             WebHook::transform_header_map(&HashMap::new()).unwrap(),
@@ -137,7 +140,8 @@ mod test {
     #[tokio::test]
     async fn test_web_hook_err() {
         let web_hook = WebHook::new(
-            String::from("Test WebHook"),
+            "Test WebHook",
+            PlaceholderMap::new(),
             String::from("https://httpbin.org/status/400"),
             reqwest::Method::GET,
             WebHook::transform_header_map(&HashMap::new()).unwrap(),
