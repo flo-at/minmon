@@ -115,7 +115,7 @@ where
                 alarm_config.cycles,
                 alarm_config.recover_cycles
             );
-            let level_alarm = U::new(measurement_id, alarm_config, actions); // TODO ?
+            let level_alarm = U::new(measurement_id, alarm_config, actions)?;
             alarms.push(level_alarm);
         }
         all_alarms.push(alarms);

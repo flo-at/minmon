@@ -9,10 +9,10 @@ mod level;
 pub use level::Level;
 
 #[async_trait]
-pub trait Alarm: Send + Sync {
+pub trait Alarm: Send + Sync + Sized {
     type Item: Send + Sync;
 
-    fn new(measurement_id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Self;
+    fn new(measurement_id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Result<Self>;
     async fn put_data(&mut self, data: &Self::Item, mut placeholders: PlaceholderMap)
         -> Result<()>;
 }

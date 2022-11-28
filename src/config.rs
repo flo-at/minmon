@@ -5,8 +5,6 @@ use serde::Deserialize;
 
 // TODO check syntactically valid but semantically invalid values (like interval: 0)
 
-//pub struct Error; // TODO: maybe add error message
-
 trait Validate {
     fn validate(&self) -> bool;
 }
@@ -57,7 +55,6 @@ pub enum LogTarget {
     Stdout,
     #[cfg(feature = "systemd")]
     Journal,
-    // TODO IDEA file with rotation
 }
 
 #[derive(Deserialize)]
@@ -241,8 +238,7 @@ impl TryFrom<&str> for Config {
     type Error = Error;
 
     fn try_from(text: &str) -> Result<Self, Self::Error> {
-        let config: Config = toml::from_str(text).map_err(|x| Error(format!("{}", x)))?;
-        Ok(config) // TODO this is not very clean
+        toml::from_str(text).map_err(|x| Error(format!("{}", x)))
     }
 }
 

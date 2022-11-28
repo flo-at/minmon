@@ -1,6 +1,4 @@
 mod action;
-#[allow(unused_variables)] // TODO temporary
-#[allow(dead_code)] // TODO temporary!
 mod alarm;
 mod check;
 mod config;
@@ -26,7 +24,7 @@ impl std::fmt::Display for Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-// TODO additional placeholders from config file (check, alarm, action)
+// TODO documentation and readme!
 // TODO implement report
 // NOTE FilesystemUsage uses "available blocks" (not "free blocks") i.e. blocks available to
 //      unpriv. users

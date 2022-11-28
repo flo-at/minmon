@@ -22,7 +22,6 @@ pub fn spawn_watchdog_task() {
 
             loop {
                 interval.tick().await;
-                log::debug!("Systemd watchdog tick.."); // TODO
                 systemd::daemon::notify(false, [(systemd::daemon::STATE_WATCHDOG, "1")].iter())
                     .expect(GENERIC_ERROR);
             }

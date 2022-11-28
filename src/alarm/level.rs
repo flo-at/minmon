@@ -3,7 +3,7 @@ use async_trait::async_trait;
 
 use super::config;
 use super::{Alarm, AlarmBase};
-use crate::ActionMap; // TODO move
+use crate::ActionMap;
 
 pub struct Level {
     alarm: AlarmBase,
@@ -14,12 +14,12 @@ pub struct Level {
 impl Alarm for Level {
     type Item = u8;
 
-    fn new(measurement_id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Self {
+    fn new(measurement_id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Result<Self> {
         if let config::AlarmType::Level(level) = &alarm.type_ {
-            Self {
+            Ok(Self {
                 alarm: AlarmBase::new(measurement_id, alarm, actions),
                 level: level.level,
-            }
+            })
         } else {
             panic!();
         }
@@ -37,7 +37,6 @@ impl Alarm for Level {
             self.alarm.name,
             self.alarm.id
         );
-        // TODO pass on placeholders to bad() and good()
         if *data >= self.level {
             self.alarm.bad(placeholders).await?;
         } else {
