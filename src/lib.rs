@@ -17,6 +17,16 @@ impl std::fmt::Display for Error {
     }
 }
 
+fn fill_placeholders(template: &str, placeholders: &PlaceholderMap) -> String {
+    let template = text_placeholder::Template::new(template);
+    template.fill_with_hashmap(
+        &placeholders
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect(),
+    )
+}
+
 fn init_actions(config: &config::Config) -> Result<ActionMap> {
     log::info!("Initializing {} actions(s)..", config.actions.len());
     let mut res = ActionMap::new();

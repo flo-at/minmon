@@ -30,13 +30,7 @@ impl Action for Log {
     async fn trigger(&self, placeholders: PlaceholderMap) -> Result<()> {
         // TODO irgendwie in Actionbase verschieben
         let placeholders = self.action.add_placeholders(placeholders)?;
-        let template = text_placeholder::Template::new(self.template.as_str());
-        let text = template.fill_with_hashmap(
-            &placeholders
-                .iter()
-                .map(|(k, v)| (k.as_str(), v.as_str()))
-                .collect(),
-        );
+        let text = crate::fill_placeholders(self.template.as_str(), &placeholders);
         log::log!(self.level, "{}", text);
         Ok(())
     }

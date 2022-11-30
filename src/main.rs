@@ -5,14 +5,12 @@ extern crate systemd as systemd_ext;
 
 use minmon::{config, Error, Result};
 
+// TODO journal logging with extra fields (check/alarm/action name, ..)
 // TODO hierarchical logging (or just placeholders?)
-// TODO WebHook: replace placeholders in url
 // TODO recover_placeholders, error_placeholders
 // TODO consistent debug logging
 // TODO documentation and readme!
 // TODO implement report
-// NOTE FilesystemUsage uses "available blocks" (not "free blocks") i.e. blocks available to
-//      unpriv. users
 
 fn get_config_file_path() -> Result<std::path::PathBuf> {
     if let Some(path_str) = std::env::args().nth(1) {

@@ -44,6 +44,7 @@ impl Alarm for Level {
         }
     }
 
+    // TODO this does not really belong here. maybe macro?
     async fn put_error(&mut self, error: &Error, mut placeholders: PlaceholderMap) -> Result<()> {
         log::debug!(
             "Got error for level alarm '{}' at id '{}': {}",

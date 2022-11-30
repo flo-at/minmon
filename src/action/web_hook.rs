@@ -5,6 +5,7 @@ use crate::config;
 use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 
+// NOTE placeholders are replaced in url and body
 pub struct WebHook {
     action: ActionBase,
     url: String,
@@ -78,16 +79,11 @@ impl Action for WebHook {
     async fn trigger(&self, placeholders: PlaceholderMap) -> Result<()> {
         // TODO irgendwie in Actionbase verschieben
         let placeholders = self.action.add_placeholders(placeholders)?;
-        let template = text_placeholder::Template::new(self.body.as_str());
-        let body = template.fill_with_hashmap(
-            &placeholders
-                .iter()
-                .map(|(k, v)| (k.as_str(), v.as_str()))
-                .collect(),
-        );
+        let url = crate::fill_placeholders(self.url.as_str(), &placeholders);
+        let body = crate::fill_placeholders(self.body.as_str(), &placeholders);
         let client = reqwest::Client::new();
         let response = client
-            .request(self.method.clone(), &self.url)
+            .request(self.method.clone(), &url)
             .timeout(std::time::Duration::from_secs(self.timeout.into()))
             .headers(self.headers.clone())
             .body(body)
