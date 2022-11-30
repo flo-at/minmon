@@ -38,14 +38,19 @@ impl Alarm for Level {
             self.alarm.id
         );
         if *data >= self.level {
-            self.alarm.bad(placeholders).await?;
+            self.alarm.bad(placeholders).await
         } else {
-            self.alarm.good(placeholders).await?;
+            self.alarm.good(placeholders).await
         }
-        Ok(())
     }
 
     async fn put_error(&mut self, error: &Error, mut placeholders: PlaceholderMap) -> Result<()> {
+        log::debug!(
+            "Got error for level alarm '{}' at id '{}': {}",
+            self.alarm.name,
+            self.alarm.id,
+            error
+        );
         placeholders.insert(String::from("check_error"), format!("{}", error));
         self.alarm.error(placeholders).await
     }

@@ -78,9 +78,12 @@ where
             .map_err(|x| Error(format!("Failed to get data: {}", x)))?;
         for (data, alarms) in data_vec.iter().zip(self.alarms.iter_mut()) {
             for alarm in alarms.iter_mut() {
-                match data {
-                    Ok(data) => alarm.put_data(data, placeholders.clone()).await?,
-                    Err(err) => alarm.put_error(err, placeholders.clone()).await?,
+                let result = match data {
+                    Ok(data) => alarm.put_data(data, placeholders.clone()).await,
+                    Err(err) => alarm.put_error(err, placeholders.clone()).await,
+                };
+                if let Err(err) = result {
+                    log::error!("Error in alarm: {}", err); // TODO add check name, alarm name..
                 }
             }
         }

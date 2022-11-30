@@ -5,6 +5,7 @@ extern crate systemd as systemd_ext;
 
 use minmon::{config, Error, Result};
 
+// TODO hierarchical logging (or just placeholders?)
 // TODO WebHook: replace placeholders in url
 // TODO recover_placeholders, error_placeholders
 // TODO consistent debug logging
