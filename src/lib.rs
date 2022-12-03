@@ -50,6 +50,9 @@ fn init_actions(config: &config::Config) -> Result<ActionMap> {
                 config::ActionType::Log(_) => {
                     Some(std::sync::Arc::new(action::Log::try_from(action_config)?))
                 }
+                config::ActionType::Process(_) => Some(std::sync::Arc::new(
+                    action::Process::try_from(action_config)?,
+                )),
             },
         );
         log::info!(

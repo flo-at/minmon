@@ -3,8 +3,10 @@ use crate::{PlaceholderMap, Result};
 use async_trait::async_trait;
 
 mod log;
+mod process;
 mod web_hook;
 pub use self::log::Log;
+pub use process::Process;
 pub use web_hook::WebHook;
 
 #[async_trait]

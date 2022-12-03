@@ -240,11 +240,14 @@ impl AlarmBase {
             placeholders.insert(String::from("alarm_timestamp"), bad.timestamp.clone());
             match &self.action {
                 Some(action) => {
-                    log::debug!("Action '{}' triggered.", self.name);
+                    log::debug!("Action 'TODO' for alarm '{}' triggered.", self.name);
                     action.trigger(placeholders).await
                 }
                 None => {
-                    log::debug!("Action '{}' was triggered but is disabled.", self.name);
+                    log::debug!(
+                        "Action for alarm '{}' was triggered but is disabled.",
+                        self.name
+                    );
                     Ok(())
                 }
             }

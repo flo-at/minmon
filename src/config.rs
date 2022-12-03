@@ -111,6 +111,7 @@ pub struct Action {
 pub enum ActionType {
     WebHook(ActionWebHook),
     Log(ActionLog),
+    Process(ActionProcess),
 }
 
 impl std::fmt::Display for ActionType {
@@ -118,6 +119,7 @@ impl std::fmt::Display for ActionType {
         match *self {
             ActionType::WebHook(_) => write!(f, "WebHook"),
             ActionType::Log(_) => write!(f, "Log"),
+            ActionType::Process(_) => write!(f, "Process"),
         }
     }
 }
@@ -135,14 +137,6 @@ pub struct ActionWebHook {
     pub body: String,
 }
 
-#[derive(Deserialize, PartialEq, Debug)]
-#[serde(deny_unknown_fields)]
-pub struct ActionLog {
-    #[serde(default)]
-    pub level: LogLevel,
-    pub template: String,
-}
-
 #[derive(Deserialize, PartialEq, Debug, Clone, Copy)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum HttpMethod {
@@ -151,6 +145,31 @@ pub enum HttpMethod {
     PUT,
     DELETE,
     PATCH,
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ActionLog {
+    #[serde(default)]
+    pub level: LogLevel,
+    pub template: String,
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ActionProcess {
+    #[serde(default)]
+    pub path: std::path::PathBuf,
+    #[serde(default)]
+    pub arguments: Vec<String>,
+    #[serde(default)]
+    pub environment_variables: std::collections::HashMap<String, String>,
+    #[serde(default)]
+    pub working_directory: Option<String>,
+    #[serde(default)]
+    pub uid: Option<u32>,
+    #[serde(default)]
+    pub gid: Option<u32>,
 }
 
 #[derive(Deserialize)]
