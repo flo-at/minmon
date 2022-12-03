@@ -25,7 +25,7 @@ pub trait DataSource: Send + Sync {
     type Item: Send + Sync;
 
     async fn get_data(&self) -> Result<Vec<Result<Self::Item>>>;
-    fn measurement_ids(&self) -> &[String];
+    fn ids(&self) -> &[String];
 }
 
 pub struct CheckBase<T, U>
@@ -110,7 +110,7 @@ where
 {
     let data_source = T::try_from(check_config)?;
     let mut all_alarms: Vec<Vec<U>> = Vec::new();
-    for (i, measurement_id) in data_source.measurement_ids().iter().enumerate() {
+    for (i, id) in data_source.ids().iter().enumerate() {
         let mut alarms: Vec<U> = Vec::new();
         for alarm_config in check_config.alarms.iter() {
             if alarm_config.disable {
@@ -125,7 +125,7 @@ where
                 alarm_config.recover_cycles
             );
             }
-            let level_alarm = U::new(measurement_id, alarm_config, actions)?;
+            let level_alarm = U::new(id, alarm_config, actions)?;
             alarms.push(level_alarm);
         }
         all_alarms.push(alarms);

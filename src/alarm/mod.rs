@@ -16,7 +16,7 @@ fn get_utc_now() -> String {
 pub trait Alarm: Send + Sync + Sized {
     type Item: Send + Sync;
 
-    fn new(measurement_id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Result<Self>;
+    fn new(id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Result<Self>;
     async fn put_data(&mut self, data: &Self::Item, mut placeholders: PlaceholderMap)
         -> Result<()>;
     async fn put_error(&mut self, error: &Error, mut placeholders: PlaceholderMap) -> Result<()>;
@@ -308,10 +308,10 @@ impl AlarmBase {
         })
     }
 
-    pub fn new(measurement_id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Result<Self> {
+    pub fn new(id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Result<Self> {
         Ok(Self {
             name: alarm.name.clone(),
-            id: measurement_id.to_string(),
+            id: id.to_string(),
             action: Self::get_action(&alarm.action, actions)?,
             cycles: alarm.cycles,
             repeat_cycles: alarm.repeat_cycles,

@@ -14,10 +14,10 @@ pub struct Level {
 impl Alarm for Level {
     type Item = u8;
 
-    fn new(measurement_id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Result<Self> {
+    fn new(id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Result<Self> {
         if let config::AlarmType::Level(level) = &alarm.type_ {
             Ok(Self {
-                alarm: AlarmBase::new(measurement_id, alarm, actions)?,
+                alarm: AlarmBase::new(id, alarm, actions)?,
                 level: level.level,
             })
         } else {

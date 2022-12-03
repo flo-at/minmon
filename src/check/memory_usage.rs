@@ -25,7 +25,7 @@ impl MemoryUsage {
         }
         .map_err(|x| {
             Error(format!(
-                "Could not parse {} from {}: {}",
+                "Could not read {} from {}: {}",
                 id, MEMINFO_PATH, x
             ))
         })
@@ -111,15 +111,15 @@ impl DataSource for MemoryUsage {
         }
         let mut res = Vec::new();
         if self.memory {
-            res.push(mem_usage.ok_or_else(|| Error(String::from("Could not parse memory usage."))));
+            res.push(mem_usage.ok_or_else(|| Error(String::from("Could not read memory usage."))));
         }
         if self.swap {
-            res.push(swap_usage.ok_or_else(|| Error(String::from("Could not parse swap usage."))));
+            res.push(swap_usage.ok_or_else(|| Error(String::from("Could not read swap usage."))));
         }
         Ok(res)
     }
 
-    fn measurement_ids(&self) -> &[String] {
+    fn ids(&self) -> &[String] {
         &self.id[..]
     }
 }

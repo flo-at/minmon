@@ -40,7 +40,7 @@ impl DataSource for FilesystemUsage {
         Ok(res)
     }
 
-    fn measurement_ids(&self) -> &[String] {
+    fn ids(&self) -> &[String] {
         &self.mountpoints[..]
     }
 }
