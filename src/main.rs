@@ -5,6 +5,7 @@ extern crate systemd as systemd_ext;
 
 use minmon::{config, Error, Result};
 
+// TODO Arc durch Box ersetzen; tokio single threaded; Sync + Send entfernen
 // TODO make sure arguments to ::new are consistent (alle refs or moves)..
 // TODO journal logging with extra fields (check/alarm/action name, ..)
 // TODO hierarchical logging (or just placeholders?)

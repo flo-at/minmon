@@ -40,27 +40,8 @@ fn init_actions(config: &config::Config) -> Result<ActionMap> {
             res.insert(action_config.name.clone(), None);
             continue;
         }
-        // TODO an init_checks angleichen (match ins action module verschieben)
-        res.insert(
-            action_config.name.clone(),
-            Some(match &action_config.type_ {
-                config::ActionType::WebHook(_) => std::sync::Arc::new(action::ActionBase::new(
-                    &action_config.name,
-                    &action_config.placeholders,
-                    action::WebHook::try_from(action_config)?,
-                )),
-                config::ActionType::Log(_) => std::sync::Arc::new(action::ActionBase::new(
-                    &action_config.name,
-                    &action_config.placeholders,
-                    action::Log::try_from(action_config)?,
-                )),
-                config::ActionType::Process(_) => std::sync::Arc::new(action::ActionBase::new(
-                    &action_config.name,
-                    &action_config.placeholders,
-                    action::Process::try_from(action_config)?,
-                )),
-            }),
-        );
+        let action = action::from_action_config(action_config)?;
+        res.insert(action_config.name.clone(), Some(action));
         log::info!(
             "Action {}::'{}' initialized.",
             action_config.type_,

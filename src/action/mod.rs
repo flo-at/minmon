@@ -1,3 +1,4 @@
+use crate::config;
 use crate::{PlaceholderMap, Result};
 use async_trait::async_trait;
 
@@ -34,12 +35,12 @@ where
         }
     }
 
-    fn add_placeholders(&self, mut placeholders: PlaceholderMap) -> Result<PlaceholderMap> {
+    fn add_placeholders(&self, placeholders: &mut PlaceholderMap) -> Result<()> {
         placeholders.insert(String::from("action_name"), self.name.clone());
         for (key, value) in self.placeholders.iter() {
             placeholders.insert(key.clone(), value.clone());
         }
-        Ok(placeholders)
+        Ok(())
     }
 }
 
@@ -49,7 +50,27 @@ where
     T: Action,
 {
     async fn trigger(&self, mut placeholders: PlaceholderMap) -> Result<()> {
-        let placeholders = self.add_placeholders(placeholders)?;
+        self.add_placeholders(&mut placeholders)?;
         self.action.trigger(placeholders).await
     }
+}
+
+pub fn from_action_config(action_config: &config::Action) -> Result<std::sync::Arc<dyn Action>> {
+    Ok(match &action_config.type_ {
+        config::ActionType::WebHook(_) => std::sync::Arc::new(ActionBase::new(
+            &action_config.name,
+            &action_config.placeholders,
+            WebHook::try_from(action_config)?,
+        )),
+        config::ActionType::Log(_) => std::sync::Arc::new(ActionBase::new(
+            &action_config.name,
+            &action_config.placeholders,
+            Log::try_from(action_config)?,
+        )),
+        config::ActionType::Process(_) => std::sync::Arc::new(ActionBase::new(
+            &action_config.name,
+            &action_config.placeholders,
+            Process::try_from(action_config)?,
+        )),
+    })
 }
