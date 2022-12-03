@@ -1,6 +1,5 @@
 use crate::action;
 use crate::config;
-use crate::ActionMap;
 use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 
@@ -12,17 +11,31 @@ fn get_utc_now() -> String {
     chrono::offset::Utc::now().format("%FT%T").to_string()
 }
 
+pub trait DataSink: Send + Sync + Sized {
+    type Item: Send + Sync;
+
+    fn put_data(&mut self, data: &Self::Item) -> Result<SinkDecision>;
+    fn format_data(data: &Self::Item) -> String;
+}
+
+pub enum SinkDecision {
+    Good,
+    Bad,
+}
+
 #[async_trait]
 pub trait Alarm: Send + Sync + Sized {
     type Item: Send + Sync;
 
-    fn new(id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Result<Self>;
     async fn put_data(&mut self, data: &Self::Item, mut placeholders: PlaceholderMap)
         -> Result<()>;
     async fn put_error(&mut self, error: &Error, mut placeholders: PlaceholderMap) -> Result<()>;
 }
 
-pub struct AlarmBase {
+pub struct AlarmBase<T>
+where
+    T: DataSink,
+{
     name: String,
     id: String,
     action: Option<std::sync::Arc<dyn action::Action>>,
@@ -34,6 +47,7 @@ pub struct AlarmBase {
     error_repeat_cycles: u32,
     placeholders: PlaceholderMap,
     state: State,
+    data_sink: T,
 }
 
 #[derive(Clone)]
@@ -82,7 +96,39 @@ struct ErrorState {
     cycles: u32,
 }
 
-impl AlarmBase {
+impl<T> AlarmBase<T>
+where
+    T: DataSink,
+{
+    pub fn new(
+        name: &str,
+        id: &str,
+        action: Option<std::sync::Arc<dyn action::Action>>,
+        cycles: u32,
+        repeat_cycles: u32,
+        recover_action: Option<std::sync::Arc<dyn action::Action>>,
+        recover_cycles: u32,
+        error_action: Option<std::sync::Arc<dyn action::Action>>,
+        error_repeat_cycles: u32,
+        placeholders: &PlaceholderMap,
+        data_sink: T,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            id: id.into(),
+            action,
+            cycles,
+            repeat_cycles,
+            recover_action,
+            recover_cycles,
+            error_action,
+            error_repeat_cycles,
+            placeholders: placeholders.clone(),
+            state: State::default(),
+            data_sink,
+        }
+    }
+
     fn error_update_state(&self, state: &State) -> (State, bool) {
         let mut trigger = false;
         let new_state = match state {
@@ -293,34 +339,42 @@ impl AlarmBase {
         }
         Ok(placeholders)
     }
+}
 
-    fn get_action(
-        action: &String,
-        actions: &ActionMap,
-    ) -> Result<Option<std::sync::Arc<dyn action::Action>>> {
-        Ok(if action.is_empty() {
-            None
-        } else {
-            actions
-                .get(action)
-                .ok_or_else(|| Error(format!("Action '{}' not found.", action)))?
-                .clone()
-        })
+#[async_trait]
+impl<T> Alarm for AlarmBase<T>
+where
+    T: DataSink,
+{
+    type Item = T::Item;
+
+    async fn put_data(
+        &mut self,
+        data: &Self::Item,
+        mut placeholders: PlaceholderMap,
+    ) -> Result<()> {
+        log::debug!(
+            "Got {} for alarm '{}' at id '{}'",
+            T::format_data(data),
+            self.name,
+            self.id
+        );
+        placeholders.insert(String::from("alarm_name"), self.name.clone());
+        let decision = self.data_sink.put_data(data)?;
+        match decision {
+            SinkDecision::Good => self.good(placeholders).await,
+            SinkDecision::Bad => self.bad(placeholders).await,
+        }
     }
 
-    pub fn new(id: &str, alarm: &config::Alarm, actions: &ActionMap) -> Result<Self> {
-        Ok(Self {
-            name: alarm.name.clone(),
-            id: id.to_string(),
-            action: Self::get_action(&alarm.action, actions)?,
-            cycles: alarm.cycles,
-            repeat_cycles: alarm.repeat_cycles,
-            recover_action: Self::get_action(&alarm.recover_action, actions)?,
-            recover_cycles: alarm.recover_cycles,
-            error_action: Self::get_action(&alarm.error_action, actions)?,
-            error_repeat_cycles: alarm.error_repeat_cycles,
-            placeholders: alarm.placeholders.clone(),
-            state: State::default(),
-        })
+    async fn put_error(&mut self, error: &Error, mut placeholders: PlaceholderMap) -> Result<()> {
+        log::debug!(
+            "Got error for level alarm '{}' at id '{}': {}",
+            self.name,
+            self.id,
+            error
+        );
+        placeholders.insert(String::from("alarm_name"), self.name.clone());
+        self.error(placeholders).await
     }
 }

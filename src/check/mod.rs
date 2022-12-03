@@ -1,5 +1,6 @@
+use crate::action;
 use crate::alarm;
-use crate::alarm::Alarm;
+use crate::alarm::{Alarm, AlarmBase, DataSink};
 use crate::config;
 use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
@@ -47,14 +48,14 @@ where
 {
     fn new(
         interval: u32,
-        name: String,
+        name: &str,
         placeholders: PlaceholderMap,
         data_source: T,
         alarms: Vec<Vec<U>>,
     ) -> Self {
         Self {
             interval,
-            name,
+            name: name.into(),
             placeholders,
             data_source,
             alarms,
@@ -80,7 +81,10 @@ where
             for alarm in alarms.iter_mut() {
                 let result = match data {
                     Ok(data) => alarm.put_data(data, placeholders.clone()).await,
-                    Err(err) => alarm.put_error(err, placeholders.clone()).await,
+                    Err(err) => {
+                        placeholders.insert(String::from("check_error"), format!("{}", err));
+                        alarm.put_error(err, placeholders.clone()).await
+                    }
                 };
                 if let Err(err) = result {
                     log::error!("Error in alarm: {}", err); // TODO add check name, alarm name..
@@ -103,15 +107,29 @@ where
     }
 }
 
+fn get_action(
+    action: &String,
+    actions: &ActionMap,
+) -> Result<Option<std::sync::Arc<dyn action::Action>>> {
+    Ok(if action.is_empty() {
+        None
+    } else {
+        actions
+            .get(action)
+            .ok_or_else(|| Error(format!("Action '{}' not found.", action)))?
+            .clone()
+    })
+}
+
 fn factory<'a, T, U>(check_config: &'a config::Check, actions: &ActionMap) -> Result<Box<dyn Check>>
 where
-    T: DataSource + TryFrom<&'a config::Check, Error = Error> + 'static, // TODO warum 'static?
-    U: Alarm<Item = T::Item> + 'static,                                  // TODO warum 'static?
+    T: DataSource + TryFrom<&'a config::Check, Error = Error> + 'static,
+    U: DataSink<Item = T::Item> + TryFrom<&'a config::Alarm, Error = Error> + 'static,
 {
     let data_source = T::try_from(check_config)?;
-    let mut all_alarms: Vec<Vec<U>> = Vec::new();
+    let mut all_alarms: Vec<Vec<AlarmBase<U>>> = Vec::new();
     for (i, id) in data_source.ids().iter().enumerate() {
-        let mut alarms: Vec<U> = Vec::new();
+        let mut alarms: Vec<AlarmBase<U>> = Vec::new();
         for alarm_config in check_config.alarms.iter() {
             if alarm_config.disable {
                 log::info!("Alarm '{}' is disabled.", alarm_config.name);
@@ -125,14 +143,27 @@ where
                 alarm_config.recover_cycles
             );
             }
-            let level_alarm = U::new(id, alarm_config, actions)?;
-            alarms.push(level_alarm);
+            let data_sink = U::try_from(alarm_config)?;
+            let alarm = alarm::AlarmBase::new(
+                &alarm_config.name,
+                id,
+                get_action(&alarm_config.action, actions)?,
+                alarm_config.cycles,
+                alarm_config.repeat_cycles,
+                get_action(&alarm_config.recover_action, actions)?,
+                alarm_config.recover_cycles,
+                get_action(&alarm_config.error_action, actions)?,
+                alarm_config.error_repeat_cycles,
+                &alarm_config.placeholders,
+                data_sink,
+            );
+            alarms.push(alarm);
         }
         all_alarms.push(alarms);
     }
     Ok(Box::new(CheckBase::new(
         check_config.interval,
-        check_config.name.clone(),
+        &check_config.name,
         check_config.placeholders.clone(),
         data_source,
         all_alarms,
