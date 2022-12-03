@@ -1,4 +1,3 @@
-use crate::config;
 use crate::{PlaceholderMap, Result};
 use async_trait::async_trait;
 
@@ -14,17 +13,24 @@ pub trait Action: Send + Sync {
     async fn trigger(&self, mut placeholders: PlaceholderMap) -> Result<()>;
 }
 
-pub struct ActionBase {
+pub struct ActionBase<T>
+where
+    T: Action,
+{
     name: String,
     placeholders: PlaceholderMap,
+    action: T,
 }
 
-impl ActionBase {
-    #[cfg(test)]
-    pub fn new(name: &str, placeholders: PlaceholderMap) -> Self {
+impl<T> ActionBase<T>
+where
+    T: Action,
+{
+    pub fn new(name: &str, placeholders: &PlaceholderMap, action: T) -> Self {
         Self {
             name: name.to_string(),
-            placeholders,
+            placeholders: placeholders.clone(),
+            action,
         }
     }
 
@@ -37,11 +43,13 @@ impl ActionBase {
     }
 }
 
-impl From<&config::Action> for ActionBase {
-    fn from(action: &config::Action) -> Self {
-        Self {
-            name: action.name.clone(),
-            placeholders: action.placeholders.clone(),
-        }
+#[async_trait]
+impl<T> Action for ActionBase<T>
+where
+    T: Action,
+{
+    async fn trigger(&self, mut placeholders: PlaceholderMap) -> Result<()> {
+        let placeholders = self.add_placeholders(placeholders)?;
+        self.action.trigger(placeholders).await
     }
 }

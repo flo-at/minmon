@@ -8,7 +8,7 @@ type PlaceholderMap = std::collections::HashMap<String, String>;
 type ActionMap = std::collections::HashMap<String, Option<std::sync::Arc<dyn action::Action>>>;
 
 #[derive(Debug)]
-pub struct Error(pub String); // TODO
+pub struct Error(pub String);
 impl std::error::Error for Error {}
 
 impl std::fmt::Display for Error {
@@ -43,17 +43,23 @@ fn init_actions(config: &config::Config) -> Result<ActionMap> {
         // TODO an init_checks angleichen (match ins action module verschieben)
         res.insert(
             action_config.name.clone(),
-            match &action_config.type_ {
-                config::ActionType::WebHook(_) => Some(std::sync::Arc::new(
+            Some(match &action_config.type_ {
+                config::ActionType::WebHook(_) => std::sync::Arc::new(action::ActionBase::new(
+                    &action_config.name,
+                    &action_config.placeholders,
                     action::WebHook::try_from(action_config)?,
                 )),
-                config::ActionType::Log(_) => {
-                    Some(std::sync::Arc::new(action::Log::try_from(action_config)?))
-                }
-                config::ActionType::Process(_) => Some(std::sync::Arc::new(
+                config::ActionType::Log(_) => std::sync::Arc::new(action::ActionBase::new(
+                    &action_config.name,
+                    &action_config.placeholders,
+                    action::Log::try_from(action_config)?,
+                )),
+                config::ActionType::Process(_) => std::sync::Arc::new(action::ActionBase::new(
+                    &action_config.name,
+                    &action_config.placeholders,
                     action::Process::try_from(action_config)?,
                 )),
-            },
+            }),
         );
         log::info!(
             "Action {}::'{}' initialized.",

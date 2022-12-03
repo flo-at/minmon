@@ -1,13 +1,12 @@
 use std::collections::HashMap;
 
-use super::{Action, ActionBase};
+use super::Action;
 use crate::config;
 use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 
 // NOTE placeholders are replaced in url and body
 pub struct WebHook {
-    action: ActionBase,
     url: String,
     method: reqwest::Method,
     headers: reqwest::header::HeaderMap<reqwest::header::HeaderValue>,
@@ -27,7 +26,6 @@ impl WebHook {
         body: String,
     ) -> Self {
         Self {
-            action: ActionBase::new(name, placeholders),
             url,
             method,
             headers,
@@ -61,7 +59,6 @@ impl TryFrom<&config::Action> for WebHook {
     fn try_from(action: &config::Action) -> std::result::Result<Self, Self::Error> {
         if let config::ActionType::WebHook(web_hook) = &action.type_ {
             Ok(Self {
-                action: ActionBase::from(action),
                 url: web_hook.url.clone(),
                 method: reqwest::Method::from(web_hook.method),
                 headers: Self::transform_header_map(&web_hook.headers)?,
@@ -77,8 +74,6 @@ impl TryFrom<&config::Action> for WebHook {
 #[async_trait]
 impl Action for WebHook {
     async fn trigger(&self, placeholders: PlaceholderMap) -> Result<()> {
-        // TODO irgendwie in Actionbase verschieben
-        let placeholders = self.action.add_placeholders(placeholders)?;
         let url = crate::fill_placeholders(self.url.as_str(), &placeholders);
         let body = crate::fill_placeholders(self.body.as_str(), &placeholders);
         let client = reqwest::Client::new();

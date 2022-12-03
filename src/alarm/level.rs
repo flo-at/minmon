@@ -1,7 +1,7 @@
 use crate::{Error, Result};
 
-use super::config;
 use super::{DataSink, SinkDecision};
+use crate::config;
 
 pub struct Level {
     level: u8,

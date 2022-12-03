@@ -1,10 +1,9 @@
-use super::{Action, ActionBase};
+use super::Action;
 use crate::config;
 use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 
 pub struct Process {
-    action: ActionBase,
     path: std::path::PathBuf,
     arguments: Vec<String>,
     environment_variables: std::collections::HashMap<String, String>,
@@ -19,7 +18,6 @@ impl TryFrom<&config::Action> for Process {
     fn try_from(action: &config::Action) -> std::result::Result<Self, Self::Error> {
         if let config::ActionType::Process(process) = &action.type_ {
             Ok(Self {
-                action: ActionBase::from(action),
                 path: process.path.clone(),
                 arguments: process.arguments.clone(),
                 environment_variables: process.environment_variables.clone(),
@@ -36,8 +34,6 @@ impl TryFrom<&config::Action> for Process {
 #[async_trait]
 impl Action for Process {
     async fn trigger(&self, placeholders: PlaceholderMap) -> Result<()> {
-        // TODO irgendwie in Actionbase verschieben
-        let placeholders = self.action.add_placeholders(placeholders)?;
         let mut command = tokio::process::Command::new(&self.path);
         for argument in self.arguments.iter() {
             let argument = crate::fill_placeholders(argument.as_str(), &placeholders);
