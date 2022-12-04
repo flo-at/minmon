@@ -15,28 +15,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Install dependencies
-      run: sudo apt-get -y install libsystemd-dev
+      - uses: actions/checkout@v3
 
-    - name: Cache cargo dependencies
-      id: cache-cargo
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+      - name: Install dependencies
+        run: sudo apt-get -y install libsystemd-dev
 
-    - name: Build
-      run: cargo build --verbose --all-features
+      - name: Cache cargo dependencies
+        id: cache-cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
 
-    - name: Run tests
-      run: cargo test --verbose --all-features
+      - name: Build
+        run: cargo build --verbose --all-features
 
-    - if: steps.cache-cargo.outputs.cache-hit != 'true'
-      name: Clean cargo dependencies
-      run: cargo clean -p minmon
+      - name: Run tests
+        run: cargo test --verbose --all-features
+
+      - if: steps.cache-cargo.outputs.cache-hit != 'true'
+        name: Clean cargo dependencies
+        run: cargo clean -p minmon
