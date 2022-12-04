@@ -40,6 +40,10 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
 
       - name: Build and push Docker image
         id: build-and-push
@@ -50,6 +54,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          push: true
 
       - name: Sign the published Docker image
         env:
