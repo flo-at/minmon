@@ -27,10 +27,10 @@ impl<T> ActionBase<T>
 where
     T: Action,
 {
-    pub fn new(name: &str, placeholders: &PlaceholderMap, action: T) -> Self {
+    pub fn new(name: String, placeholders: PlaceholderMap, action: T) -> Self {
         Self {
-            name: name.to_string(),
-            placeholders: placeholders.clone(),
+            name,
+            placeholders,
             action,
         }
     }
@@ -58,18 +58,18 @@ where
 pub fn from_action_config(action_config: &config::Action) -> Result<std::sync::Arc<dyn Action>> {
     Ok(match &action_config.type_ {
         config::ActionType::WebHook(_) => std::sync::Arc::new(ActionBase::new(
-            &action_config.name,
-            &action_config.placeholders,
+            action_config.name.clone(),
+            action_config.placeholders.clone(),
             WebHook::try_from(action_config)?,
         )),
         config::ActionType::Log(_) => std::sync::Arc::new(ActionBase::new(
-            &action_config.name,
-            &action_config.placeholders,
+            action_config.name.clone(),
+            action_config.placeholders.clone(),
             Log::try_from(action_config)?,
         )),
         config::ActionType::Process(_) => std::sync::Arc::new(ActionBase::new(
-            &action_config.name,
-            &action_config.placeholders,
+            action_config.name.clone(),
+            action_config.placeholders.clone(),
             Process::try_from(action_config)?,
         )),
     })

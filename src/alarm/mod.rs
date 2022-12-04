@@ -100,8 +100,8 @@ where
     T: DataSink,
 {
     pub fn new(
-        name: &str,
-        id: &str,
+        name: String,
+        id: String,
         action: Option<std::sync::Arc<dyn action::Action>>,
         cycles: u32,
         repeat_cycles: u32,
@@ -109,12 +109,12 @@ where
         recover_cycles: u32,
         error_action: Option<std::sync::Arc<dyn action::Action>>,
         error_repeat_cycles: u32,
-        placeholders: &PlaceholderMap,
+        placeholders: PlaceholderMap,
         data_sink: T,
     ) -> Self {
         Self {
-            name: name.into(),
-            id: id.into(),
+            name,
+            id,
             action,
             cycles,
             repeat_cycles,
@@ -122,7 +122,7 @@ where
             recover_cycles,
             error_action,
             error_repeat_cycles,
-            placeholders: placeholders.clone(),
+            placeholders,
             state: State::default(),
             data_sink,
         }

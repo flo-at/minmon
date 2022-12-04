@@ -48,14 +48,14 @@ where
 {
     fn new(
         interval: u32,
-        name: &str,
+        name: String,
         placeholders: PlaceholderMap,
         data_source: T,
         alarms: Vec<Vec<U>>,
     ) -> Self {
         Self {
             interval,
-            name: name.into(),
+            name,
             placeholders,
             data_source,
             alarms,
@@ -145,8 +145,8 @@ where
             }
             let data_sink = U::try_from(alarm_config)?;
             let alarm = alarm::AlarmBase::new(
-                &alarm_config.name,
-                id,
+                alarm_config.name.clone(),
+                id.clone(),
                 get_action(&alarm_config.action, actions)?,
                 alarm_config.cycles,
                 alarm_config.repeat_cycles,
@@ -154,7 +154,7 @@ where
                 alarm_config.recover_cycles,
                 get_action(&alarm_config.error_action, actions)?,
                 alarm_config.error_repeat_cycles,
-                &alarm_config.placeholders,
+                alarm_config.placeholders.clone(),
                 data_sink,
             );
             alarms.push(alarm);
@@ -163,7 +163,7 @@ where
     }
     Ok(Box::new(CheckBase::new(
         check_config.interval,
-        &check_config.name,
+        check_config.name.clone(),
         check_config.placeholders.clone(),
         data_source,
         all_alarms,

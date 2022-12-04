@@ -6,7 +6,6 @@ extern crate systemd as systemd_ext;
 use minmon::{config, Error, Result};
 
 // TODO Arc durch Box ersetzen; tokio single threaded; Sync + Send entfernen
-// TODO make sure arguments to ::new are consistent (alle refs or moves)..
 // TODO journal logging with extra fields (check/alarm/action name, ..)
 // TODO hierarchical logging (or just placeholders?)
 // TODO include alarm/action "last status" in report to see if action execution works correctly
@@ -81,6 +80,22 @@ async fn main_wrapper() -> Result<()> {
     Ok(())
 }
 
+fn main() {
+    tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(async {
+            if let Err(error) = main_wrapper().await {
+                // Print to stderr here because logging might not be initialized if the config
+                // file cannot be parsed.
+                eprintln!("Exiting due to error: {}", error);
+                std::process::exit(1);
+            }
+        })
+}
+
+/*
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
     if let Err(error) = main_wrapper().await {
@@ -90,3 +105,4 @@ async fn main() {
         std::process::exit(1);
     }
 }
+*/

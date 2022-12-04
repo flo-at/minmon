@@ -17,8 +17,6 @@ pub struct WebHook {
 impl WebHook {
     #[cfg(test)]
     fn new(
-        name: &str,
-        placeholders: PlaceholderMap,
         url: String,
         method: reqwest::Method,
         headers: reqwest::header::HeaderMap<reqwest::header::HeaderValue>,
@@ -116,8 +114,6 @@ mod test {
     #[tokio::test]
     async fn test_web_hook_ok() {
         let web_hook = WebHook::new(
-            "Test WebHook",
-            PlaceholderMap::new(),
             String::from("https://httpbin.org/status/200"),
             reqwest::Method::GET,
             WebHook::transform_header_map(&HashMap::new()).unwrap(),
@@ -130,8 +126,6 @@ mod test {
     #[tokio::test]
     async fn test_web_hook_err() {
         let web_hook = WebHook::new(
-            "Test WebHook",
-            PlaceholderMap::new(),
             String::from("https://httpbin.org/status/400"),
             reqwest::Method::GET,
             WebHook::transform_header_map(&HashMap::new()).unwrap(),
