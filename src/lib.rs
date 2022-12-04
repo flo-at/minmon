@@ -1,3 +1,5 @@
+#![deny(warnings)]
+
 mod action;
 mod alarm;
 mod check;
@@ -31,6 +33,11 @@ fn fill_placeholders(template: &str, placeholders: &PlaceholderMap) -> String {
             .map(|(k, v)| (k.as_str(), v.as_str()))
             .collect(),
     )
+}
+
+fn iso8601(system_time: std::time::SystemTime) -> String {
+    let date_time: chrono::DateTime<chrono::Utc> = system_time.into();
+    date_time.format("%FT%T").to_string()
 }
 
 fn init_actions(config: &config::Config) -> Result<ActionMap> {
@@ -83,4 +90,35 @@ fn init_checks(config: &config::Config, actions: &ActionMap) -> Result<Vec<Box<d
 pub fn from_config(config: &config::Config) -> Result<Vec<Box<dyn check::Check>>> {
     let actions = init_actions(config)?;
     init_checks(config, &actions)
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_merge_placeholders() {
+        let mut target = PlaceholderMap::from([(String::from("A"), String::from("?"))]);
+        let source = PlaceholderMap::from([
+            (String::from("A"), String::from("B")),
+            (String::from("C"), String::from("D")),
+        ]);
+        merge_placeholders(&mut target, &source);
+        assert_eq!(target.get("A").unwrap(), "B");
+        assert_eq!(target.get("C").unwrap(), "D");
+    }
+
+    #[test]
+    fn test_fill_placeholders() {
+        let template = "X{{A}}{{missing}}Z";
+        let placeholders = PlaceholderMap::from([(String::from("A"), String::from("Y"))]);
+        let filled = fill_placeholders(template, &placeholders);
+        assert_eq!(filled, "XYZ");
+    }
+
+    #[test]
+    fn test_iso8601() {
+        let system_time = std::time::SystemTime::UNIX_EPOCH;
+        assert_eq!(iso8601(system_time), "1970-01-01T00:00:00");
+    }
 }

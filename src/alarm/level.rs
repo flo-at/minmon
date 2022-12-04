@@ -11,6 +11,7 @@ impl TryFrom<&config::Alarm> for Level {
     type Error = Error;
 
     fn try_from(alarm: &config::Alarm) -> std::result::Result<Self, self::Error> {
+        #[allow(irrefutable_let_patterns)] // there are no other types yet
         if let config::AlarmType::Level(level) = &alarm.type_ {
             Ok(Self { level: level.level })
         } else {

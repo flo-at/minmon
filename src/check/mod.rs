@@ -2,16 +2,12 @@ use crate::action;
 use crate::alarm;
 use crate::alarm::{Alarm, AlarmBase, DataSink};
 use crate::config;
+use crate::ActionMap;
 use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 
 mod filesystem_usage;
 mod memory_usage;
-
-use filesystem_usage::FilesystemUsage;
-use memory_usage::MemoryUsage;
-
-use crate::ActionMap;
 
 #[async_trait]
 pub trait Check: Send + Sync {
@@ -179,10 +175,10 @@ pub fn from_check_config(
     match &check_config.type_ {
         // NOTE Add mapping here when implementing new data source / alarms.
         config::CheckType::FilesystemUsage(_) => {
-            factory::<FilesystemUsage, alarm::Level>(check_config, actions)
+            factory::<filesystem_usage::FilesystemUsage, alarm::Level>(check_config, actions)
         }
         config::CheckType::MemoryUsage(_) => {
-            factory::<MemoryUsage, alarm::Level>(check_config, actions)
+            factory::<memory_usage::MemoryUsage, alarm::Level>(check_config, actions)
         }
     }
     .map_err(|x| {

@@ -6,11 +6,6 @@ mod level;
 
 pub use level::Level;
 
-fn iso8601(system_time: &std::time::SystemTime) -> String {
-    let date_time: chrono::DateTime<chrono::Utc> = (*system_time).into();
-    date_time.format("%FT%T").to_string()
-}
-
 pub trait DataSink: Send + Sync + Sized {
     type Item: Send + Sync;
 
@@ -287,9 +282,15 @@ where
     async fn trigger(&self, mut placeholders: PlaceholderMap) -> Result<()> {
         if let State::Bad(bad) = &self.state {
             self.add_placeholders(&mut placeholders);
-            placeholders.insert(String::from("alarm_timestamp"), iso8601(&bad.timestamp));
+            placeholders.insert(
+                String::from("alarm_timestamp"),
+                crate::iso8601(bad.timestamp),
+            );
             placeholders.insert(String::from("alarm_uuid"), bad.uuid.clone());
-            placeholders.insert(String::from("alarm_timestamp"), iso8601(&bad.timestamp));
+            placeholders.insert(
+                String::from("alarm_timestamp"),
+                crate::iso8601(bad.timestamp),
+            );
             match &self.action {
                 Some(action) => {
                     log::debug!("Action 'TODO' for alarm '{}' triggered.", self.name);
@@ -329,7 +330,10 @@ where
             self.add_placeholders(&mut placeholders);
             // TODO if shadowed_state == Bad -> add bad uuid and timestamp
             placeholders.insert(String::from("error_uuid"), error.uuid.clone());
-            placeholders.insert(String::from("error_timestamp"), iso8601(&error.timestamp));
+            placeholders.insert(
+                String::from("error_timestamp"),
+                crate::iso8601(error.timestamp),
+            );
             crate::merge_placeholders(&mut placeholders, &self.error_placeholders);
             match &self.error_action {
                 Some(action) => action.trigger(placeholders).await,

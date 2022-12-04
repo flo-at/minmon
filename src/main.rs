@@ -1,3 +1,5 @@
+#![deny(warnings)]
+
 #[cfg(feature = "systemd")]
 mod systemd;
 #[cfg(feature = "systemd")]
@@ -10,8 +12,9 @@ use minmon::{config, Error, Result};
 // TODO hierarchical logging (or just placeholders?)
 // TODO include alarm/action "last status" in report to see if action execution works correctly
 // TODO consistent debug logging
-// TODO documentation and readme!
+// TODO (example) configs in README
 // TODO implement report
+// TODO tests!
 
 fn get_config_file_path() -> Result<std::path::PathBuf> {
     if let Some(path_str) = std::env::args().nth(1) {
