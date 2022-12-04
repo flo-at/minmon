@@ -35,12 +35,11 @@ where
         }
     }
 
-    fn add_placeholders(&self, placeholders: &mut PlaceholderMap) -> Result<()> {
+    fn add_placeholders(&self, placeholders: &mut PlaceholderMap) {
         placeholders.insert(String::from("action_name"), self.name.clone());
         for (key, value) in self.placeholders.iter() {
             placeholders.insert(key.clone(), value.clone());
         }
-        Ok(())
     }
 }
 
@@ -50,7 +49,7 @@ where
     T: Action,
 {
     async fn trigger(&self, mut placeholders: PlaceholderMap) -> Result<()> {
-        self.add_placeholders(&mut placeholders)?;
+        self.add_placeholders(&mut placeholders);
         self.action.trigger(placeholders).await
     }
 }

@@ -280,7 +280,7 @@ where
 
     async fn trigger(&self, mut placeholders: PlaceholderMap) -> Result<()> {
         if let State::Bad(bad) = &self.state {
-            self.add_placeholders(&mut placeholders)?;
+            self.add_placeholders(&mut placeholders);
             placeholders.insert(String::from("alarm_timestamp"), iso8601(&bad.timestamp));
             placeholders.insert(String::from("alarm_uuid"), bad.uuid.clone());
             placeholders.insert(String::from("alarm_timestamp"), iso8601(&bad.timestamp));
@@ -304,7 +304,7 @@ where
 
     async fn trigger_recover(&self, mut placeholders: PlaceholderMap) -> Result<()> {
         if let State::Good(good) = &self.state {
-            self.add_placeholders(&mut placeholders)?;
+            self.add_placeholders(&mut placeholders);
             if let Some(last_alarm_uuid) = &good.last_alarm_uuid {
                 placeholders.insert(String::from("alarm_uuid"), last_alarm_uuid.clone());
             }
@@ -319,7 +319,7 @@ where
 
     async fn trigger_error(&self, mut placeholders: PlaceholderMap) -> Result<()> {
         if let State::Error(error) = &self.state {
-            self.add_placeholders(&mut placeholders)?;
+            self.add_placeholders(&mut placeholders);
             // TODO if shadowed_state == Bad -> add bad uuid and timestamp
             placeholders.insert(String::from("error_uuid"), error.uuid.clone());
             placeholders.insert(String::from("error_timestamp"), iso8601(&error.timestamp));
@@ -332,12 +332,11 @@ where
         }
     }
 
-    fn add_placeholders(&self, placeholders: &mut PlaceholderMap) -> Result<()> {
+    fn add_placeholders(&self, placeholders: &mut PlaceholderMap) {
         placeholders.insert(String::from("alarm_name"), self.name.clone());
         for (key, value) in self.placeholders.iter() {
             placeholders.insert(key.clone(), value.clone());
         }
-        Ok(())
     }
 }
 
