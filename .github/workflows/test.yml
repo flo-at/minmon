@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Install dependencies
+      run: sudo apt-get -y install libsystemd-dev
     - name: Build
       run: cargo build --verbose --all-features
     - name: Run tests

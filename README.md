@@ -2,6 +2,9 @@
 This tool is just a single binary and a config file. No database, no GUI, no graphs, no runtime dependencies. Just monitoring and alarms.
 I wrote this because the [exsiting alternatives](#existing-alternatives) I could find were too heavy, mainly focused on nice GUIs with graphs (not on alarming), too complex to setup or targeted at cloud/multi-instance setups.
 
+![test workflow](https://github.com/flo-at/minmon/actions/workflows/test.yml/badge.svg)
+![docker workflow](https://github.com/flo-at/minmon/actions/workflows/docker.yml/badge.svg)
+
 # Checks
 - Filesystem usage
 - Memory
@@ -14,7 +17,7 @@ I wrote this because the [exsiting alternatives](#existing-alternatives) I could
 The absence of alarms can mean two things: everything is okay or the monitoring/alarming failed.
 That's why MinMon can trigger regular report actions to let you know that it's up and running.
 
-# Systemd integration (optional)
+# systemd integration (optional)
 - Logging to journal.
 - Notify systemd about start-up completion (`Type=notify`).
 - Periodically reset systemd watchdog (`WatchdogSec=x`).
