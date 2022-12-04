@@ -35,7 +35,7 @@ jobs:
       run: cargo build --verbose --all-features
 
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --verbose --all-features
 
     - if: steps.cache-cargo.outputs.cache-hit != 'true'
       name: Clean cargo dependencies
