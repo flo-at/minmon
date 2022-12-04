@@ -6,8 +6,9 @@ mod level;
 
 pub use level::Level;
 
-fn get_utc_now() -> String {
-    chrono::offset::Utc::now().format("%FT%T").to_string()
+fn iso8601(system_time: &std::time::SystemTime) -> String {
+    let date_time: chrono::DateTime<chrono::Utc> = (*system_time).into();
+    date_time.format("%FT%T").to_string()
 }
 
 pub trait DataSink: Send + Sync + Sized {
@@ -64,7 +65,7 @@ impl Default for State {
 
 #[derive(Clone)]
 struct GoodState {
-    timestamp: String, // TODO dont store as string
+    timestamp: std::time::SystemTime,
     last_alarm_uuid: Option<String>,
     bad_cycles: u32,
 }
@@ -72,7 +73,7 @@ struct GoodState {
 impl Default for GoodState {
     fn default() -> Self {
         Self {
-            timestamp: get_utc_now(),
+            timestamp: std::time::SystemTime::now(),
             last_alarm_uuid: None,
             bad_cycles: 0,
         }
@@ -81,7 +82,7 @@ impl Default for GoodState {
 
 #[derive(Clone)]
 struct BadState {
-    timestamp: String, // TODO dont store as string
+    timestamp: std::time::SystemTime,
     uuid: String,
     cycles: u32,
     good_cycles: u32,
@@ -89,7 +90,7 @@ struct BadState {
 
 #[derive(Clone)]
 struct ErrorState {
-    timestamp: String, // TODO dont store as string
+    timestamp: std::time::SystemTime,
     uuid: String,
     shadowed_state: Box<State>,
     cycles: u32,
@@ -134,7 +135,7 @@ where
             State::Good(_) => {
                 trigger = true;
                 State::Error(ErrorState {
-                    timestamp: get_utc_now(),
+                    timestamp: std::time::SystemTime::now(),
                     uuid: uuid::Uuid::new_v4().to_string(),
                     shadowed_state: Box::new(state.clone()),
                     cycles: 1,
@@ -144,7 +145,7 @@ where
             State::Bad(_) => {
                 trigger = true;
                 State::Error(ErrorState {
-                    timestamp: get_utc_now(),
+                    timestamp: std::time::SystemTime::now(),
                     uuid: uuid::Uuid::new_v4().to_string(),
                     shadowed_state: Box::new(state.clone()),
                     cycles: 1,
@@ -159,9 +160,9 @@ where
                     error.cycles + 1
                 };
                 State::Error(ErrorState {
-                    timestamp: error.timestamp.clone(),
+                    timestamp: error.timestamp,
                     uuid: error.uuid.clone(),
-                    shadowed_state: error.shadowed_state.clone(), // TODO how to move here?
+                    shadowed_state: error.shadowed_state.clone(),
                     cycles,
                 })
             }
@@ -176,14 +177,14 @@ where
                 if good.bad_cycles + 1 == self.cycles {
                     trigger = true;
                     State::Bad(BadState {
-                        timestamp: get_utc_now(),
+                        timestamp: std::time::SystemTime::now(),
                         uuid: uuid::Uuid::new_v4().to_string(),
                         cycles: 1,
                         good_cycles: 0,
                     })
                 } else {
                     State::Good(GoodState {
-                        timestamp: good.timestamp.clone(),
+                        timestamp: good.timestamp,
                         last_alarm_uuid: None,
                         bad_cycles: good.bad_cycles + 1,
                     })
@@ -198,7 +199,7 @@ where
                     bad.cycles + 1
                 };
                 State::Bad(BadState {
-                    timestamp: bad.timestamp.clone(),
+                    timestamp: bad.timestamp,
                     uuid: bad.uuid.clone(),
                     cycles,
                     good_cycles: 0,
@@ -225,13 +226,13 @@ where
                 if bad.good_cycles + 1 == self.recover_cycles {
                     trigger = true;
                     State::Good(GoodState {
-                        timestamp: get_utc_now(),
+                        timestamp: std::time::SystemTime::now(),
                         last_alarm_uuid: Some(bad.uuid.clone()),
                         bad_cycles: 0,
                     })
                 } else {
                     State::Bad(BadState {
-                        timestamp: bad.timestamp.clone(),
+                        timestamp: bad.timestamp,
                         uuid: bad.uuid.clone(),
                         cycles: bad.cycles + 1, // TODO unsure about this one
                         good_cycles: bad.good_cycles + 1,
@@ -280,9 +281,9 @@ where
     async fn trigger(&self, mut placeholders: PlaceholderMap) -> Result<()> {
         if let State::Bad(bad) = &self.state {
             self.add_placeholders(&mut placeholders)?;
-            placeholders.insert(String::from("alarm_timestamp"), bad.timestamp.clone());
+            placeholders.insert(String::from("alarm_timestamp"), iso8601(&bad.timestamp));
             placeholders.insert(String::from("alarm_uuid"), bad.uuid.clone());
-            placeholders.insert(String::from("alarm_timestamp"), bad.timestamp.clone());
+            placeholders.insert(String::from("alarm_timestamp"), iso8601(&bad.timestamp));
             match &self.action {
                 Some(action) => {
                     log::debug!("Action 'TODO' for alarm '{}' triggered.", self.name);
@@ -321,7 +322,7 @@ where
             self.add_placeholders(&mut placeholders)?;
             // TODO if shadowed_state == Bad -> add bad uuid and timestamp
             placeholders.insert(String::from("error_uuid"), error.uuid.clone());
-            placeholders.insert(String::from("error_timestamp"), error.timestamp.clone());
+            placeholders.insert(String::from("error_timestamp"), iso8601(&error.timestamp));
             match &self.error_action {
                 Some(action) => action.trigger(placeholders).await,
                 None => Ok(()),
