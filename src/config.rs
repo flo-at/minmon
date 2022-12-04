@@ -225,20 +225,24 @@ pub struct Alarm {
     pub disable: bool,
     pub name: String,
     pub action: String,
+    #[serde(default)]
+    pub placeholders: PlaceholderMap,
     #[serde(default = "default::check_alarm_cycles")]
     pub cycles: u32,
     #[serde(default)]
     pub repeat_cycles: u32,
     #[serde(default)]
     pub recover_action: String,
+    #[serde(default)]
+    pub recover_placeholders: PlaceholderMap,
     #[serde(default = "default::check_alarm_recover_cycles")]
     pub recover_cycles: u32,
     #[serde(default)]
     pub error_action: String,
     #[serde(default)]
-    pub error_repeat_cycles: u32,
+    pub error_placeholders: PlaceholderMap,
     #[serde(default)]
-    pub placeholders: PlaceholderMap,
+    pub error_repeat_cycles: u32,
     #[serde(flatten)]
     pub type_: AlarmType,
 }

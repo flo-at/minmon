@@ -37,9 +37,7 @@ where
 
     fn add_placeholders(&self, placeholders: &mut PlaceholderMap) {
         placeholders.insert(String::from("action_name"), self.name.clone());
-        for (key, value) in self.placeholders.iter() {
-            placeholders.insert(key.clone(), value.clone());
-        }
+        crate::merge_placeholders(placeholders, &self.placeholders);
     }
 }
 

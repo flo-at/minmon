@@ -39,13 +39,15 @@ where
     name: String,
     id: String,
     action: Option<std::sync::Arc<dyn action::Action>>,
+    placeholders: PlaceholderMap,
     cycles: u32,
     repeat_cycles: u32,
     recover_action: Option<std::sync::Arc<dyn action::Action>>,
+    recover_placeholders: PlaceholderMap,
     recover_cycles: u32,
     error_action: Option<std::sync::Arc<dyn action::Action>>,
+    error_placeholders: PlaceholderMap,
     error_repeat_cycles: u32,
-    placeholders: PlaceholderMap,
     state: State,
     data_sink: T,
 }
@@ -104,26 +106,30 @@ where
         name: String,
         id: String,
         action: Option<std::sync::Arc<dyn action::Action>>,
+        placeholders: PlaceholderMap,
         cycles: u32,
         repeat_cycles: u32,
         recover_action: Option<std::sync::Arc<dyn action::Action>>,
+        recover_placeholders: PlaceholderMap,
         recover_cycles: u32,
         error_action: Option<std::sync::Arc<dyn action::Action>>,
+        error_placeholders: PlaceholderMap,
         error_repeat_cycles: u32,
-        placeholders: PlaceholderMap,
         data_sink: T,
     ) -> Self {
         Self {
             name,
             id,
             action,
+            placeholders,
             cycles,
             repeat_cycles,
             recover_action,
+            recover_placeholders,
             recover_cycles,
             error_action,
+            error_placeholders,
             error_repeat_cycles,
-            placeholders,
             state: State::default(),
             data_sink,
         }
@@ -308,6 +314,7 @@ where
             if let Some(last_alarm_uuid) = &good.last_alarm_uuid {
                 placeholders.insert(String::from("alarm_uuid"), last_alarm_uuid.clone());
             }
+            crate::merge_placeholders(&mut placeholders, &self.recover_placeholders);
             match &self.recover_action {
                 Some(action) => action.trigger(placeholders).await,
                 None => Ok(()),
@@ -323,6 +330,7 @@ where
             // TODO if shadowed_state == Bad -> add bad uuid and timestamp
             placeholders.insert(String::from("error_uuid"), error.uuid.clone());
             placeholders.insert(String::from("error_timestamp"), iso8601(&error.timestamp));
+            crate::merge_placeholders(&mut placeholders, &self.error_placeholders);
             match &self.error_action {
                 Some(action) => action.trigger(placeholders).await,
                 None => Ok(()),
@@ -334,9 +342,7 @@ where
 
     fn add_placeholders(&self, placeholders: &mut PlaceholderMap) {
         placeholders.insert(String::from("alarm_name"), self.name.clone());
-        for (key, value) in self.placeholders.iter() {
-            placeholders.insert(key.clone(), value.clone());
-        }
+        crate::merge_placeholders(placeholders, &self.placeholders);
     }
 }
 

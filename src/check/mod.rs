@@ -148,13 +148,15 @@ where
                 alarm_config.name.clone(),
                 id.clone(),
                 get_action(&alarm_config.action, actions)?,
+                alarm_config.placeholders.clone(),
                 alarm_config.cycles,
                 alarm_config.repeat_cycles,
                 get_action(&alarm_config.recover_action, actions)?,
+                alarm_config.recover_placeholders.clone(),
                 alarm_config.recover_cycles,
                 get_action(&alarm_config.error_action, actions)?,
+                alarm_config.error_placeholders.clone(),
                 alarm_config.error_repeat_cycles,
-                alarm_config.placeholders.clone(),
                 data_sink,
             );
             alarms.push(alarm);

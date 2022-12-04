@@ -9,7 +9,6 @@ use minmon::{config, Error, Result};
 // TODO journal logging with extra fields (check/alarm/action name, ..)
 // TODO hierarchical logging (or just placeholders?)
 // TODO include alarm/action "last status" in report to see if action execution works correctly
-// TODO recover_placeholders, error_placeholders
 // TODO consistent debug logging
 // TODO documentation and readme!
 // TODO implement report

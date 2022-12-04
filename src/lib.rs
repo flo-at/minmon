@@ -17,6 +17,12 @@ impl std::fmt::Display for Error {
     }
 }
 
+fn merge_placeholders(target: &mut PlaceholderMap, source: &PlaceholderMap) {
+    for (key, value) in source.iter() {
+        target.insert(key.clone(), value.clone());
+    }
+}
+
 fn fill_placeholders(template: &str, placeholders: &PlaceholderMap) -> String {
     let template = text_placeholder::Template::new(template);
     template.fill_with_hashmap(
