@@ -1,5 +1,5 @@
 # MinMon - an opinionated minimal monitoring and alarming tool
-This tool is just a single binary and a config file. No database, no GUI, no graphs, no runtime dependencies. Just monitoring and alarms.
+This tool is just a single binary and a config file. No database, no GUI, no graphs. Just monitoring and alarms.
 I wrote this because the [exsiting alternatives](#existing-alternatives) I could find were too heavy, mainly focused on nice GUIs with graphs (not on alarming), too complex to setup or targeted at cloud/multi-instance setups.
 
 ![test workflow](https://github.com/flo-at/minmon/actions/workflows/test.yml/badge.svg)
@@ -131,6 +131,8 @@ Inside the action (depending on the type of the action) the placeholders can be 
 - Temperatures
 - Ping
 - HTTP response, keyword, ..
+- systemd service status
+- Docker/Podman container status
 
 ## General ideas
 - Store measurements/status in time-based database (e.g. rrdtool) and visualize on Webinterface or ncurses UI. This should be optional and separated from the existing code.
