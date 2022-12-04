@@ -3,6 +3,7 @@ This tool is just a single binary and a config file. No database, no GUI, no gra
 I wrote this because the [exsiting alternatives](#existing-alternatives) I could find were too heavy, mainly focused on nice GUIs with graphs (not on alarming), too complex to setup or targeted at cloud/multi-instance setups.
 
 ![test workflow](https://github.com/flo-at/minmon/actions/workflows/test.yml/badge.svg)
+![crates.io workflow](https://github.com/flo-at/minmon/actions/workflows/crate-publish.yml/badge.svg)
 ![docker workflow](https://github.com/flo-at/minmon/actions/workflows/docker-publish.yml/badge.svg)
 
 # Checks
