@@ -9,6 +9,7 @@ pub use self::log::Log;
 pub use process::Process;
 pub use web_hook::WebHook;
 
+#[cfg_attr(test, mockall::automock)]
 #[async_trait]
 pub trait Action: Send + Sync {
     async fn trigger(&self, mut placeholders: PlaceholderMap) -> Result<()>;

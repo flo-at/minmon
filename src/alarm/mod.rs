@@ -6,6 +6,7 @@ mod level;
 
 pub use level::Level;
 
+#[cfg_attr(test, mockall::automock(type Item=u8;))]
 pub trait DataSink: Send + Sync + Sized {
     type Item: Send + Sync;
 
@@ -125,6 +126,7 @@ where
         invert: bool,
         data_sink: T,
     ) -> Self {
+        // TODO ensure cycles != 0 and recover_cycles != 0
         Self {
             name,
             id,
@@ -402,5 +404,70 @@ where
         );
         placeholders.insert(String::from("alarm_name"), self.name.clone());
         self.error(placeholders).await
+    }
+}
+#[cfg(test)]
+mod test {
+    use super::*;
+    use mockall::predicate::*;
+
+    #[tokio::test]
+    async fn test_trigger_action() {
+        let mut mock_data_sink = MockDataSink::new();
+        let mut mock_action = action::MockAction::new();
+        mock_action.expect_trigger().never();
+        mock_data_sink
+            .expect_put_data()
+            .with(eq(10))
+            .returning(|_| Ok(SinkDecision::Good));
+        mock_data_sink
+            .expect_put_data()
+            .with(eq(20))
+            .returning(|_| Ok(SinkDecision::Bad));
+        let mut alarm = AlarmBase::new(
+            String::from("Name"),
+            String::from("ID"),
+            Some(std::sync::Arc::new(mock_action)),
+            PlaceholderMap::from([(String::from("Hello"), String::from("World"))]),
+            5,
+            0,
+            None,
+            PlaceholderMap::new(),
+            1,
+            None,
+            PlaceholderMap::new(),
+            0,
+            false,
+            mock_data_sink,
+        );
+        for _ in 0..4 {
+            alarm.put_data(&20, PlaceholderMap::new()).await.unwrap();
+        }
+        let mut mock_action = action::MockAction::new();
+        mock_action
+            .expect_trigger()
+            .once()
+            .with(function(|placeholders: &PlaceholderMap| {
+                placeholders.get("alarm_uuid").unwrap();
+                placeholders.get("alarm_name").unwrap() == "Name"
+                    && placeholders.get("Hello").unwrap() == "World"
+                    && placeholders.get("Foo").unwrap() == "Bar"
+            }))
+            .returning(|_| Ok(()));
+        alarm.action = Some(std::sync::Arc::new(mock_action));
+        alarm
+            .put_data(
+                &20,
+                PlaceholderMap::from([(String::from("Foo"), String::from("Bar"))]),
+            )
+            .await
+            .unwrap();
+        let mut mock_action = action::MockAction::new();
+        mock_action.expect_trigger().never();
+        alarm.action = Some(std::sync::Arc::new(mock_action));
+        for _ in 0..4 {
+            alarm.put_data(&20, PlaceholderMap::new()).await.unwrap();
+        }
+        // TODO check placeholders
     }
 }
