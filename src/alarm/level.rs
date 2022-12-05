@@ -24,11 +24,11 @@ impl DataSink for Level {
     type Item = u8;
 
     fn put_data(&mut self, data: &Self::Item) -> Result<SinkDecision> {
-        if *data >= self.level {
-            Ok(SinkDecision::Bad)
+        Ok(if *data > self.level {
+            SinkDecision::Bad
         } else {
-            Ok(SinkDecision::Good)
-        }
+            SinkDecision::Good
+        })
     }
 
     fn format_data(data: &Self::Item) -> String {

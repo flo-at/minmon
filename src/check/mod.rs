@@ -154,6 +154,7 @@ where
                 get_action(&alarm_config.error_action, actions)?,
                 alarm_config.error_placeholders.clone(),
                 alarm_config.error_repeat_cycles,
+                alarm_config.invert,
                 data_sink,
             );
             alarms.push(alarm);

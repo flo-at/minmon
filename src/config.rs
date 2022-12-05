@@ -240,6 +240,8 @@ pub struct Alarm {
     pub error_placeholders: PlaceholderMap,
     #[serde(default)]
     pub error_repeat_cycles: u32,
+    #[serde(default)]
+    pub invert: bool,
     #[serde(flatten)]
     pub type_: AlarmType,
 }

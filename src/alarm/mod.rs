@@ -18,6 +18,17 @@ pub enum SinkDecision {
     Bad,
 }
 
+impl std::ops::Not for SinkDecision {
+    type Output = Self;
+
+    fn not(self) -> Self::Output {
+        match self {
+            SinkDecision::Good => SinkDecision::Bad,
+            SinkDecision::Bad => SinkDecision::Good,
+        }
+    }
+}
+
 #[async_trait]
 pub trait Alarm: Send + Sync + Sized {
     type Item: Send + Sync;
@@ -43,6 +54,7 @@ where
     error_action: Option<std::sync::Arc<dyn action::Action>>,
     error_placeholders: PlaceholderMap,
     error_repeat_cycles: u32,
+    invert: bool,
     state: State,
     data_sink: T,
 }
@@ -110,6 +122,7 @@ where
         error_action: Option<std::sync::Arc<dyn action::Action>>,
         error_placeholders: PlaceholderMap,
         error_repeat_cycles: u32,
+        invert: bool,
         data_sink: T,
     ) -> Self {
         Self {
@@ -125,6 +138,7 @@ where
             error_action,
             error_placeholders,
             error_repeat_cycles,
+            invert,
             state: State::default(),
             data_sink,
         }
@@ -328,7 +342,7 @@ where
     async fn trigger_error(&self, mut placeholders: PlaceholderMap) -> Result<()> {
         if let State::Error(error) = &self.state {
             self.add_placeholders(&mut placeholders);
-            // TODO if shadowed_state == Bad -> add bad uuid and timestamp
+            // TODO add info about shadowed_state (add bad uuid and timestamp, ..)
             placeholders.insert(String::from("error_uuid"), error.uuid.clone());
             placeholders.insert(
                 String::from("error_timestamp"),
@@ -369,7 +383,10 @@ where
             self.id
         );
         placeholders.insert(String::from("alarm_name"), self.name.clone());
-        let decision = self.data_sink.put_data(data)?;
+        let mut decision = self.data_sink.put_data(data)?;
+        if self.invert {
+            decision = !decision;
+        }
         match decision {
             SinkDecision::Good => self.good(placeholders).await,
             SinkDecision::Bad => self.bad(placeholders).await,
@@ -378,7 +395,7 @@ where
 
     async fn put_error(&mut self, error: &Error, mut placeholders: PlaceholderMap) -> Result<()> {
         log::debug!(
-            "Got error for level alarm '{}' at id '{}': {}",
+            "Got error for alarm '{}' at id '{}': {}",
             self.name,
             self.id,
             error
