@@ -406,6 +406,7 @@ where
         self.error(placeholders).await
     }
 }
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -468,6 +469,5 @@ mod test {
         for _ in 0..4 {
             alarm.put_data(&20, PlaceholderMap::new()).await.unwrap();
         }
-        // TODO check placeholders
     }
 }
