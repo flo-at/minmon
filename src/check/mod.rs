@@ -75,11 +75,12 @@ where
             .map_err(|x| Error(format!("Failed to get data: {}", x)))?;
         for (data, alarms) in data_vec.iter().zip(self.alarms.iter_mut()) {
             for alarm in alarms.iter_mut() {
+                let mut placeholders = placeholders.clone();
                 let result = match data {
-                    Ok(data) => alarm.put_data(data, placeholders.clone()).await,
+                    Ok(data) => alarm.put_data(data, placeholders).await,
                     Err(err) => {
                         placeholders.insert(String::from("check_error"), format!("{}", err));
-                        alarm.put_error(err, placeholders.clone()).await
+                        alarm.put_error(err, placeholders).await
                     }
                 };
                 if let Err(err) = result {
