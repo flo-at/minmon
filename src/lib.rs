@@ -37,7 +37,7 @@ fn fill_placeholders(template: &str, placeholders: &PlaceholderMap) -> String {
 
 fn iso8601(system_time: std::time::SystemTime) -> String {
     let date_time: chrono::DateTime<chrono::Utc> = system_time.into();
-    date_time.format("%FT%T").to_string()
+    date_time.format("%FT%TZ").to_string()
 }
 
 fn init_actions(config: &config::Config) -> Result<ActionMap> {
@@ -119,6 +119,6 @@ mod test {
     #[test]
     fn test_iso8601() {
         let system_time = std::time::SystemTime::UNIX_EPOCH;
-        assert_eq!(iso8601(system_time), "1970-01-01T00:00:00");
+        assert_eq!(iso8601(system_time), "1970-01-01T00:00:00Z");
     }
 }

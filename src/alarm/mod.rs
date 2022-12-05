@@ -12,6 +12,7 @@ pub trait DataSink: Send + Sync + Sized {
 
     fn put_data(&mut self, data: &Self::Item) -> Result<SinkDecision>;
     fn format_data(data: &Self::Item) -> String;
+    fn add_placeholders(data: &Self::Item, placeholders: &mut PlaceholderMap);
 }
 
 pub enum SinkDecision {
@@ -76,7 +77,7 @@ impl Default for State {
 #[derive(Clone)]
 struct GoodState {
     timestamp: std::time::SystemTime,
-    last_alarm_uuid: Option<String>,
+    last_alarm: Option<BadState>,
     bad_cycles: u32,
 }
 
@@ -84,7 +85,7 @@ impl Default for GoodState {
     fn default() -> Self {
         Self {
             timestamp: std::time::SystemTime::now(),
-            last_alarm_uuid: None,
+            last_alarm: None,
             bad_cycles: 0,
         }
     }
@@ -170,7 +171,7 @@ where
             }
 
             State::Error(error) => {
-                let cycles = if error.cycles + 1 == self.error_repeat_cycles {
+                let cycles = if error.cycles == self.error_repeat_cycles {
                     trigger = true;
                     1
                 } else {
@@ -202,14 +203,14 @@ where
                 } else {
                     State::Good(GoodState {
                         timestamp: good.timestamp,
-                        last_alarm_uuid: None,
+                        last_alarm: None,
                         bad_cycles: good.bad_cycles + 1,
                     })
                 }
             }
 
             State::Bad(bad) => {
-                let cycles = if bad.cycles + 1 == self.repeat_cycles {
+                let cycles = if bad.cycles == self.repeat_cycles {
                     trigger = true;
                     1
                 } else {
@@ -237,14 +238,14 @@ where
     fn good_update_state(&mut self, state: &State) -> (State, bool) {
         let mut trigger = false;
         let new_state = match state {
-            State::Good(good) => State::Good(good.clone()), // TODO maybe unset last_alarm_uuid
+            State::Good(good) => State::Good(good.clone()), // TODO maybe unset last_alarm
 
             State::Bad(bad) => {
                 if bad.good_cycles + 1 == self.recover_cycles {
                     trigger = true;
                     State::Good(GoodState {
                         timestamp: std::time::SystemTime::now(),
-                        last_alarm_uuid: Some(bad.uuid.clone()),
+                        last_alarm: Some(bad.clone()),
                         bad_cycles: 0,
                     })
                 } else {
@@ -297,7 +298,6 @@ where
 
     async fn trigger(&self, mut placeholders: PlaceholderMap) -> Result<()> {
         if let State::Bad(bad) = &self.state {
-            self.add_placeholders(&mut placeholders);
             placeholders.insert(
                 String::from("alarm_timestamp"),
                 crate::iso8601(bad.timestamp),
@@ -323,9 +323,14 @@ where
 
     async fn trigger_recover(&self, mut placeholders: PlaceholderMap) -> Result<()> {
         if let State::Good(good) = &self.state {
-            self.add_placeholders(&mut placeholders);
-            if let Some(last_alarm_uuid) = &good.last_alarm_uuid {
-                placeholders.insert(String::from("alarm_uuid"), last_alarm_uuid.clone());
+            if let Some(last_alarm) = &good.last_alarm {
+                placeholders.insert(String::from("alarm_uuid"), last_alarm.uuid.clone());
+                placeholders.insert(
+                    String::from("alarm_timestamp"),
+                    crate::iso8601(last_alarm.timestamp),
+                );
+            } else {
+                panic!();
             }
             crate::merge_placeholders(&mut placeholders, &self.recover_placeholders);
             match &self.recover_action {
@@ -339,7 +344,6 @@ where
 
     async fn trigger_error(&self, mut placeholders: PlaceholderMap) -> Result<()> {
         if let State::Error(error) = &self.state {
-            self.add_placeholders(&mut placeholders);
             // TODO add info about shadowed_state (add bad uuid and timestamp, ..)
             placeholders.insert(String::from("error_uuid"), error.uuid.clone());
             placeholders.insert(
@@ -358,6 +362,7 @@ where
 
     fn add_placeholders(&self, placeholders: &mut PlaceholderMap) {
         placeholders.insert(String::from("alarm_name"), self.name.clone());
+        placeholders.insert(String::from("alarm_id"), self.id.clone());
         crate::merge_placeholders(placeholders, &self.placeholders);
     }
 }
@@ -380,7 +385,8 @@ where
             self.name,
             self.id
         );
-        placeholders.insert(String::from("alarm_name"), self.name.clone());
+        T::add_placeholders(data, &mut placeholders);
+        self.add_placeholders(&mut placeholders);
         let mut decision = self.data_sink.put_data(data)?;
         if self.invert {
             decision = !decision;
@@ -398,7 +404,7 @@ where
             self.id,
             error
         );
-        placeholders.insert(String::from("alarm_name"), self.name.clone());
+        self.add_placeholders(&mut placeholders);
         self.error(placeholders).await
     }
 }
@@ -408,11 +414,22 @@ mod test {
     use super::*;
     use mockall::predicate::*;
 
-    #[tokio::test]
-    async fn test_trigger_action() {
-        let mut mock_data_sink = MockDataSink::new();
+    // TODO check if this is the "right way"
+    //      https://docs.rs/mockall/latest/mockall/#static-methods
+    // TODO test state shadowing
+    static SEMAPHORE: tokio::sync::Semaphore = tokio::sync::Semaphore::const_new(1);
+
+    fn times_action(times: usize) -> Option<std::sync::Arc<dyn action::Action>> {
         let mut mock_action = action::MockAction::new();
-        mock_action.expect_trigger().never();
+        mock_action
+            .expect_trigger()
+            .times(times)
+            .returning(|_| Ok(()));
+        Some(std::sync::Arc::new(mock_action))
+    }
+
+    fn mock_data_sink() -> MockDataSink {
+        let mut mock_data_sink = MockDataSink::new();
         mock_data_sink
             .expect_put_data()
             .with(eq(10))
@@ -421,39 +438,55 @@ mod test {
             .expect_put_data()
             .with(eq(20))
             .returning(|_| Ok(SinkDecision::Bad));
-        let mut alarm = AlarmBase::new(
-            String::from("Name"),
-            String::from("ID"),
-            Some(std::sync::Arc::new(mock_action)),
-            PlaceholderMap::from([(String::from("Hello"), String::from("World"))]),
-            5,
-            0,
-            None,
-            PlaceholderMap::new(),
-            1,
-            None,
-            PlaceholderMap::new(),
-            0,
-            false,
-            mock_data_sink,
-        );
-        for _ in 0..4 {
-            alarm.put_data(&20, PlaceholderMap::new()).await.unwrap();
-        }
+        mock_data_sink
+    }
+
+    #[tokio::test]
+    async fn test_trigger_action() {
+        let _permit = SEMAPHORE.acquire().await.unwrap();
+        let data_sink_ctx = MockDataSink::add_placeholders_context();
+        data_sink_ctx
+            .expect()
+            .returning(|data: &u8, placeholders: &mut PlaceholderMap| {
+                placeholders.insert(String::from("data"), format!("{}", data));
+            });
+        let mock_data_sink = mock_data_sink();
         let mut mock_action = action::MockAction::new();
         mock_action
             .expect_trigger()
             .once()
             .with(function(|placeholders: &PlaceholderMap| {
                 uuid::Uuid::parse_str(placeholders.get("alarm_uuid").unwrap()).unwrap();
-                placeholders.get("alarm_timestamp").unwrap();
-                placeholders.get("alarm_name").unwrap() == "Name"
-                    && placeholders.get("Hello").unwrap() == "World"
-                    && placeholders.get("Foo").unwrap() == "Bar"
-                    && placeholders.len() == 5
+                use std::str::FromStr;
+                chrono::DateTime::<chrono::Utc>::from_str(
+                    placeholders.get("alarm_timestamp").unwrap(),
+                )
+                .unwrap();
+                assert_eq!(placeholders.get("alarm_name").unwrap(), "Name");
+                assert_eq!(placeholders.get("alarm_id").unwrap(), "ID");
+                assert_eq!(placeholders.get("Hello").unwrap(), "World");
+                assert_eq!(placeholders.get("Foo").unwrap(), "Bar");
+                assert_eq!(placeholders.get("data").unwrap(), "20");
+                assert_eq!(placeholders.len(), 7);
+                true
             }))
             .returning(|_| Ok(()));
-        alarm.action = Some(std::sync::Arc::new(mock_action));
+        let mut alarm = AlarmBase::new(
+            String::from("Name"),
+            String::from("ID"),
+            Some(std::sync::Arc::new(mock_action)),
+            PlaceholderMap::from([(String::from("Hello"), String::from("World"))]),
+            1,
+            0,
+            times_action(0),
+            PlaceholderMap::new(),
+            1,
+            times_action(0),
+            PlaceholderMap::new(),
+            0,
+            false,
+            mock_data_sink,
+        );
         alarm
             .put_data(
                 &20,
@@ -461,11 +494,228 @@ mod test {
             )
             .await
             .unwrap();
-        let mut mock_action = action::MockAction::new();
-        mock_action.expect_trigger().never();
-        alarm.action = Some(std::sync::Arc::new(mock_action));
-        for _ in 0..4 {
+    }
+
+    #[tokio::test]
+    async fn test_trigger_action_repeat() {
+        let _permit = SEMAPHORE.acquire().await.unwrap();
+        let data_sink_ctx = MockDataSink::add_placeholders_context();
+        data_sink_ctx
+            .expect()
+            .returning(|data: &u8, placeholders: &mut PlaceholderMap| {
+                placeholders.insert(String::from("data"), format!("{}", data));
+            });
+        let mock_data_sink = mock_data_sink();
+        let mut alarm = AlarmBase::new(
+            String::from("Name"),
+            String::from("ID"),
+            times_action(1),
+            PlaceholderMap::new(),
+            1,
+            7,
+            times_action(0),
+            PlaceholderMap::new(),
+            1,
+            times_action(0),
+            PlaceholderMap::new(),
+            0,
+            false,
+            mock_data_sink,
+        );
+        alarm.put_data(&20, PlaceholderMap::new()).await.unwrap();
+        alarm.action = times_action(0);
+        for _ in 0..6 {
             alarm.put_data(&20, PlaceholderMap::new()).await.unwrap();
         }
+        alarm.action = times_action(1);
+        alarm.put_data(&20, PlaceholderMap::new()).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_trigger_recover_action() {
+        let _permit = SEMAPHORE.acquire().await.unwrap();
+        let data_sink_ctx = MockDataSink::add_placeholders_context();
+        data_sink_ctx
+            .expect()
+            .returning(|data: &u8, placeholders: &mut PlaceholderMap| {
+                placeholders.insert(String::from("data"), format!("{}", data));
+            });
+        let mock_data_sink = mock_data_sink();
+        let mut alarm = AlarmBase::new(
+            String::from("Name"),
+            String::from("ID"),
+            times_action(1),
+            PlaceholderMap::new(),
+            1,
+            0,
+            times_action(0),
+            PlaceholderMap::from([(String::from("Hello"), String::from("World"))]),
+            5,
+            times_action(0),
+            PlaceholderMap::new(),
+            0,
+            false,
+            mock_data_sink,
+        );
+        alarm.put_data(&20, PlaceholderMap::new()).await.unwrap();
+        for _ in 0..4 {
+            alarm.put_data(&10, PlaceholderMap::new()).await.unwrap();
+        }
+        let mut mock_recover_action = action::MockAction::new();
+        mock_recover_action
+            .expect_trigger()
+            .once()
+            .with(function(|placeholders: &PlaceholderMap| {
+                uuid::Uuid::parse_str(placeholders.get("alarm_uuid").unwrap()).unwrap();
+                use std::str::FromStr;
+                chrono::DateTime::<chrono::Utc>::from_str(
+                    placeholders.get("alarm_timestamp").unwrap(),
+                )
+                .unwrap();
+                assert_eq!(placeholders.get("alarm_name").unwrap(), "Name");
+                assert_eq!(placeholders.get("alarm_id").unwrap(), "ID");
+                assert_eq!(placeholders.get("Hello").unwrap(), "World");
+                assert_eq!(placeholders.get("Foo").unwrap(), "Bar");
+                assert_eq!(placeholders.get("data").unwrap(), "10");
+                assert_eq!(placeholders.len(), 7);
+                true
+            }))
+            .returning(|_| Ok(()));
+        alarm.recover_action = Some(std::sync::Arc::new(mock_recover_action));
+        alarm
+            .put_data(
+                &10,
+                PlaceholderMap::from([(String::from("Foo"), String::from("Bar"))]),
+            )
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_trigger_error_action() {
+        let mut mock_data_sink = MockDataSink::new();
+        mock_data_sink.expect_put_data().never();
+        let mut mock_action = action::MockAction::new();
+        mock_action.expect_trigger().never();
+        let mut mock_recover_action = action::MockAction::new();
+        mock_recover_action.expect_trigger().never();
+        let mut mock_error_action = action::MockAction::new();
+        mock_error_action
+            .expect_trigger()
+            .once()
+            .with(function(|placeholders: &PlaceholderMap| {
+                uuid::Uuid::parse_str(placeholders.get("error_uuid").unwrap()).unwrap();
+                use std::str::FromStr;
+                chrono::DateTime::<chrono::Utc>::from_str(
+                    placeholders.get("error_timestamp").unwrap(),
+                )
+                .unwrap();
+                assert_eq!(placeholders.get("alarm_name").unwrap(), "Name");
+                assert_eq!(placeholders.get("alarm_id").unwrap(), "ID");
+                assert_eq!(placeholders.get("Hello").unwrap(), "World");
+                assert_eq!(placeholders.get("Foo").unwrap(), "Bar");
+                assert_eq!(placeholders.len(), 6);
+                true
+            }))
+            .returning(|_| Ok(()));
+        let mut alarm = AlarmBase::new(
+            String::from("Name"),
+            String::from("ID"),
+            Some(std::sync::Arc::new(mock_action)),
+            PlaceholderMap::new(),
+            1,
+            0,
+            Some(std::sync::Arc::new(mock_recover_action)),
+            PlaceholderMap::new(),
+            1,
+            Some(std::sync::Arc::new(mock_error_action)),
+            PlaceholderMap::from([(String::from("Hello"), String::from("World"))]),
+            3,
+            false,
+            mock_data_sink,
+        );
+        alarm
+            .put_error(
+                &Error(String::from("Error")),
+                PlaceholderMap::from([(String::from("Foo"), String::from("Bar"))]),
+            )
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_trigger_error_action_repeat() {
+        let _permit = SEMAPHORE.acquire().await.unwrap();
+        let data_sink_ctx = MockDataSink::add_placeholders_context();
+        data_sink_ctx
+            .expect()
+            .returning(|data: &u8, placeholders: &mut PlaceholderMap| {
+                placeholders.insert(String::from("data"), format!("{}", data));
+            });
+        let mock_data_sink = mock_data_sink();
+        let mut alarm = AlarmBase::new(
+            String::from("Name"),
+            String::from("ID"),
+            times_action(0),
+            PlaceholderMap::new(),
+            1,
+            0,
+            times_action(0),
+            PlaceholderMap::new(),
+            1,
+            times_action(1),
+            PlaceholderMap::new(),
+            7,
+            false,
+            mock_data_sink,
+        );
+        alarm
+            .put_error(&Error(String::from("Error")), PlaceholderMap::new())
+            .await
+            .unwrap();
+        alarm.error_action = times_action(0);
+        for _ in 0..6 {
+            alarm
+                .put_error(&Error(String::from("Error")), PlaceholderMap::new())
+                .await
+                .unwrap();
+        }
+        alarm.error_action = times_action(1);
+        alarm
+            .put_error(&Error(String::from("Error")), PlaceholderMap::new())
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_invert() {
+        let _permit = SEMAPHORE.acquire().await.unwrap();
+        let data_sink_ctx = MockDataSink::add_placeholders_context();
+        data_sink_ctx
+            .expect()
+            .returning(|data: &u8, placeholders: &mut PlaceholderMap| {
+                placeholders.insert(String::from("data"), format!("{}", data));
+            });
+        let mock_data_sink = mock_data_sink();
+        let mut alarm = AlarmBase::new(
+            String::from("Name"),
+            String::from("ID"),
+            times_action(1),
+            PlaceholderMap::new(),
+            1,
+            0,
+            times_action(0),
+            PlaceholderMap::new(),
+            1,
+            times_action(0),
+            PlaceholderMap::new(),
+            0,
+            true,
+            mock_data_sink,
+        );
+        alarm.put_data(&10, PlaceholderMap::new()).await.unwrap();
+        alarm.action = times_action(0);
+        alarm.recover_action = times_action(1);
+        alarm.put_data(&20, PlaceholderMap::new()).await.unwrap();
     }
 }

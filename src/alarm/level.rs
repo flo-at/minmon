@@ -1,4 +1,4 @@
-use crate::{Error, Result};
+use crate::{Error, PlaceholderMap, Result};
 
 use super::{DataSink, SinkDecision};
 use crate::config;
@@ -33,5 +33,9 @@ impl DataSink for Level {
 
     fn format_data(data: &Self::Item) -> String {
         format!("level {}", data)
+    }
+
+    fn add_placeholders(data: &Self::Item, placeholders: &mut PlaceholderMap) {
+        placeholders.insert(String::from("level"), format!("{}", data));
     }
 }
