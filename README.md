@@ -50,12 +50,13 @@ or the example [docker-compose.yml](docker-compose.yml) file.
 Make sure cargo is correctly installed on your local machine.
 You can either install MinMon from crates.io using
 ```sh
-cargo install minmon
+cargo install --all-features minmon
 ```
 Or if you already checked out the repository, you can build and install your local copy like this:
 ```sh
-cargo install --path .
+cargo install --all-features --path .
 ```
+If you don't want to include the systemd integration, leave away the `--all-features` option.
 
 # Architecture
 ## Diagram
@@ -136,9 +137,16 @@ graph TD
 
 ## Placeholders
 To improve the reusability of the actions, it's possible to define custom placeholders for checks, alarms and actions.
-With this you - for example - can define custom alarm level names as shown in the example.
+With this you can - for example - define custom alarm level names as shown in the example.
 When an action is triggered, the placeholders (generic and custom) of the check, the alarm and the action are merged into the final placeholder map.
 Inside the action (depending on the type of the action) the placeholders can be used in one or more config fields using the `{{placeholder_name}}` syntax.
+
+### Generic placeholders
+- `check_name`
+- `alarm_name`
+- `alarm_uuid`
+- `alarm_timestamp`
+- `action_name`
 
 # Roadmap
 ## Action ideas
