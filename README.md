@@ -1,4 +1,4 @@
-# MinMon - an opinionated minimal monitoring and alarming tool
+# MinMon - an opinionated minimal monitoring and alarming tool (for Linux)
 This tool is just a single binary and a config file. No database, no GUI, no graphs. Just monitoring and alarms.
 I wrote this because the [exsiting alternatives](#existing-alternatives) I could find were too heavy, mainly focused on nice GUIs with graphs (not on alarming), too complex to setup or targeted at cloud/multi-instance setups.
 
@@ -35,6 +35,26 @@ That's why MinMon can trigger regular report actions to let you know that it's u
 - Depending on your configuration, there might be similar or identical blocks in the config file. This is a consequence of the flexibility and simpleness of the config file format (and thus the code).
 - All times and dates are UTC. No fiddling with local times and time zones.
 - MinMon does not store it's internal state between restarts.
+- As of now it's only for Linux but it should be easy to adapt to other *NIXes or Windows.
+
+# Installation
+## Docker image
+To pull the docker image use
+```sh
+docker pull ghcr.io/flo-at/minmon:latest
+```
+or the example [docker-compose.yml](docker-compose.yml) file.
+
+## Build and install using cargo
+Make sure cargo is correctly installed on your local machine.
+You can either install MinMon from crates.io using
+```sh
+cargo install minmon
+```
+Or if you already checked out the repository, you can build and install your local copy like this:
+```sh
+cargo install --path .
+```
 
 # Architecture
 ## Diagram
