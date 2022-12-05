@@ -303,10 +303,6 @@ where
                 crate::iso8601(bad.timestamp),
             );
             placeholders.insert(String::from("alarm_uuid"), bad.uuid.clone());
-            placeholders.insert(
-                String::from("alarm_timestamp"),
-                crate::iso8601(bad.timestamp),
-            );
             match &self.action {
                 Some(action) => {
                     log::debug!("Action 'TODO' for alarm '{}' triggered.", self.name);
@@ -449,10 +445,12 @@ mod test {
             .expect_trigger()
             .once()
             .with(function(|placeholders: &PlaceholderMap| {
-                placeholders.get("alarm_uuid").unwrap();
+                uuid::Uuid::parse_str(placeholders.get("alarm_uuid").unwrap()).unwrap();
+                placeholders.get("alarm_timestamp").unwrap();
                 placeholders.get("alarm_name").unwrap() == "Name"
                     && placeholders.get("Hello").unwrap() == "World"
                     && placeholders.get("Foo").unwrap() == "Bar"
+                    && placeholders.len() == 5
             }))
             .returning(|_| Ok(()));
         alarm.action = Some(std::sync::Arc::new(mock_action));

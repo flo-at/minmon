@@ -72,3 +72,35 @@ pub fn from_action_config(action_config: &config::Action) -> Result<std::sync::A
         )),
     })
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use mockall::predicate::*;
+
+    #[tokio::test]
+    async fn test_placeholders() {
+        let mut mock_action = MockAction::new();
+        mock_action
+            .expect_trigger()
+            .once()
+            .with(eq(PlaceholderMap::from([
+                (String::from("action_name"), String::from("Name")),
+                (String::from("Hello"), String::from("World")),
+                (String::from("Foo"), String::from("Bar")),
+            ])))
+            .returning(|_| Ok(()));
+        let action = ActionBase::new(
+            String::from("Name"),
+            PlaceholderMap::from([(String::from("Hello"), String::from("World"))]),
+            mock_action,
+        );
+        action
+            .trigger(PlaceholderMap::from([(
+                String::from("Foo"),
+                String::from("Bar"),
+            )]))
+            .await
+            .unwrap();
+    }
+}
