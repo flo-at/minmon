@@ -76,12 +76,9 @@ pub struct Report {
     pub events: Vec<ReportEvent>,
 }
 
-// TODO maybe move into default module
 impl Default for Report {
     fn default() -> Self {
         Self {
-            // TODO improve this.. s.th. lile ..Default::default()
-            // https://stackoverflow.com/questions/69712973/only-setting-one-field-in-a-rust-default-implementation
             disable: bool::default(),
             interval: default::REPORT_INTERVAL,
             events: Vec::new(),

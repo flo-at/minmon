@@ -221,7 +221,7 @@ where
     fn good_update_state(&mut self, state: &State) -> (State, bool) {
         let mut trigger = false;
         let new_state = match state {
-            State::Good(good) => State::Good(good.clone()),
+            State::Good(good) => State::Good(good.clone()), // TODO maybe unset last_alarm_uuid
 
             State::Bad(bad) => {
                 if bad.good_cycles + 1 == self.recover_cycles {
@@ -235,7 +235,7 @@ where
                     State::Bad(BadState {
                         timestamp: bad.timestamp,
                         uuid: bad.uuid.clone(),
-                        cycles: bad.cycles + 1, // TODO unsure about this one
+                        cycles: bad.cycles + 1,
                         good_cycles: bad.good_cycles + 1,
                     })
                 }
