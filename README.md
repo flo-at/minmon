@@ -12,6 +12,7 @@ I wrote this because the [exsiting alternatives](#existing-alternatives) I could
 
 # Actions
 - WebHook
+- Process
 - Log
 
 # Report
