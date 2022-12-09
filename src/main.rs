@@ -88,7 +88,8 @@ async fn main_wrapper() -> Result<()> {
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
     if let Err(error) = main_wrapper().await {
-        // Print to stderr here because logging might not be initialized if the config file cannot
+        log::error!("Exiting due to error: {}", error);
+        // Also print to stderr here because logging might not be initialized if the config file cannot
         // be parsed.
         eprintln!("Exiting due to error: {}", error);
         std::process::exit(1);
