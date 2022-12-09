@@ -2,7 +2,7 @@
 This tool is just a single binary and a config file. No database, no GUI, no graphs. Just monitoring and alarms.
 I wrote this because the [exsiting alternatives](./doc/existing-alternatives.md) I could find were too heavy, mainly focused on nice GUIs with graphs (not on alarming), too complex to setup or targeted at cloud/multi-instance setups.
 
-![test workflow](https://github.com/flo-at/minmon/actions/workflows/test.yml/badge.svg)
+[![test workflow](https://github.com/flo-at/minmon/actions/workflows/test.yml/badge.svg)](https://github.com/flo-at/minmon/actions/workflows/test.yml)
 [![crates.io workflow](https://github.com/flo-at/minmon/actions/workflows/crate-publish.yml/badge.svg)](https://crates.io/crates/minmon)
 [![docker workflow](https://github.com/flo-at/minmon/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/flo-at/minmon/pkgs/container/minmon)
 
