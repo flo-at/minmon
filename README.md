@@ -29,14 +29,15 @@ That's why MinMon can trigger regular report actions to let you know that it's u
 - No fancy config directory structure - just a single TOML file.
 - No cryptic abbreviations. The few extra letters in the config file won't hurt anyone.
 - There are no predefined threshold names like "Warning" or "Critical". You might might want more than just two, or only one. So that's up to you to define in the config.
-- The same check plugin can be used multiple times. You might want different levels to trigger different actions for different filesystems/storages/.. (TODO try to batch queries to reduce monitoring load)
+- The same check plugin can be used multiple times. You might want different levels to trigger different actions for different filesystems/storages/..
 - Alarms are timed in "cycles" (i.e. multiples of the `interval` of the check) instead of seconds. It's not very user-friendly but helps keep the internal processing simple and efficient.
 - Alarms stand for themselves - they are not related. This means that depending on your configuration, two (or more) events may be triggered at the same time for the same check. There are cases where this is not desired.
-- Simple, clean, bloat-free code.
-- Depending on your configuration, there might be similar or identical blocks in the config file. This is a consequence of the flexibility and simpleness of the config file format (and thus the code).
+- Simple, clean, bloat-free code with good test coverage.
+- Depending on your configuration, there may be similar or identical blocks in the config file. This is a consequence of the flexibility and simpleness of the config file format (and thus the code).
 - All times and dates are UTC. No fiddling with local times and time zones.
-- MinMon does not store it's internal state between restarts.
+- No internal state is stored between restarts.
 - As of now it's only for Linux but it should be easy to adapt to other *NIXes or Windows.
+- Some of the things mentioned above may change in the future (see [Roadmap](#roadmap))
 
 # Installation
 ## Docker image
