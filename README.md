@@ -1,6 +1,6 @@
 # MinMon - an opinionated minimal monitoring and alarming tool (for Linux)
 This tool is just a single binary and a config file. No database, no GUI, no graphs. Just monitoring and alarms.
-I wrote this because the [exsiting alternatives](#existing-alternatives) I could find were too heavy, mainly focused on nice GUIs with graphs (not on alarming), too complex to setup or targeted at cloud/multi-instance setups.
+I wrote this because the [exsiting alternatives](./doc/existing-alternatives.md) I could find were too heavy, mainly focused on nice GUIs with graphs (not on alarming), too complex to setup or targeted at cloud/multi-instance setups.
 
 ![test workflow](https://github.com/flo-at/minmon/actions/workflows/test.yml/badge.svg)
 [![crates.io workflow](https://github.com/flo-at/minmon/actions/workflows/crate-publish.yml/badge.svg)](https://crates.io/crates/minmon)
@@ -166,23 +166,3 @@ Inside the action (depending on the type of the action) the placeholders can be 
 
 ## General ideas
 - Store measurements/status in time-based database (e.g. rrdtool) and visualize on Webinterface or ncurses UI. This should be optional and separated from the existing code.
-
-# Existing alternatives
-
-## [Glances](https://nicolargo.github.io/glances/)
-Closest to what I wanted but:
-- Repeated alarms are sent on every check. There is no configuration option to change that.
-- There is no action to trigger on recovery.
-- [Actions are not triggered in server mode](https://github.com/nicolargo/glances/issues/1879). That's the deal-breaker for my use-case.
-
-## [Netdata](https://www.netdata.cloud/)
-- It's "all in one" and easy enough to get it started. Still quite a big tool for such a small task.
-
-## [Monit](https://mmonit.com/monit/)
-- Only e-mail alarms.
-- Can also run scripts on alarm events but it's not very flexible.
-- There's [monit2telegram](https://github.com/matriphe/monit2telegram) to enable basic Telegram notifications.
-- Pretty complex config file with it's own scripting language.
-
-## Others
-There are numerous options such as InnoDB/Telegraf, Prometheus, and many more with tons of features and complex configuration that seem overkill for single-instance monitoring/alarming.
