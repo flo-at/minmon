@@ -44,6 +44,12 @@ fn init_actions(config: &config::Config) -> Result<ActionMap> {
     log::info!("Initializing {} actions(s)..", config.actions.len());
     let mut res = ActionMap::new();
     for action_config in config.actions.iter() {
+        if res.contains_key(&action_config.name) {
+            return Err(Error(format!(
+                "Found duplicate action name: {}",
+                action_config.name
+            )));
+        }
         if action_config.disable {
             log::info!(
                 "Action {}::'{}' is disabled.",
@@ -67,7 +73,14 @@ fn init_actions(config: &config::Config) -> Result<ActionMap> {
 fn init_checks(config: &config::Config, actions: &ActionMap) -> Result<Vec<Box<dyn check::Check>>> {
     log::info!("Initializing {} check(s)..", config.checks.len());
     let mut res: Vec<Box<dyn check::Check>> = Vec::new();
+    let mut used_names = std::collections::HashSet::new();
     for check_config in config.checks.iter() {
+        if !used_names.insert(check_config.name.clone()) {
+            return Err(Error(format!(
+                "Found duplicate check name: {}",
+                check_config.name
+            )));
+        }
         if check_config.disable {
             log::info!(
                 "Check {}::'{}' is disabled.",
