@@ -1,7 +1,7 @@
 use crate::PlaceholderMap;
 
 #[cfg_attr(test, mockall::automock)]
-pub trait IStateMachine: Send + Sync + Sized {
+pub trait StateHandler: Send + Sync + Sized {
     fn add_placeholders(&self, placeholders: &mut PlaceholderMap);
 
     fn error(&mut self) -> bool;
@@ -81,7 +81,7 @@ impl StateMachine {
     }
 }
 
-impl IStateMachine for StateMachine {
+impl StateHandler for StateMachine {
     fn add_placeholders(&self, placeholders: &mut PlaceholderMap) {
         match &self.state {
             State::Bad(bad) => {

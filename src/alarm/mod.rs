@@ -6,7 +6,7 @@ mod level;
 mod state_machine;
 
 pub use level::Level;
-pub use state_machine::{IStateMachine, StateMachine};
+pub use state_machine::{StateHandler, StateMachine};
 
 #[cfg_attr(test, mockall::automock(type Item=u8;))]
 pub trait DataSink: Send + Sync + Sized {
@@ -45,7 +45,7 @@ pub trait Alarm: Send + Sync + Sized {
 pub struct AlarmBase<T, U = StateMachine>
 where
     T: DataSink,
-    U: IStateMachine,
+    U: StateHandler,
 {
     name: String,
     id: String,
@@ -63,7 +63,7 @@ where
 impl<T, U> AlarmBase<T, U>
 where
     T: DataSink,
-    U: IStateMachine,
+    U: StateHandler,
 {
     pub fn new(
         name: String,
@@ -160,7 +160,7 @@ where
 impl<T, U> Alarm for AlarmBase<T, U>
 where
     T: DataSink,
-    U: IStateMachine,
+    U: StateHandler,
 {
     type Item = T::Item;
 
@@ -254,7 +254,7 @@ mod test {
                 true
             }))
             .returning(|_| Ok(()));
-        let mut mock_state_machine = state_machine::MockIStateMachine::new();
+        let mut mock_state_machine = state_machine::MockStateHandler::new();
         mock_state_machine.expect_bad().once().return_const(true);
         mock_state_machine
             .expect_add_placeholders()
@@ -295,7 +295,7 @@ mod test {
                 placeholders.insert(String::from("data"), format!("{}", data));
             });
         let mock_data_sink = mock_data_sink();
-        let mut mock_state_machine = state_machine::MockIStateMachine::new();
+        let mut mock_state_machine = state_machine::MockStateHandler::new();
         mock_state_machine.expect_good().once().return_const(true);
         mock_state_machine
             .expect_add_placeholders()
@@ -361,7 +361,7 @@ mod test {
                 true
             }))
             .returning(|_| Ok(()));
-        let mut mock_state_machine = state_machine::MockIStateMachine::new();
+        let mut mock_state_machine = state_machine::MockStateHandler::new();
         mock_state_machine.expect_error().once().return_const(true);
         mock_state_machine
             .expect_add_placeholders()
@@ -402,7 +402,7 @@ mod test {
                 placeholders.insert(String::from("data"), format!("{}", data));
             });
         let mock_data_sink = mock_data_sink();
-        let mut mock_state_machine = state_machine::MockIStateMachine::new();
+        let mut mock_state_machine = state_machine::MockStateHandler::new();
         mock_state_machine.expect_bad().once().return_const(true);
         mock_state_machine.expect_good().once().return_const(true);
         mock_state_machine.expect_add_placeholders().times(2);
