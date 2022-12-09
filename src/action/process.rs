@@ -53,7 +53,7 @@ impl Action for Process {
         if let Some(gid) = self.gid {
             command.gid(gid);
         }
-        log::debug!("Calling process: {:?}", command);
+        log::debug!("Calling process: {}", self.path.display());
         let output = command
             .output()
             .await
