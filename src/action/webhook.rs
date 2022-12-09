@@ -6,7 +6,7 @@ use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 
 // NOTE placeholders are replaced in url and body
-pub struct WebHook {
+pub struct Webhook {
     url: String,
     method: reqwest::Method,
     headers: reqwest::header::HeaderMap<reqwest::header::HeaderValue>,
@@ -14,7 +14,7 @@ pub struct WebHook {
     body: String,
 }
 
-impl WebHook {
+impl Webhook {
     #[cfg(test)]
     fn new(
         url: String,
@@ -51,11 +51,11 @@ impl WebHook {
     }
 }
 
-impl TryFrom<&config::Action> for WebHook {
+impl TryFrom<&config::Action> for Webhook {
     type Error = Error;
 
     fn try_from(action: &config::Action) -> std::result::Result<Self, Self::Error> {
-        if let config::ActionType::WebHook(web_hook) = &action.type_ {
+        if let config::ActionType::Webhook(web_hook) = &action.type_ {
             Ok(Self {
                 url: web_hook.url.clone(),
                 method: reqwest::Method::from(web_hook.method),
@@ -70,7 +70,7 @@ impl TryFrom<&config::Action> for WebHook {
 }
 
 #[async_trait]
-impl Action for WebHook {
+impl Action for Webhook {
     async fn trigger(&self, placeholders: PlaceholderMap) -> Result<()> {
         let url = crate::fill_placeholders(self.url.as_str(), &placeholders);
         let body = crate::fill_placeholders(self.body.as_str(), &placeholders);
@@ -113,10 +113,10 @@ mod test {
 
     #[tokio::test]
     async fn test_web_hook_ok() {
-        let web_hook = WebHook::new(
+        let web_hook = Webhook::new(
             String::from("https://httpbin.org/status/200"),
             reqwest::Method::GET,
-            WebHook::transform_header_map(&HashMap::new()).unwrap(),
+            Webhook::transform_header_map(&HashMap::new()).unwrap(),
             5,
             String::from(""),
         );
@@ -125,10 +125,10 @@ mod test {
 
     #[tokio::test]
     async fn test_web_hook_err() {
-        let web_hook = WebHook::new(
+        let web_hook = Webhook::new(
             String::from("https://httpbin.org/status/400"),
             reqwest::Method::GET,
-            WebHook::transform_header_map(&HashMap::new()).unwrap(),
+            Webhook::transform_header_map(&HashMap::new()).unwrap(),
             5,
             String::from(""),
         );

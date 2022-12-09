@@ -106,7 +106,7 @@ pub struct Action {
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(tag = "type")]
 pub enum ActionType {
-    WebHook(ActionWebHook),
+    Webhook(ActionWebhook),
     Log(ActionLog),
     Process(ActionProcess),
 }
@@ -114,7 +114,7 @@ pub enum ActionType {
 impl std::fmt::Display for ActionType {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
-            ActionType::WebHook(_) => write!(f, "WebHook"),
+            ActionType::Webhook(_) => write!(f, "Webhook"),
             ActionType::Log(_) => write!(f, "Log"),
             ActionType::Process(_) => write!(f, "Process"),
         }
@@ -123,8 +123,9 @@ impl std::fmt::Display for ActionType {
 
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
-pub struct ActionWebHook {
+pub struct ActionWebhook {
     pub url: String,
+    #[serde(default)]
     pub method: HttpMethod,
     #[serde(default)]
     pub headers: HashMap<String, String>,
@@ -134,10 +135,11 @@ pub struct ActionWebHook {
     pub body: String,
 }
 
-#[derive(Deserialize, PartialEq, Debug, Clone, Copy)]
+#[derive(Deserialize, PartialEq, Debug, Clone, Copy, Default)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum HttpMethod {
     GET,
+    #[default]
     POST,
     PUT,
     DELETE,
@@ -352,7 +354,7 @@ mod test {
             [[actions]]
             disable = true
             name = "test-action"
-            type = "WebHook"
+            type = "Webhook"
             url = "http://example.com/webhook"
             method = "GET"
             headers = {"Content-Type" = "application/json"}
@@ -387,7 +389,7 @@ mod test {
         assert_eq!(action.name, "test-action");
         assert_eq!(
             action.type_,
-            ActionType::WebHook(ActionWebHook {
+            ActionType::Webhook(ActionWebhook {
                 url: String::from("http://example.com/webhook"),
                 method: HttpMethod::GET,
                 headers: HashMap::from([(

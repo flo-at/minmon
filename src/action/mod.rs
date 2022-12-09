@@ -4,10 +4,10 @@ use async_trait::async_trait;
 
 mod log;
 mod process;
-mod web_hook;
+mod webhook;
 pub use self::log::Log;
 pub use process::Process;
-pub use web_hook::WebHook;
+pub use webhook::Webhook;
 
 #[cfg_attr(test, mockall::automock)]
 #[async_trait]
@@ -55,10 +55,10 @@ where
 
 pub fn from_action_config(action_config: &config::Action) -> Result<std::sync::Arc<dyn Action>> {
     Ok(match &action_config.type_ {
-        config::ActionType::WebHook(_) => std::sync::Arc::new(ActionBase::new(
+        config::ActionType::Webhook(_) => std::sync::Arc::new(ActionBase::new(
             action_config.name.clone(),
             action_config.placeholders.clone(),
-            WebHook::try_from(action_config)?,
+            Webhook::try_from(action_config)?,
         )),
         config::ActionType::Log(_) => std::sync::Arc::new(ActionBase::new(
             action_config.name.clone(),
