@@ -5,6 +5,7 @@ I wrote this because the [exsiting alternatives](./doc/existing-alternatives.md)
 [![test workflow](https://github.com/flo-at/minmon/actions/workflows/test.yml/badge.svg)](https://github.com/flo-at/minmon/actions/workflows/test.yml)
 [![crates.io workflow](https://github.com/flo-at/minmon/actions/workflows/crate-publish.yml/badge.svg)](https://crates.io/crates/minmon)
 [![docker workflow](https://github.com/flo-at/minmon/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/flo-at/minmon/pkgs/container/minmon)
+[![cargo-deny workflow](https://github.com/flo-at/minmon/actions/workflows/cargo-deny.yml/badge.svg)](https://github.com/flo-at/minmon/actions/workflows/cargo-deny.yml)
 
 # Checks
 - [Filesystem usage](./doc/check.md#filesystemusage)

@@ -1,0 +1,14 @@
+[advisories]
+vulnerability = "deny"
+unmaintained = "warn"
+notice = "deny"
+unsound = "deny"
+yanked = "deny"
+
+[licenses]
+unlicensed = "deny"
+copyleft = "deny"
+allow-osi-fsf-free = "both"
+unused-allowed-license = "warn"
+confidence-threshold = 0.95
+allow = ["Unicode-DFS-2016"]

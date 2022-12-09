@@ -1,0 +1,16 @@
+name: cargo-deny
+
+on:
+  schedule:
+    - cron: "48 22 * * 3"
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  cargo-deny:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: EmbarkStudios/cargo-deny-action@v1
