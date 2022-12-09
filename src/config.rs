@@ -157,7 +157,6 @@ pub struct ActionLog {
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct ActionProcess {
-    #[serde(default)]
     pub path: std::path::PathBuf,
     #[serde(default)]
     pub arguments: Vec<String>,
@@ -205,7 +204,6 @@ impl std::fmt::Display for CheckType {
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct CheckFilesystemUsage {
-    #[serde(default)]
     pub mountpoints: Vec<String>,
 }
 

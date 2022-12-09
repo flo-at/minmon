@@ -7,13 +7,13 @@ I wrote this because the [exsiting alternatives](#existing-alternatives) I could
 [![docker workflow](https://github.com/flo-at/minmon/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/flo-at/minmon/pkgs/container/minmon)
 
 # Checks
-- Filesystem usage
-- Memory
+- [Filesystem usage](./doc/check.md#filesystemusage)
+- [Memory usage](./doc/check.md#memoryusage)
 
 # Actions
-- WebHook
-- Process
-- Log
+- [Log](./doc/action.md#log)
+- [Process](./doc/action.md#process)
+- [Webhook](./doc/action.md#webhook)
 
 # Report
 The absence of alarms can mean two things: everything is okay or the monitoring/alarming failed.
@@ -96,16 +96,16 @@ name = "LevelAlarm 1"
 level = 70
 cycles = 3
 repeat_cycles = 100
-action = "WebHook 1"
+action = "Webhook 1"
 recover_cycles = 5
-recover_action = "WebHook 1"
+recover_action = "Webhook 1"
 error_repeat_cycles = 200
 error_action = "Log 1"
 placeholders = {"level_name" = "Warning"}
 
 [[actions]]
-name = "WebHook 1"
-type = "WebHook"
+name = "Webhook 1"
+type = "Webhook"
 url = "https://example.com/hook1"
 method = "POST"
 timeout = 5
@@ -125,8 +125,8 @@ graph TD
     A(example.toml) --> B(Main loop)
     B -->|every 60 seconds| C(FilesystemUsage 1: '/srv')
     C -->|level '/srv': 60%| D(LevelAlarm 1: 70%)
-    D -->|cycles: 3, repeat_cycles: 100| E(Action: WebHook 1)
-    D -->|recover_cycles: 5| F(Recover action: WebHook 1)
+    D -->|cycles: 3, repeat_cycles: 100| E(Action: Webhook 1)
+    D -->|recover_cycles: 5| F(Recover action: Webhook 1)
     D -->|error_repeat_cycles: 200| G(Error action: Log 1)
 
     style C fill:green;

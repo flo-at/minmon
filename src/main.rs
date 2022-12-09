@@ -7,6 +7,7 @@ extern crate systemd as systemd_ext;
 
 use minmon::{config, Error, Result};
 
+// TODO process action: implement timeout
 // TODO retry action on next trigger if failed previously
 // TODO add "alarm_duration" and maybe "good_duration" on recover/action
 // TODO journal logging with extra fields (check/alarm/action name, ..)

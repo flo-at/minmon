@@ -3,7 +3,6 @@ use crate::config;
 use crate::{Error, Result};
 use async_trait::async_trait;
 
-// NOTE uses "available blocks" (not "free blocks") i.e. blocks available to unpriv. users
 pub struct FilesystemUsage {
     mountpoints: Vec<String>,
 }
