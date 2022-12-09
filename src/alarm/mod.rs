@@ -262,7 +262,8 @@ mod test {
             .with(function(|placeholders: &PlaceholderMap| {
                 assert_eq!(placeholders.get("Foo").unwrap(), "Bar");
                 true
-            }));
+            }))
+            .return_const(());
         let mut alarm = AlarmBase::new(
             String::from("Name"),
             String::from("ID"),
@@ -303,7 +304,8 @@ mod test {
             .with(function(|placeholders: &PlaceholderMap| {
                 assert_eq!(placeholders.get("Foo").unwrap(), "Bar");
                 true
-            }));
+            }))
+            .return_const(());
         let mut mock_recover_action = action::MockAction::new();
         mock_recover_action
             .expect_trigger()
@@ -369,7 +371,8 @@ mod test {
             .with(function(|placeholders: &PlaceholderMap| {
                 assert_eq!(placeholders.get("Foo").unwrap(), "Bar");
                 true
-            }));
+            }))
+            .return_const(());
         let mut alarm = AlarmBase::new(
             String::from("Name"),
             String::from("ID"),
@@ -405,7 +408,10 @@ mod test {
         let mut mock_state_machine = state_machine::MockStateHandler::new();
         mock_state_machine.expect_bad().once().return_const(true);
         mock_state_machine.expect_good().once().return_const(true);
-        mock_state_machine.expect_add_placeholders().times(2);
+        mock_state_machine
+            .expect_add_placeholders()
+            .times(2)
+            .return_const(());
         let mut alarm = AlarmBase::new(
             String::from("Name"),
             String::from("ID"),
