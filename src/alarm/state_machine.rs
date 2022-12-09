@@ -240,9 +240,6 @@ impl IStateMachine for StateMachine {
 mod test {
     use super::*;
 
-    // TODO test state shadowing
-    // TODO test complex state transitions
-
     #[test]
     fn test_trigger_action() {
         let mut state_machine = StateMachine::new(1, 0, 1, 0);
@@ -324,5 +321,26 @@ mod test {
         chrono::DateTime::<chrono::Utc>::from_str(placeholders.get("error_timestamp").unwrap())
             .unwrap();
         assert_eq!(placeholders.len(), 2);
+    }
+
+    #[test]
+    fn test_trigger_error_shadowed_good() {
+        let mut state_machine = StateMachine::new(2, 0, 1, 0);
+        assert!(matches!(state_machine.state, State::Good(_)));
+        state_machine.error();
+        assert!(matches!(state_machine.state, State::Error(_)));
+        state_machine.bad();
+        assert!(matches!(state_machine.state, State::Good(_)));
+    }
+
+    #[test]
+    fn test_trigger_error_shadowed_bad() {
+        let mut state_machine = StateMachine::new(1, 0, 2, 0);
+        state_machine.bad();
+        assert!(matches!(state_machine.state, State::Bad(_)));
+        state_machine.error();
+        assert!(matches!(state_machine.state, State::Error(_)));
+        state_machine.good();
+        assert!(matches!(state_machine.state, State::Bad(_)));
     }
 }
