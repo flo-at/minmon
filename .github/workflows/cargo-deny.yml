@@ -4,9 +4,7 @@ on:
   schedule:
     - cron: "48 22 * * 3"
   push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
 
 jobs:
   cargo-deny:
