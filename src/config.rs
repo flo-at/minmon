@@ -66,7 +66,7 @@ pub enum LogTarget {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Report {
-    #[serde(default = "default::report_disable")]
+    #[serde(default)]
     pub disable: bool,
     #[serde(default = "default::report_interval")]
     pub interval: u32,
@@ -265,11 +265,6 @@ pub struct AlarmLevel {
 }
 
 mod default {
-    pub const REPORT_DISABLE: bool = true;
-    pub fn report_disable() -> bool {
-        REPORT_DISABLE
-    }
-
     pub const REPORT_INTERVAL: u32 = 604800;
     pub fn report_interval() -> u32 {
         REPORT_INTERVAL

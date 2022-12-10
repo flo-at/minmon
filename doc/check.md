@@ -10,6 +10,7 @@ Some of the type-specific options go into the check's section, some into the ala
 | name | `Foobar` | ❌ | |
 | placeholders | `{"internal_check_id" = "id_foobar"}` | ✔ | |
 | type | `FilesystemUsage` | ❌ | |
+| alarms | List of [Alarm](#alarm) | ✔ | |
 
 # FilesystemUsage
 Reads the filesystem usage of the given mountpoints.
@@ -51,3 +52,24 @@ Reads the system memory (physical RAM) and swap file usage.
 
 ## Placeholders
 - `level`: Memory space usage (in percent).
+
+---
+
+# Alarm
+
+## Generic options
+| name | example | optional | default |
+|:---|:---|:---:|:---|
+| disable | `true` | ✔ | `false` |
+| name | `Foobar` | ❌ | |
+| action | `FooAction` | ❌ | |
+| placeholders | `{"internal_alarm_id" = "id_foobar"}` | ✔ | |
+| cycles | `3` | ❌ | `1` |
+| repeat_cycles | `100` | ✔ | |
+| recover_action | `FooAction` | ✔ | |
+| recover_placeholders | `{"internal_alarm_id" = "id_foobar"}` | ✔ | |
+| recover_cycles | `3` | ✔ | `1` |
+| error_action | `FooAction` | ✔ | |
+| error_placeholders | `{"internal_alarm_id" = "id_foobar"}` | ✔ | |
+| error_repeat_cycles | `100` | ✔ | |
+| invert | `true` | ✔ | `false` |

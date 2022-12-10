@@ -1,5 +1,6 @@
 # Action
-The "type" parameter
+Actions control what happens when an alarm or report event is triggered.
+
 ## Generic options
 | name | example | optional | default |
 |:---|:---|:---:|:---|

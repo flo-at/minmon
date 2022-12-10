@@ -21,7 +21,7 @@ I wrote this because the [exsiting alternatives](./doc/existing-alternatives.md)
 
 # Report
 The absence of alarms can mean two things: everything is okay or the monitoring/alarming failed.
-That's why MinMon can trigger regular report actions to let you know that it's up and running.
+That's why MinMon can trigger regular [report](./doc/report.md) actions to let you know that it's up and running.
 
 # systemd integration (optional)
 - Logging to journal.
