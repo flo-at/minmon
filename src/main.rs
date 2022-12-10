@@ -5,14 +5,7 @@ mod systemd;
 
 use minmon::{config, Error, Result};
 
-// TODO process action: implement timeout
-// TODO retry action on next trigger if failed previously
-// TODO add "alarm_duration" and maybe "good_duration" on recover/action
-// TODO journal logging with extra fields (check/alarm/action name, ..)
-// TODO include alarm/action "last status" in report to see if action execution works correctly
-// TODO consistent debug logging
-// TODO (example) configs in README
-// TODO tests!
+// TODO (example) configs in README and complete list of generic options (and placeholders)
 
 fn get_config_file_path() -> Result<std::path::PathBuf> {
     if let Some(path_str) = std::env::args().nth(1) {

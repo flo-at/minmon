@@ -89,7 +89,12 @@ where
                     }
                 };
                 if let Err(err) = result {
-                    log::error!("Error in alarm: {}", err); // TODO add check name, alarm name..
+                    log::error!(
+                        "Error in alarm '{}' from check '{}': {}",
+                        alarm.name(),
+                        self.name,
+                        err
+                    );
                 }
             }
         }

@@ -111,7 +111,6 @@ impl StateHandler for StateMachine {
             }
 
             State::Error(error) => {
-                // TODO add info about shadowed_state (add bad uuid and timestamp, ..)
                 placeholders.insert(String::from("error_uuid"), error.uuid.clone());
                 placeholders.insert(
                     String::from("error_timestamp"),

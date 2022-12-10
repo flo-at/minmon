@@ -26,7 +26,7 @@ impl Report {
         for event in self.events.iter_mut() {
             let result = event.trigger(self.placeholders.clone()).await;
             if let Err(err) = result {
-                log::error!("Error in report event: {}", err); // TODO add event name
+                log::error!("Error in report event '{}': {}", event.name, err);
             }
         }
         Ok(())

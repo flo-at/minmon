@@ -37,6 +37,8 @@ impl std::ops::Not for SinkDecision {
 pub trait Alarm: Send + Sync + Sized {
     type Item: Send + Sync;
 
+    fn name(&self) -> &str;
+
     async fn put_data(&mut self, data: &Self::Item, mut placeholders: PlaceholderMap)
         -> Result<()>;
     async fn put_error(&mut self, error: &Error, mut placeholders: PlaceholderMap) -> Result<()>;
@@ -155,6 +157,10 @@ where
     U: StateHandler,
 {
     type Item = T::Item;
+
+    fn name(&self) -> &str {
+        &self.name
+    }
 
     async fn put_data(
         &mut self,
