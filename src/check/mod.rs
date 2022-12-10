@@ -47,13 +47,19 @@ where
         placeholders: PlaceholderMap,
         data_source: T,
         alarms: Vec<Vec<U>>,
-    ) -> Self {
-        Self {
-            interval,
-            name,
-            placeholders,
-            data_source,
-            alarms,
+    ) -> Result<Self> {
+        if interval == 0 {
+            Err(Error(String::from("'interval' cannot be 0.")))
+        } else if name.is_empty() {
+            Err(Error(String::from("'name' cannot be empty.")))
+        } else {
+            Ok(Self {
+                interval,
+                name,
+                placeholders,
+                data_source,
+                alarms,
+            })
         }
     }
 }
@@ -140,7 +146,7 @@ where
                 alarm_config.invert,
                 alarm_state_machine,
                 data_sink,
-            );
+            )?;
             alarms.push(alarm);
         }
         all_alarms.push(alarms);
@@ -151,7 +157,7 @@ where
         check_config.placeholders.clone(),
         data_source,
         all_alarms,
-    )))
+    )?))
 }
 
 pub fn from_check_config(

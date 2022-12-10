@@ -3,8 +3,6 @@ use std::collections::HashMap;
 
 use serde::Deserialize;
 
-// TODO check syntactically valid but semantically invalid values (like interval: 0)
-
 trait Validate {
     fn validate(&self) -> bool;
 }
@@ -71,7 +69,7 @@ pub struct Report {
     #[serde(default = "default::report_disable")]
     pub disable: bool,
     #[serde(default = "default::report_interval")]
-    pub interval: u32, // TODO cannot be 0
+    pub interval: u32,
     #[serde(default)]
     pub placeholders: PlaceholderMap,
     #[serde(default)]
@@ -183,7 +181,7 @@ pub struct Check {
     #[serde(default)]
     pub disable: bool,
     #[serde(default = "default::check_interval")]
-    pub interval: u32, // TODO cannot be 0
+    pub interval: u32,
     pub name: String,
     #[serde(default)]
     pub placeholders: PlaceholderMap,

@@ -48,11 +48,15 @@ impl Event {
         name: String,
         placeholders: PlaceholderMap,
         action: Option<std::sync::Arc<dyn action::Action>>,
-    ) -> Self {
-        Self {
-            name,
-            placeholders,
-            action,
+    ) -> Result<Self> {
+        if name.is_empty() {
+            Err(Error(String::from("'name' cannot be empty.")))
+        } else {
+            Ok(Self {
+                name,
+                placeholders,
+                action,
+            })
         }
     }
 
@@ -93,7 +97,7 @@ pub fn from_report_config(report_config: &config::Report, actions: &ActionMap) -
             event_config.name.clone(),
             event_config.placeholders.clone(),
             action::get_action(&event_config.action, actions)?,
-        );
+        )?;
         events.push(event);
     }
     Report::new(

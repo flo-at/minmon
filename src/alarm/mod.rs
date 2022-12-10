@@ -77,19 +77,23 @@ where
         invert: bool,
         state_machine: U,
         data_sink: T,
-    ) -> Self {
-        Self {
-            name,
-            id,
-            action,
-            placeholders,
-            recover_action,
-            recover_placeholders,
-            error_action,
-            error_placeholders,
-            invert,
-            state_machine,
-            data_sink,
+    ) -> Result<Self> {
+        if name.is_empty() {
+            Err(Error(String::from("'name' cannot be empty.")))
+        } else {
+            Ok(Self {
+                name,
+                id,
+                action,
+                placeholders,
+                recover_action,
+                recover_placeholders,
+                error_action,
+                error_placeholders,
+                invert,
+                state_machine,
+                data_sink,
+            })
         }
     }
 

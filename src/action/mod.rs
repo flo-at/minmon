@@ -29,11 +29,15 @@ impl<T> ActionBase<T>
 where
     T: Action,
 {
-    pub fn new(name: String, placeholders: PlaceholderMap, action: T) -> Self {
-        Self {
-            name,
-            placeholders,
-            action,
+    pub fn new(name: String, placeholders: PlaceholderMap, action: T) -> Result<Self> {
+        if name.is_empty() {
+            Err(Error(String::from("'name' cannot be empty.")))
+        } else {
+            Ok(Self {
+                name,
+                placeholders,
+                action,
+            })
         }
     }
 
@@ -60,17 +64,17 @@ pub fn from_action_config(action_config: &config::Action) -> Result<std::sync::A
             action_config.name.clone(),
             action_config.placeholders.clone(),
             Webhook::try_from(action_config)?,
-        )),
+        )?),
         config::ActionType::Log(_) => std::sync::Arc::new(ActionBase::new(
             action_config.name.clone(),
             action_config.placeholders.clone(),
             Log::try_from(action_config)?,
-        )),
+        )?),
         config::ActionType::Process(_) => std::sync::Arc::new(ActionBase::new(
             action_config.name.clone(),
             action_config.placeholders.clone(),
             Process::try_from(action_config)?,
-        )),
+        )?),
     })
 }
 
