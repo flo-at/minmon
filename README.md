@@ -93,7 +93,6 @@ interval = 60
 name = "FilesystemUsage 1"
 type = "FilesystemUsage"
 mountpoints = ["/srv"]
-#placeholders = {}
 
 [[checks.alarms]]
 name = "LevelAlarm 1"
@@ -104,24 +103,21 @@ action = "Webhook 1"
 recover_cycles = 5
 recover_action = "Webhook 1"
 error_repeat_cycles = 200
-error_action = "Log 1"
-placeholders = {"level_name" = "Warning"}
+error_action = "Log error"
+placeholders = {"what" = "bad!", "level_name" = "Warning"}
+recover_placeholders = {"what" = "recovered!"}
 
 [[actions]]
 name = "Webhook 1"
 type = "Webhook"
 url = "https://example.com/hook1"
-method = "POST"
-timeout = 5
-body = """{"text": "Generic: {{check_name}}, {{alarm_name}}, {{alarm_level}}, {{alarm_timestamp}}, {{action_name}}. Custom: {{level_name}}"}"""
+body = """{"text": "Alarm {{alarm_name}} from check {{check_name}} reported '{{what}}' for level {{level_name}}."""
 headers = {"Content-Type" = "application/json"}
-#placeholders = {}
 
 [[actions]]
-name = "Log 1"
+name = "Log error"
 type = "Log"
-template = """Generic: {{check_name}}, {{check_error}}, {{alarm_name}}, {{alarm_uuid}}, {{alarm_timestamp}}, {{action_name}}. Custom: {{level_name}}"""
-level="Error"
+template = """Check {{check_name}} didn't have valid data for alarm {{alarm_name}}."""
 ```
 ## Diagram
 ```mermaid
@@ -131,7 +127,7 @@ graph TD
     C -->|level '/srv': 60%| D(LevelAlarm 1: 70%)
     D -->|cycles: 3, repeat_cycles: 100| E(Action: Webhook 1)
     D -->|recover_cycles: 5| F(Recover action: Webhook 1)
-    D -->|error_repeat_cycles: 200| G(Error action: Log 1)
+    D -->|error_repeat_cycles: 200| G(Error action: Log error)
 
     style C fill:green;
     style D fill:red;

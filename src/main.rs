@@ -5,7 +5,8 @@ mod systemd;
 
 use minmon::{config, Error, Result};
 
-// TODO (example) configs in README and complete list of generic options (and placeholders)
+// TODO complete list of generic options (and placeholders)
+// TODO log check data and ids on trigger, alarm decisions, state transitions, ..
 
 fn get_config_file_path() -> Result<std::path::PathBuf> {
     if let Some(path_str) = std::env::args().nth(1) {
