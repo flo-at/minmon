@@ -2,8 +2,6 @@
 
 #[cfg(feature = "systemd")]
 mod systemd;
-#[cfg(feature = "systemd")]
-extern crate systemd as systemd_ext;
 
 use minmon::{config, Error, Result};
 
@@ -45,8 +43,7 @@ fn init_logging(config: &config::Config) -> Result<()> {
         }
         #[cfg(feature = "systemd")]
         config::LogTarget::Journal => {
-            systemd_ext::journal::JournalLog::init()
-                .map_err(|x| Error(format!("Could not initialize journal logger: {}", x)))?;
+            systemd::init_journal()?;
         }
     }
     Ok(())

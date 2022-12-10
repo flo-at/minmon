@@ -7,7 +7,8 @@ edition = "2021"
 toml = "0.5"
 reqwest = { version = "0.11", features = ["json"] }
 tokio = { version = "1", features = ["full"] }
-systemd = { version = "0.10", features = ["journal"], default-features = false, optional = true}
+libsystemd = { version = "0.5", optional = true }
+systemd-journal-logger = { version = "0.6", optional = true }
 serde = { version = "1.0", features = ["derive"] }
 uuid = { version = "1.2", features = ["v4", "fast-rng"] }
 nix = "0.25"
@@ -21,4 +22,5 @@ chrono = { version = "0.4", features = ["std", "clock"], default-features = fals
 mockall = "0.11"
 
 [features]
-systemd = ["dep:systemd"]
+default = ["systemd"]
+systemd = ["dep:libsystemd", "dep:systemd-journal-logger"]

@@ -1,3 +1,5 @@
+use crate::{Error, Result};
+
 const GENERIC_ERROR: &str = "Could not connect to systemd.";
 
 pub fn init() {
@@ -5,34 +7,43 @@ pub fn init() {
     notify_ready();
 }
 
+pub fn init_journal() -> Result<()> {
+    systemd_journal_logger::init()
+        .map_err(|x| Error(format!("Could not initialize journal logger: {}", x)))
+}
+
 fn notify_ready() {
-    log::debug!("Letting systemd know we're ready..");
-    systemd::daemon::notify(false, [(systemd::daemon::STATE_READY, "1")].iter())
+    libsystemd::daemon::notify(false, &[libsystemd::daemon::NotifyState::Ready])
         .expect(GENERIC_ERROR);
 }
 
 fn spawn_watchdog_task() {
-    let timeout_ms = systemd::daemon::watchdog_enabled(false).expect(GENERIC_ERROR);
-    if timeout_ms > 0 {
-        let reset_interval_ms = timeout_ms / 2; // as recommended by systemd
-        log::debug!("Systemd watchdog timeout is {} milliseconds.", timeout_ms);
-        tokio::spawn(async move {
-            let mut interval =
-                tokio::time::interval(std::time::Duration::from_millis(reset_interval_ms));
-
-            loop {
-                interval.tick().await;
-                if let Err(err) =
-                    systemd::daemon::notify(false, [(systemd::daemon::STATE_WATCHDOG, "1")].iter())
-                {
-                    log::error!("Failed to reset systemd watchdog: {}", err);
+    if let Some(timeout) = libsystemd::daemon::watchdog_enabled(false) {
+        if timeout.is_zero() {
+            log::debug!("Systemd watchdog is disabled.");
+        } else {
+            let reset_interval = timeout / 2; // as recommended by systemd
+            log::debug!(
+                "Systemd watchdog timeout is {} milliseconds.",
+                timeout.as_millis()
+            );
+            tokio::spawn(async move {
+                let mut interval = tokio::time::interval(reset_interval);
+                loop {
+                    interval.tick().await;
+                    if let Err(err) = libsystemd::daemon::notify(
+                        false,
+                        &[libsystemd::daemon::NotifyState::Watchdog],
+                    ) {
+                        log::error!("Failed to reset systemd watchdog: {}", err);
+                    }
                 }
-            }
-        });
-        log::info!(
-            "Systemd watchdog will be reset every {} milliseconds.",
-            reset_interval_ms
-        );
+            });
+            log::info!(
+                "Systemd watchdog will be reset every {} milliseconds.",
+                reset_interval.as_millis()
+            );
+        }
     } else {
         log::debug!("Systemd watchdog is disabled.");
     }
