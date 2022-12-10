@@ -15,7 +15,6 @@ use minmon::{config, Error, Result};
 // TODO include alarm/action "last status" in report to see if action execution works correctly
 // TODO consistent debug logging
 // TODO (example) configs in README
-// TODO implement report
 // TODO tests!
 
 fn get_config_file_path() -> Result<std::path::PathBuf> {
@@ -63,7 +62,7 @@ async fn main_wrapper() -> Result<()> {
     {
         systemd::init();
     }
-    let checks = minmon::from_config(&config)?;
+    let (report, checks) = minmon::from_config(&config)?;
     for mut check in checks {
         tokio::spawn(async move {
             let mut interval = tokio::time::interval(check.interval());
@@ -71,6 +70,18 @@ async fn main_wrapper() -> Result<()> {
                 interval.tick().await;
                 if let Err(error) = check.trigger().await {
                     log::error!("Check '{}' failed: {}", check.name(), error);
+                }
+            }
+        });
+    }
+
+    if let Some(mut report) = report {
+        tokio::spawn(async move {
+            let mut interval = tokio::time::interval(report.interval());
+            loop {
+                interval.tick().await;
+                if let Err(error) = report.trigger().await {
+                    log::error!("Report failed: {}", error);
                 }
             }
         });

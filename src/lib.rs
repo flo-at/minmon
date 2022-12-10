@@ -4,6 +4,7 @@ mod action;
 mod alarm;
 mod check;
 pub mod config;
+mod report;
 
 pub type Result<T> = std::result::Result<T, Error>;
 type PlaceholderMap = std::collections::HashMap<String, String>;
@@ -70,6 +71,21 @@ fn init_actions(config: &config::Config) -> Result<ActionMap> {
     Ok(res)
 }
 
+fn init_report(config: &config::Config, actions: &ActionMap) -> Result<Option<report::Report>> {
+    log::info!("Initializing report..");
+    let report_config = &config.report;
+    if report_config.disable {
+        log::info!("Report is disabled.");
+        return Ok(None);
+    }
+    let report = report::from_report_config(report_config, actions)?;
+    log::info!(
+        "Report will be triggered every {} seconds.",
+        report.interval().as_secs()
+    );
+    Ok(Some(report))
+}
+
 fn init_checks(config: &config::Config, actions: &ActionMap) -> Result<Vec<Box<dyn check::Check>>> {
     log::info!("Initializing {} check(s)..", config.checks.len());
     let mut res: Vec<Box<dyn check::Check>> = Vec::new();
@@ -100,9 +116,13 @@ fn init_checks(config: &config::Config, actions: &ActionMap) -> Result<Vec<Box<d
     Ok(res)
 }
 
-pub fn from_config(config: &config::Config) -> Result<Vec<Box<dyn check::Check>>> {
+pub fn from_config(
+    config: &config::Config,
+) -> Result<(Option<report::Report>, Vec<Box<dyn check::Check>>)> {
     let actions = init_actions(config)?;
-    init_checks(config, &actions)
+    let report = init_report(config, &actions)?;
+    let checks = init_checks(config, &actions)?;
+    Ok((report, checks))
 }
 
 #[cfg(test)]

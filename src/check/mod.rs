@@ -13,7 +13,6 @@ mod memory_usage;
 pub trait Check: Send + Sync {
     async fn trigger(&mut self) -> Result<()>;
     fn interval(&self) -> std::time::Duration;
-    fn report(&self) -> String;
     fn name(&self) -> &str;
 }
 
@@ -95,27 +94,9 @@ where
         std::time::Duration::from_secs(self.interval.into())
     }
 
-    fn report(&self) -> String {
-        format!("Check '{}' reporting in!", self.name) // TODO
-    }
-
     fn name(&self) -> &str {
         self.name.as_str()
     }
-}
-
-fn get_action(
-    action: &String,
-    actions: &ActionMap,
-) -> Result<Option<std::sync::Arc<dyn action::Action>>> {
-    Ok(if action.is_empty() {
-        None
-    } else {
-        actions
-            .get(action)
-            .ok_or_else(|| Error(format!("Action '{}' not found.", action)))?
-            .clone()
-    })
 }
 
 fn factory<'a, T, U>(check_config: &'a config::Check, actions: &ActionMap) -> Result<Box<dyn Check>>
@@ -146,15 +127,15 @@ where
                 alarm_config.repeat_cycles,
                 alarm_config.recover_cycles,
                 alarm_config.error_repeat_cycles,
-            );
+            )?;
             let alarm = alarm::AlarmBase::new(
                 alarm_config.name.clone(),
                 id.clone(),
-                get_action(&alarm_config.action, actions)?,
+                action::get_action(&alarm_config.action, actions)?,
                 alarm_config.placeholders.clone(),
-                get_action(&alarm_config.recover_action, actions)?,
+                action::get_action(&alarm_config.recover_action, actions)?,
                 alarm_config.recover_placeholders.clone(),
-                get_action(&alarm_config.error_action, actions)?,
+                action::get_action(&alarm_config.error_action, actions)?,
                 alarm_config.error_placeholders.clone(),
                 alarm_config.invert,
                 alarm_state_machine,

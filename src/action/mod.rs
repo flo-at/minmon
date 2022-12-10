@@ -1,5 +1,6 @@
 use crate::config;
-use crate::{PlaceholderMap, Result};
+use crate::ActionMap;
+use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 
 mod log;
@@ -70,6 +71,20 @@ pub fn from_action_config(action_config: &config::Action) -> Result<std::sync::A
             action_config.placeholders.clone(),
             Process::try_from(action_config)?,
         )),
+    })
+}
+
+pub fn get_action(
+    action: &String,
+    actions: &ActionMap,
+) -> Result<Option<std::sync::Arc<dyn Action>>> {
+    Ok(if action.is_empty() {
+        None
+    } else {
+        actions
+            .get(action)
+            .ok_or_else(|| Error(format!("Action '{}' not found.", action)))?
+            .clone()
     })
 }
 

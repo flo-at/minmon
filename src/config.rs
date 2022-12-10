@@ -68,10 +68,12 @@ pub enum LogTarget {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Report {
-    #[serde(default)]
+    #[serde(default = "default::report_disable")]
     pub disable: bool,
     #[serde(default = "default::report_interval")]
-    pub interval: u32,
+    pub interval: u32, // TODO cannot be 0
+    #[serde(default)]
+    pub placeholders: PlaceholderMap,
     #[serde(default)]
     pub events: Vec<ReportEvent>,
 }
@@ -79,9 +81,10 @@ pub struct Report {
 impl Default for Report {
     fn default() -> Self {
         Self {
-            disable: bool::default(),
+            disable: true,
             interval: default::REPORT_INTERVAL,
             events: Vec::new(),
+            placeholders: PlaceholderMap::new(),
         }
     }
 }
@@ -89,7 +92,12 @@ impl Default for Report {
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct ReportEvent {
+    #[serde(default)]
+    pub disable: bool,
+    pub name: String,
     pub action: String,
+    #[serde(default)]
+    pub placeholders: PlaceholderMap,
 }
 
 #[derive(Deserialize)]
@@ -175,7 +183,7 @@ pub struct Check {
     #[serde(default)]
     pub disable: bool,
     #[serde(default = "default::check_interval")]
-    pub interval: u32,
+    pub interval: u32, // TODO cannot be 0
     pub name: String,
     #[serde(default)]
     pub placeholders: PlaceholderMap,
@@ -259,6 +267,11 @@ pub struct AlarmLevel {
 }
 
 mod default {
+    pub const REPORT_DISABLE: bool = true;
+    pub fn report_disable() -> bool {
+        REPORT_DISABLE
+    }
+
     pub const REPORT_INTERVAL: u32 = 604800;
     pub fn report_interval() -> u32 {
         REPORT_INTERVAL
