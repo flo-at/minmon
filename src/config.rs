@@ -103,6 +103,8 @@ pub struct Action {
     #[serde(default)]
     pub disable: bool,
     pub name: String,
+    #[serde(default = "default::action_timeout")]
+    pub timeout: u32,
     #[serde(default)]
     pub placeholders: PlaceholderMap,
     #[serde(flatten)]
@@ -135,8 +137,6 @@ pub struct ActionWebhook {
     pub method: HttpMethod,
     #[serde(default)]
     pub headers: HashMap<String, String>,
-    #[serde(default = "default::action_web_hook_timeout")]
-    pub timeout: u32,
     #[serde(default)]
     pub body: String,
 }
@@ -270,9 +270,9 @@ mod default {
         REPORT_INTERVAL
     }
 
-    pub const ACTION_WEB_HOOK_TIMEOUT: u32 = 10;
-    pub fn action_web_hook_timeout() -> u32 {
-        ACTION_WEB_HOOK_TIMEOUT
+    pub const ACTION_TIMEOUT: u32 = 10;
+    pub fn action_timeout() -> u32 {
+        ACTION_TIMEOUT
     }
 
     pub const CHECK_INTERVAL: u32 = 300;
@@ -408,7 +408,6 @@ mod test {
                     String::from("Content-Type"),
                     String::from("application/json")
                 )]),
-                timeout: 5,
                 body: String::from(r#"{"name": "{{ name }}"}"#),
             })
         );

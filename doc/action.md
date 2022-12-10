@@ -6,6 +6,7 @@ Actions control what happens when an alarm or report event is triggered.
 |:---|:---|:---:|:---|
 | disable | `true` | ✔ | `false` |
 | name | `Foobar` | ❌ | |
+| timeout | `3` | ✔ | `10` | ❌ |
 | placeholders | `{"internal_action_id" = "id_foobar"}` | ✔ | |
 | type | `Log` | ❌ | |
 
@@ -42,5 +43,4 @@ Trigger a Webhook.
 | url | `http://example.com/webhook?alarm={{alarm_name}}` | ❌ | | ✔ |
 | method | `GET`, `POST`, `PUT`, `DELETE`, `PATCH` | ✔ | `POST` | ❌ |
 | headers | `{"Content-Type" = "application/json"}` | ✔ | | ❌ |
-| timeout | `3` | ✔ | `10` | ❌ |
 | body | `{"text": "Triggered from check '{{check_name}}'."}`  | ✔ | | ✔ |

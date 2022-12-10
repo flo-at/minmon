@@ -10,7 +10,6 @@ pub struct Webhook {
     url: String,
     method: reqwest::Method,
     headers: reqwest::header::HeaderMap<reqwest::header::HeaderValue>,
-    timeout: u32,
     body: String,
 }
 
@@ -43,7 +42,6 @@ impl TryFrom<&config::Action> for Webhook {
                 url: web_hook.url.clone(),
                 method: reqwest::Method::from(web_hook.method),
                 headers: Self::transform_header_map(&web_hook.headers)?,
-                timeout: web_hook.timeout,
                 body: web_hook.body.clone(),
             })
         } else {
@@ -60,7 +58,6 @@ impl Action for Webhook {
         let client = reqwest::Client::new();
         let response = client
             .request(self.method.clone(), &url)
-            .timeout(std::time::Duration::from_secs(self.timeout.into()))
             .headers(self.headers.clone())
             .body(body)
             .send()

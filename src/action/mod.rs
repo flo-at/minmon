@@ -22,6 +22,7 @@ where
     T: Action,
 {
     name: String,
+    timeout: std::time::Duration,
     placeholders: PlaceholderMap,
     action: T,
 }
@@ -30,12 +31,20 @@ impl<T> ActionBase<T>
 where
     T: Action,
 {
-    pub fn new(name: String, placeholders: PlaceholderMap, action: T) -> Result<Self> {
+    pub fn new(
+        name: String,
+        timeout: std::time::Duration,
+        placeholders: PlaceholderMap,
+        action: T,
+    ) -> Result<Self> {
         if name.is_empty() {
             Err(Error(String::from("'name' cannot be empty.")))
+        } else if timeout.is_zero() {
+            Err(Error(String::from("'timeout' cannot be 0.")))
         } else {
             Ok(Self {
                 name,
+                timeout,
                 placeholders,
                 action,
             })
@@ -55,7 +64,15 @@ where
 {
     async fn trigger(&self, mut placeholders: PlaceholderMap) -> Result<()> {
         self.add_placeholders(&mut placeholders);
-        self.action.trigger(placeholders).await
+        let res = tokio::time::timeout(self.timeout, self.action.trigger(placeholders)).await;
+        match res {
+            Ok(inner) => inner,
+            Err(_) => Err(Error(format!(
+                "Action '{}' timed out after {} seconds.",
+                self.name,
+                self.timeout.as_secs()
+            ))),
+        }
     }
 }
 
@@ -91,6 +108,7 @@ pub fn from_action_config(action_config: &config::Action) -> Result<std::sync::A
         );
         Ok(std::sync::Arc::new(ActionBase::new(
             action_config.name.clone(),
+            std::time::Duration::from_secs(action_config.timeout as u64),
             action_config.placeholders.clone(),
             DisabledAction {},
         )?))
@@ -98,16 +116,19 @@ pub fn from_action_config(action_config: &config::Action) -> Result<std::sync::A
         Ok(match &action_config.type_ {
             config::ActionType::Webhook(_) => std::sync::Arc::new(ActionBase::new(
                 action_config.name.clone(),
+                std::time::Duration::from_secs(action_config.timeout as u64),
                 action_config.placeholders.clone(),
                 Webhook::try_from(action_config)?,
             )?),
             config::ActionType::Log(_) => std::sync::Arc::new(ActionBase::new(
                 action_config.name.clone(),
+                std::time::Duration::from_secs(action_config.timeout as u64),
                 action_config.placeholders.clone(),
                 Log::try_from(action_config)?,
             )?),
             config::ActionType::Process(_) => std::sync::Arc::new(ActionBase::new(
                 action_config.name.clone(),
+                std::time::Duration::from_secs(action_config.timeout as u64),
                 action_config.placeholders.clone(),
                 Process::try_from(action_config)?,
             )?),
@@ -145,6 +166,7 @@ mod test {
             .returning(|_| Ok(()));
         let action = ActionBase::new(
             String::from("Name"),
+            std::time::Duration::from_secs(1),
             PlaceholderMap::from([(String::from("Hello"), String::from("World"))]),
             mock_action,
         )
@@ -156,5 +178,28 @@ mod test {
             )]))
             .await
             .unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_timeout() {
+        struct TimeoutMockAction {}
+        #[async_trait]
+        impl Action for TimeoutMockAction {
+            async fn trigger(&self, mut _placeholders: PlaceholderMap) -> Result<()> {
+                tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                Ok(())
+            }
+        }
+        let action = ActionBase::new(
+            String::from("Name"),
+            std::time::Duration::from_secs(1),
+            PlaceholderMap::new(),
+            TimeoutMockAction {},
+        )
+        .unwrap();
+        assert!(matches!(
+            action.trigger(PlaceholderMap::new()).await,
+            Err(_)
+        ));
     }
 }
