@@ -2,10 +2,13 @@
 This tool is just a single binary and a config file. No database, no GUI, no graphs. Just monitoring and alarms.
 I wrote this because the [exsiting alternatives](./doc/existing-alternatives.md) I could find were too heavy, mainly focused on nice GUIs with graphs (not on alarming), too complex to setup or targeted at cloud/multi-instance setups.
 
-[![test workflow](https://github.com/flo-at/minmon/actions/workflows/test.yml/badge.svg)](https://github.com/flo-at/minmon/actions/workflows/test.yml)
-[![crates.io workflow](https://github.com/flo-at/minmon/actions/workflows/crate-publish.yml/badge.svg)](https://crates.io/crates/minmon)
-[![docker workflow](https://github.com/flo-at/minmon/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/flo-at/minmon/pkgs/container/minmon)
-[![cargo-deny workflow](https://github.com/flo-at/minmon/actions/workflows/cargo-deny.yml/badge.svg)](https://github.com/flo-at/minmon/actions/workflows/cargo-deny.yml)
+[![test workflow](https://img.shields.io/github/workflow/status/flo-at/minmon/test/main?label=tests)](https://github.com/flo-at/minmon/actions/workflows/test.yml)
+[![docker workflow](https://img.shields.io/github/workflow/status/flo-at/minmon/docker-publish/main?label=docker)](https://github.com/flo-at/minmon/pkgs/container/minmon)
+[![cargo-publish workflow](https://img.shields.io/github/workflow/status/flo-at/minmon/cargo-publish/main?label=cargo-publish)](https://github.com/flo-at/minmon/actions/workflows/cargo-publish.yml)
+[![cargo-deny workflow](https://img.shields.io/github/workflow/status/flo-at/minmon/cargo-deny/main?label=cargo-deny)](https://github.com/flo-at/minmon/actions/workflows/cargo-deny.yml)
+[![crates.io](https://img.shields.io/crates/v/minmon)](https://crates.io/crates/minmon)
+[![License](https://img.shields.io/github/license/flo-at/minmon)](./LICENSE)
+[![Latest SemVer tag](https://img.shields.io/github/v/tag/flo-at/minmon)](https://github.com/flo-at/minmon/tags)
 
 # Checks
 - [Filesystem usage](./doc/check.md#filesystemusage)
