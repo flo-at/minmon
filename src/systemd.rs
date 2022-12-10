@@ -3,6 +3,10 @@ use crate::{Error, Result};
 const GENERIC_ERROR: &str = "Could not connect to systemd.";
 
 pub fn init() {
+    if !libsystemd::daemon::booted() {
+        log::info!("Could not detect systemd. Skipping notification and watchdog initialization.");
+        return;
+    }
     spawn_watchdog_task();
     notify_ready();
 }
