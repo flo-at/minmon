@@ -70,7 +70,7 @@ graph TD
     A(Config file) --> B(Main loop)
     B -->|interval| C(Check 1)
     B -.-> D(Check 2..n)
-    C -->|measurement| E(Alarm 1)
+    C -->|data| E(Alarm 1)
     C -.-> F(Alarm 2..m)
     E -->|cycles, repeat_cycles| G(Action)
     E -->|recover_cycles| H(Recover action)
@@ -165,4 +165,4 @@ Inside the action (depending on the type of the action) the placeholders can be 
 - Docker/Podman container status
 
 ## General ideas
-- Store measurements/status in time-based database (e.g. rrdtool) and visualize on Webinterface or ncurses UI. This should be optional and separated from the existing code.
+- Store data/status in time-based database (e.g. rrdtool) and visualize on Webinterface or ncurses UI. This should be optional and separated from the existing code.
