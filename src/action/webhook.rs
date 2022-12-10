@@ -106,32 +106,3 @@ impl From<config::HttpMethod> for reqwest::Method {
         }
     }
 }
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_web_hook_ok() {
-        let web_hook = Webhook::new(
-            String::from("https://httpbin.org/status/200"),
-            reqwest::Method::GET,
-            Webhook::transform_header_map(&HashMap::new()).unwrap(),
-            5,
-            String::from(""),
-        );
-        web_hook.trigger(PlaceholderMap::new()).await.unwrap();
-    }
-
-    #[tokio::test]
-    async fn test_web_hook_err() {
-        let web_hook = Webhook::new(
-            String::from("https://httpbin.org/status/400"),
-            reqwest::Method::GET,
-            Webhook::transform_header_map(&HashMap::new()).unwrap(),
-            5,
-            String::from(""),
-        );
-        assert!(web_hook.trigger(PlaceholderMap::new()).await.is_err());
-    }
-}
