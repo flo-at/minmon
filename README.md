@@ -15,6 +15,7 @@ I wrote this because the [exsiting alternatives](./doc/existing-alternatives.md)
 - [Memory usage](./doc/check.md#memoryusage)
 
 # Actions
+- [Email](./doc/action.md#email)
 - [Log](./doc/action.md#log)
 - [Process](./doc/action.md#process)
 - [Webhook](./doc/action.md#webhook)
@@ -150,9 +151,6 @@ Inside the action (depending on the type of the action) the placeholders can be 
 - `action_name`
 
 # Roadmap
-## Action ideas
-- E-mail
-
 ## Check ideas
 - Filesystem inode usage
 - Folder size

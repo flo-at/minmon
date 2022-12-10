@@ -8,7 +8,24 @@ Actions control what happens when an alarm or report event is triggered.
 | name | `Foobar` | ❌ | |
 | timeout | `3` | ✔ | `10` | ❌ |
 | placeholders | `{"internal_action_id" = "id_foobar"}` | ✔ | |
-| type | `Log` | ❌ | |
+| type | `Email` | ❌ | |
+
+# Email
+Send an email.
+
+## Options
+| name | example | optional | default | placeholders |
+|:---|:---|:---:|:---|:---:|
+| from | `foo@example.com` | ❌ | | ❌ |
+| to | `bar@example.com` | ❌ | | ❌ |
+| reply_to | `noreply@example.com` | ✔ | | ❌ |
+| subject | `Alarm from check '{{check_name}}'!` | ❌ | | ✔ |
+| body | `Check '{{check_name}}' is not happy!` | ❌ | | ✔ |
+| smtp_server | `smtp.example.com` | ❌ | | ❌ |
+| smtp_port | `587` | ✔ | auto | ❌ |
+| smtp_security | `TLS`, `STARTTLS`, `Plain` | ✔ | `TLS` | ❌ |
+| username | `johndoe` | ❌ | | ❌ |
+| password | `topsecret` | ❌ | | ❌ |
 
 # Log
 Write a line to the log (as configured in the `[log]` section of the config file).
@@ -28,9 +45,9 @@ Call a process.
 | path | `/usr/bin/echo` | ❌ | | ❌ |
 | arguments | `["-e", "Alarm '{{alarm_name}}' was triggered."]` | ✔ | | ✔ |
 | environment_variables | `{"ALARM_NAME": "{{alarm_name}}"}` | ✔ | | ✔ |
-| working_directory | `/home/user/` | ✔ | Inherited (\*) | ❌ |
-| uid | `1000` | ✔ | Inherited (*) | ❌ |
-| gid | `1000` | ✔ | Inherited (*) | ❌ |
+| working_directory | `/home/user/` | ✔ | inherited (\*) | ❌ |
+| uid | `1000` | ✔ | inherited (*) | ❌ |
+| gid | `1000` | ✔ | inherited (*) | ❌ |
 
 (\*) Inherited from MinMon's process.
 

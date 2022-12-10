@@ -114,42 +114,48 @@ pub struct Action {
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(tag = "type")]
 pub enum ActionType {
-    Webhook(ActionWebhook),
+    Email(ActionEmail),
     Log(ActionLog),
     Process(ActionProcess),
+    Webhook(ActionWebhook),
 }
 
 impl std::fmt::Display for ActionType {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
-            ActionType::Webhook(_) => write!(f, "Webhook"),
+            ActionType::Email(_) => write!(f, "Email"),
             ActionType::Log(_) => write!(f, "Log"),
             ActionType::Process(_) => write!(f, "Process"),
+            ActionType::Webhook(_) => write!(f, "Webhook"),
         }
     }
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
-pub struct ActionWebhook {
-    pub url: String,
+pub struct ActionEmail {
+    pub from: String,
+    pub to: String,
     #[serde(default)]
-    pub method: HttpMethod,
-    #[serde(default)]
-    pub headers: HashMap<String, String>,
-    #[serde(default)]
+    pub reply_to: Option<String>,
+    pub subject: String,
     pub body: String,
+    pub smtp_server: String,
+    #[serde(default)]
+    pub smtp_port: Option<u16>,
+    #[serde(default)]
+    pub smtp_security: SmtpSecurity,
+    pub username: String,
+    pub password: String,
 }
 
 #[derive(Deserialize, PartialEq, Debug, Clone, Copy, Default)]
 #[allow(clippy::upper_case_acronyms)]
-pub enum HttpMethod {
-    GET,
+pub enum SmtpSecurity {
     #[default]
-    POST,
-    PUT,
-    DELETE,
-    PATCH,
+    TLS,
+    STARTTLS,
+    Plain,
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
@@ -174,6 +180,29 @@ pub struct ActionProcess {
     pub uid: Option<u32>,
     #[serde(default)]
     pub gid: Option<u32>,
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ActionWebhook {
+    pub url: String,
+    #[serde(default)]
+    pub method: HttpMethod,
+    #[serde(default)]
+    pub headers: HashMap<String, String>,
+    #[serde(default)]
+    pub body: String,
+}
+
+#[derive(Deserialize, PartialEq, Debug, Clone, Copy, Default)]
+#[allow(clippy::upper_case_acronyms)]
+pub enum HttpMethod {
+    GET,
+    #[default]
+    POST,
+    PUT,
+    DELETE,
+    PATCH,
 }
 
 #[derive(Deserialize)]

@@ -4,10 +4,12 @@ use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 extern crate log as log_ext;
 
+mod email;
 mod log;
 mod process;
 mod webhook;
 pub use self::log::Log;
+pub use email::Email;
 pub use process::Process;
 pub use webhook::Webhook;
 
@@ -114,11 +116,11 @@ pub fn from_action_config(action_config: &config::Action) -> Result<std::sync::A
         )?))
     } else {
         Ok(match &action_config.type_ {
-            config::ActionType::Webhook(_) => std::sync::Arc::new(ActionBase::new(
+            config::ActionType::Email(_) => std::sync::Arc::new(ActionBase::new(
                 action_config.name.clone(),
                 std::time::Duration::from_secs(action_config.timeout as u64),
                 action_config.placeholders.clone(),
-                Webhook::try_from(action_config)?,
+                Email::try_from(action_config)?,
             )?),
             config::ActionType::Log(_) => std::sync::Arc::new(ActionBase::new(
                 action_config.name.clone(),
@@ -131,6 +133,12 @@ pub fn from_action_config(action_config: &config::Action) -> Result<std::sync::A
                 std::time::Duration::from_secs(action_config.timeout as u64),
                 action_config.placeholders.clone(),
                 Process::try_from(action_config)?,
+            )?),
+            config::ActionType::Webhook(_) => std::sync::Arc::new(ActionBase::new(
+                action_config.name.clone(),
+                std::time::Duration::from_secs(action_config.timeout as u64),
+                action_config.placeholders.clone(),
+                Webhook::try_from(action_config)?,
             )?),
         })
     }
