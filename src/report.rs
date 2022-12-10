@@ -40,14 +40,14 @@ impl Report {
 struct Event {
     name: String,
     placeholders: PlaceholderMap,
-    action: Option<std::sync::Arc<dyn action::Action>>,
+    action: std::sync::Arc<dyn action::Action>,
 }
 
 impl Event {
     fn new(
         name: String,
         placeholders: PlaceholderMap,
-        action: Option<std::sync::Arc<dyn action::Action>>,
+        action: std::sync::Arc<dyn action::Action>,
     ) -> Result<Self> {
         if name.is_empty() {
             Err(Error(String::from("'name' cannot be empty.")))
@@ -67,19 +67,7 @@ impl Event {
 
     async fn trigger(&self, mut placeholders: PlaceholderMap) -> Result<()> {
         self.add_placeholders(&mut placeholders);
-        match &self.action {
-            Some(action) => {
-                log::debug!("Action 'TODO' for report event '{}' triggered.", self.name);
-                action.trigger(placeholders).await
-            }
-            None => {
-                log::debug!(
-                    "Action for report event '{}' was triggered but is disabled.",
-                    self.name
-                );
-                Ok(())
-            }
-        }
+        self.action.trigger(placeholders).await
     }
 }
 

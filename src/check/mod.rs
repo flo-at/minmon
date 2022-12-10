@@ -139,9 +139,15 @@ where
                 id.clone(),
                 action::get_action(&alarm_config.action, actions)?,
                 alarm_config.placeholders.clone(),
-                action::get_action(&alarm_config.recover_action, actions)?,
+                match &alarm_config.recover_action {
+                    Some(action) => Some(action::get_action(action, actions)?),
+                    None => None,
+                },
                 alarm_config.recover_placeholders.clone(),
-                action::get_action(&alarm_config.error_action, actions)?,
+                match &alarm_config.error_action {
+                    Some(action) => Some(action::get_action(action, actions)?),
+                    None => None,
+                },
                 alarm_config.error_placeholders.clone(),
                 alarm_config.invert,
                 alarm_state_machine,

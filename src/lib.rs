@@ -8,7 +8,7 @@ mod report;
 
 pub type Result<T> = std::result::Result<T, Error>;
 type PlaceholderMap = std::collections::HashMap<String, String>;
-type ActionMap = std::collections::HashMap<String, Option<std::sync::Arc<dyn action::Action>>>;
+type ActionMap = std::collections::HashMap<String, std::sync::Arc<dyn action::Action>>;
 
 #[derive(Debug)]
 pub struct Error(pub String);
@@ -51,17 +51,8 @@ fn init_actions(config: &config::Config) -> Result<ActionMap> {
                 action_config.name
             )));
         }
-        if action_config.disable {
-            log::info!(
-                "Action {}::'{}' is disabled.",
-                action_config.type_,
-                action_config.name
-            );
-            res.insert(action_config.name.clone(), None);
-            continue;
-        }
         let action = action::from_action_config(action_config)?;
-        res.insert(action_config.name.clone(), Some(action));
+        res.insert(action_config.name.clone(), action);
         log::info!(
             "Action {}::'{}' initialized.",
             action_config.type_,

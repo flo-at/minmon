@@ -49,7 +49,7 @@ where
 {
     name: String,
     id: String,
-    action: Option<std::sync::Arc<dyn action::Action>>,
+    action: std::sync::Arc<dyn action::Action>,
     placeholders: PlaceholderMap,
     recover_action: Option<std::sync::Arc<dyn action::Action>>,
     recover_placeholders: PlaceholderMap,
@@ -68,7 +68,7 @@ where
     pub fn new(
         name: String,
         id: String,
-        action: Option<std::sync::Arc<dyn action::Action>>,
+        action: std::sync::Arc<dyn action::Action>,
         placeholders: PlaceholderMap,
         recover_action: Option<std::sync::Arc<dyn action::Action>>,
         recover_placeholders: PlaceholderMap,
@@ -120,19 +120,7 @@ where
 
     async fn trigger(&self, mut placeholders: PlaceholderMap) -> Result<()> {
         self.state_machine.add_placeholders(&mut placeholders);
-        match &self.action {
-            Some(action) => {
-                log::debug!("Action 'TODO' for alarm '{}' triggered.", self.name);
-                action.trigger(placeholders).await
-            }
-            None => {
-                log::debug!(
-                    "Action for alarm '{}' was triggered but is disabled.",
-                    self.name
-                );
-                Ok(())
-            }
-        }
+        self.action.trigger(placeholders).await
     }
 
     async fn trigger_recover(&self, mut placeholders: PlaceholderMap) -> Result<()> {
@@ -208,17 +196,15 @@ mod test {
     use super::*;
     use mockall::predicate::*;
 
-    // TODO check if this is the "right way"
-    //      https://docs.rs/mockall/latest/mockall/#static-methods
     static SEMAPHORE: tokio::sync::Semaphore = tokio::sync::Semaphore::const_new(1);
 
-    fn times_action(times: usize) -> Option<std::sync::Arc<dyn action::Action>> {
+    fn times_action(times: usize) -> std::sync::Arc<dyn action::Action> {
         let mut mock_action = action::MockAction::new();
         mock_action
             .expect_trigger()
             .times(times)
             .returning(|_| Ok(()));
-        Some(std::sync::Arc::new(mock_action))
+        std::sync::Arc::new(mock_action)
     }
 
     fn mock_data_sink() -> MockDataSink {
@@ -271,16 +257,17 @@ mod test {
         let mut alarm = AlarmBase::new(
             String::from("Name"),
             String::from("ID"),
-            Some(std::sync::Arc::new(mock_action)),
+            std::sync::Arc::new(mock_action),
             PlaceholderMap::from([(String::from("Hello"), String::from("World"))]),
-            times_action(0),
+            Some(times_action(0)),
             PlaceholderMap::new(),
-            times_action(0),
+            Some(times_action(0)),
             PlaceholderMap::new(),
             false,
             mock_state_machine,
             mock_data_sink,
-        );
+        )
+        .unwrap();
         alarm
             .put_data(
                 &20,
@@ -331,12 +318,13 @@ mod test {
             PlaceholderMap::new(),
             Some(std::sync::Arc::new(mock_recover_action)),
             PlaceholderMap::from([(String::from("Hello"), String::from("World"))]),
-            times_action(0),
+            Some(times_action(0)),
             PlaceholderMap::new(),
             false,
             mock_state_machine,
             mock_data_sink,
-        );
+        )
+        .unwrap();
         alarm
             .put_data(
                 &10,
@@ -380,7 +368,7 @@ mod test {
         let mut alarm = AlarmBase::new(
             String::from("Name"),
             String::from("ID"),
-            Some(std::sync::Arc::new(mock_action)),
+            std::sync::Arc::new(mock_action),
             PlaceholderMap::new(),
             Some(std::sync::Arc::new(mock_recover_action)),
             PlaceholderMap::new(),
@@ -389,7 +377,8 @@ mod test {
             false,
             mock_state_machine,
             mock_data_sink,
-        );
+        )
+        .unwrap();
         alarm
             .put_error(
                 &Error(String::from("Error")),
@@ -421,17 +410,18 @@ mod test {
             String::from("ID"),
             times_action(1),
             PlaceholderMap::new(),
-            times_action(0),
+            Some(times_action(0)),
             PlaceholderMap::new(),
-            times_action(0),
+            Some(times_action(0)),
             PlaceholderMap::new(),
             true,
             mock_state_machine,
             mock_data_sink,
-        );
+        )
+        .unwrap();
         alarm.put_data(&10, PlaceholderMap::new()).await.unwrap();
         alarm.action = times_action(0);
-        alarm.recover_action = times_action(1);
+        alarm.recover_action = Some(times_action(1));
         alarm.put_data(&20, PlaceholderMap::new()).await.unwrap();
     }
 }

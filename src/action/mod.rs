@@ -2,6 +2,7 @@ use crate::config;
 use crate::ActionMap;
 use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
+extern crate log as log_ext;
 
 mod log;
 mod process;
@@ -58,38 +59,59 @@ where
     }
 }
 
-pub fn from_action_config(action_config: &config::Action) -> Result<std::sync::Arc<dyn Action>> {
-    Ok(match &action_config.type_ {
-        config::ActionType::Webhook(_) => std::sync::Arc::new(ActionBase::new(
-            action_config.name.clone(),
-            action_config.placeholders.clone(),
-            Webhook::try_from(action_config)?,
-        )?),
-        config::ActionType::Log(_) => std::sync::Arc::new(ActionBase::new(
-            action_config.name.clone(),
-            action_config.placeholders.clone(),
-            Log::try_from(action_config)?,
-        )?),
-        config::ActionType::Process(_) => std::sync::Arc::new(ActionBase::new(
-            action_config.name.clone(),
-            action_config.placeholders.clone(),
-            Process::try_from(action_config)?,
-        )?),
-    })
+struct DisabledAction {}
+
+#[async_trait]
+impl Action for DisabledAction {
+    async fn trigger(&self, mut _placeholders: PlaceholderMap) -> Result<()> {
+        //self.add_placeholders(&mut placeholders);
+        log_ext::info!("Disabled action triggered!"); // TODO
+        Ok(())
+    }
 }
 
-pub fn get_action(
-    action: &String,
-    actions: &ActionMap,
-) -> Result<Option<std::sync::Arc<dyn Action>>> {
-    Ok(if action.is_empty() {
-        None
+pub fn from_action_config(action_config: &config::Action) -> Result<std::sync::Arc<dyn Action>> {
+    if action_config.disable {
+        log_ext::info!(
+            "Action {}::'{}' is disabled.",
+            action_config.type_,
+            action_config.name
+        );
+        Ok(std::sync::Arc::new(ActionBase::new(
+            action_config.name.clone(),
+            action_config.placeholders.clone(),
+            DisabledAction {},
+        )?))
     } else {
-        actions
+        Ok(match &action_config.type_ {
+            config::ActionType::Webhook(_) => std::sync::Arc::new(ActionBase::new(
+                action_config.name.clone(),
+                action_config.placeholders.clone(),
+                Webhook::try_from(action_config)?,
+            )?),
+            config::ActionType::Log(_) => std::sync::Arc::new(ActionBase::new(
+                action_config.name.clone(),
+                action_config.placeholders.clone(),
+                Log::try_from(action_config)?,
+            )?),
+            config::ActionType::Process(_) => std::sync::Arc::new(ActionBase::new(
+                action_config.name.clone(),
+                action_config.placeholders.clone(),
+                Process::try_from(action_config)?,
+            )?),
+        })
+    }
+}
+
+pub fn get_action(action: &String, actions: &ActionMap) -> Result<std::sync::Arc<dyn Action>> {
+    if action.is_empty() {
+        Err(Error(String::from("'name' cannot be empty.")))
+    } else {
+        Ok(actions
             .get(action)
             .ok_or_else(|| Error(format!("Action '{}' not found.", action)))?
-            .clone()
-    })
+            .clone())
+    }
 }
 
 #[cfg(test)]
@@ -113,7 +135,8 @@ mod test {
             String::from("Name"),
             PlaceholderMap::from([(String::from("Hello"), String::from("World"))]),
             mock_action,
-        );
+        )
+        .unwrap();
         action
             .trigger(PlaceholderMap::from([(
                 String::from("Foo"),

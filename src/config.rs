@@ -235,13 +235,13 @@ pub struct Alarm {
     #[serde(default)]
     pub repeat_cycles: u32,
     #[serde(default)]
-    pub recover_action: String,
+    pub recover_action: Option<String>,
     #[serde(default)]
     pub recover_placeholders: PlaceholderMap,
     #[serde(default = "default::check_alarm_recover_cycles")]
     pub recover_cycles: u32,
     #[serde(default)]
-    pub error_action: String,
+    pub error_action: Option<String>,
     #[serde(default)]
     pub error_placeholders: PlaceholderMap,
     #[serde(default)]
@@ -338,7 +338,7 @@ mod test {
         let config = Config::try_from(text).unwrap();
         assert_eq!(config.log.level, LogLevel::default());
         assert_eq!(config.log.target, LogTarget::default());
-        assert!(!config.report.disable);
+        assert!(config.report.disable);
         assert_eq!(config.report.interval, default::REPORT_INTERVAL);
         assert_eq!(config.report.events.len(), 0);
         assert_eq!(config.actions.len(), 0);
