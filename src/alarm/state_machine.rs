@@ -72,9 +72,9 @@ impl StateMachine {
         error_repeat_cycles: u32,
     ) -> Result<Self> {
         if cycles == 0 {
-            Err(Error(format!("'cycles' cannot be 0.")))
+            Err(Error(String::from("'cycles' cannot be 0.")))
         } else if recover_cycles == 0 {
-            Err(Error(format!("'recover_cycles' cannot be 0.")))
+            Err(Error(String::from("'recover_cycles' cannot be 0.")))
         } else {
             Ok(Self {
                 cycles,
