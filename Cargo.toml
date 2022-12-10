@@ -1,6 +1,11 @@
 [package]
 name = "minmon"
+description = "An opinionated minimal monitoring and alarming tool"
 version = "0.1.0"
+authors = ["Florian Wickert <FlorianWickert@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/flo-at/minmon"
+keywords = ["monitoring", "alarming", "uptime"]
 edition = "2021"
 
 [dependencies]
