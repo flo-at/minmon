@@ -15,23 +15,6 @@ pub struct Webhook {
 }
 
 impl Webhook {
-    #[cfg(test)]
-    fn new(
-        url: String,
-        method: reqwest::Method,
-        headers: reqwest::header::HeaderMap<reqwest::header::HeaderValue>,
-        timeout: u32,
-        body: String,
-    ) -> Self {
-        Self {
-            url,
-            method,
-            headers,
-            timeout,
-            body,
-        }
-    }
-
     fn transform_header_map(
         headers: &HashMap<String, String>,
     ) -> Result<reqwest::header::HeaderMap<reqwest::header::HeaderValue>> {
