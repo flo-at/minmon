@@ -61,7 +61,7 @@ impl Event {
     }
 
     fn add_placeholders(&self, placeholders: &mut PlaceholderMap) {
-        placeholders.insert(String::from("report_event_name"), self.name.clone());
+        placeholders.insert(String::from("event_name"), self.name.clone());
         crate::merge_placeholders(placeholders, &self.placeholders);
     }
 

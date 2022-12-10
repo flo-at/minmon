@@ -63,9 +63,21 @@ struct DisabledAction {}
 
 #[async_trait]
 impl Action for DisabledAction {
-    async fn trigger(&self, mut _placeholders: PlaceholderMap) -> Result<()> {
-        //self.add_placeholders(&mut placeholders);
-        log_ext::info!("Disabled action triggered!"); // TODO
+    async fn trigger(&self, placeholders: PlaceholderMap) -> Result<()> {
+        if placeholders.contains_key("event_name") {
+            log_ext::debug!(
+                "Disabled action '{}' triggered for report event '{}'.",
+                placeholders.get("action_name").unwrap(),
+                placeholders.get("event_name").unwrap()
+            );
+        } else {
+            log_ext::debug!(
+                "Disabled action '{}' triggered for alarm '{}' from check '{}'.",
+                placeholders.get("action_name").unwrap(),
+                placeholders.get("alarm_name").unwrap(),
+                placeholders.get("check_name").unwrap()
+            );
+        }
         Ok(())
     }
 }

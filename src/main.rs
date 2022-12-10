@@ -11,7 +11,6 @@ use minmon::{config, Error, Result};
 // TODO retry action on next trigger if failed previously
 // TODO add "alarm_duration" and maybe "good_duration" on recover/action
 // TODO journal logging with extra fields (check/alarm/action name, ..)
-// TODO hierarchical logging (or just placeholders?)
 // TODO include alarm/action "last status" in report to see if action execution works correctly
 // TODO consistent debug logging
 // TODO (example) configs in README
