@@ -358,6 +358,8 @@ mod test {
             interval = 12345
 
             [[report.events]]
+            disable = true
+            name = "report-event"
             action = "report-action"
 
             [[actions]]
@@ -391,6 +393,12 @@ mod test {
         assert_eq!(config.log.level, LogLevel::Error);
         assert!(config.report.disable);
         assert_eq!(config.report.interval, 12345);
+
+        assert_eq!(config.report.events.len(), 1);
+        let event = config.report.events.first().unwrap();
+        assert!(event.disable);
+        assert_eq!(event.name, "report-event");
+        assert_eq!(event.action, "report-action");
 
         assert_eq!(config.actions.len(), 1);
         let action = config.actions.first().unwrap();
@@ -430,6 +438,6 @@ mod test {
         assert_eq!(alarm.repeat_cycles, 600);
         assert_eq!(alarm.action, "test-action");
         assert_eq!(alarm.recover_cycles, 4);
-        assert_eq!(alarm.recover_action, "test-action");
+        assert_eq!(alarm.recover_action, Some(String::from("test-action")));
     }
 }
