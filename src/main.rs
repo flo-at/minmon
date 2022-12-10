@@ -76,12 +76,15 @@ async fn main_wrapper() -> Result<()> {
         });
     }
 
-    // TODO make sure all relevant signals are handles correctly
-    //let sigint = tokio::signal::unix::SignalKind::terminate().flatten_stream();
+    use tokio::signal::unix::{signal, SignalKind};
+    let mut sigint = signal(SignalKind::interrupt()).unwrap();
+    let mut sigterm = signal(SignalKind::interrupt()).unwrap();
 
-    let mut stream =
-        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()).unwrap();
-    stream.recv().await;
+    tokio::select! {
+        _ = sigint.recv() => log::info!("Received signal SIGINT. Shutting down."),
+        _ = sigterm.recv() => log::info!("Received signal SIGTERM. Shutting down."),
+    }
+
     Ok(())
 }
 
@@ -89,8 +92,8 @@ async fn main_wrapper() -> Result<()> {
 async fn main() {
     if let Err(error) = main_wrapper().await {
         log::error!("Exiting due to error: {}", error);
-        // Also print to stderr here because logging might not be initialized if the config file cannot
-        // be parsed.
+        // Also print to stderr here because logging might not be initialized if the config file
+        // cannot be parsed.
         eprintln!("Exiting due to error: {}", error);
         std::process::exit(1);
     }
