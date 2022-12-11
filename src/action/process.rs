@@ -17,14 +17,21 @@ impl TryFrom<&config::Action> for Process {
 
     fn try_from(action: &config::Action) -> std::result::Result<Self, Self::Error> {
         if let config::ActionType::Process(process) = &action.type_ {
-            Ok(Self {
-                path: process.path.clone(),
-                arguments: process.arguments.clone(),
-                environment_variables: process.environment_variables.clone(),
-                working_directory: process.working_directory.clone(),
-                uid: process.uid,
-                gid: process.gid,
-            })
+            if !process.path.is_file() {
+                Err(Error(format!(
+                    "'process' is not a file: {}.",
+                    process.path.display()
+                )))
+            } else {
+                Ok(Self {
+                    path: process.path.clone(),
+                    arguments: process.arguments.clone(),
+                    environment_variables: process.environment_variables.clone(),
+                    working_directory: process.working_directory.clone(),
+                    uid: process.uid,
+                    gid: process.gid,
+                })
+            }
         } else {
             panic!();
         }

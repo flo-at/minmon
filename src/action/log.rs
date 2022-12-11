@@ -13,10 +13,14 @@ impl TryFrom<&config::Action> for Log {
 
     fn try_from(action: &config::Action) -> std::result::Result<Self, Self::Error> {
         if let config::ActionType::Log(log) = &action.type_ {
-            Ok(Self {
-                level: log.level.into(),
-                template: log.template.clone(),
-            })
+            if log.template.is_empty() {
+                Err(Error(String::from("'template' cannot be empty.")))
+            } else {
+                Ok(Self {
+                    level: log.level.into(),
+                    template: log.template.clone(),
+                })
+            }
         } else {
             panic!();
         }

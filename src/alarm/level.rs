@@ -13,7 +13,11 @@ impl TryFrom<&config::Alarm> for Level {
     fn try_from(alarm: &config::Alarm) -> std::result::Result<Self, self::Error> {
         #[allow(irrefutable_let_patterns)] // there are no other types yet
         if let config::AlarmType::Level(level) = &alarm.type_ {
-            Ok(Self { level: level.level })
+            if level.level > 100 {
+                Err(Error(String::from("'level' cannot be greater than 100.")))
+            } else {
+                Ok(Self { level: level.level })
+            }
         } else {
             panic!();
         }

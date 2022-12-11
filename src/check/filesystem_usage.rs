@@ -12,9 +12,15 @@ impl TryFrom<&config::Check> for FilesystemUsage {
 
     fn try_from(check: &config::Check) -> std::result::Result<Self, self::Error> {
         if let config::CheckType::FilesystemUsage(filesystem_usage) = &check.type_ {
-            Ok(Self {
-                mountpoints: filesystem_usage.mountpoints.clone(),
-            })
+            if filesystem_usage.mountpoints.iter().any(|x| x.is_empty()) {
+                Err(Error(String::from(
+                    "'mountpoints' cannot contain empty paths.",
+                )))
+            } else {
+                Ok(Self {
+                    mountpoints: filesystem_usage.mountpoints.clone(),
+                })
+            }
         } else {
             panic!();
         }

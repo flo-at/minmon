@@ -41,12 +41,16 @@ impl TryFrom<&config::Action> for Webhook {
             if !headers.contains_key("User-Agent") {
                 headers.insert(String::from("User-Agent"), crate::user_agent());
             }
-            Ok(Self {
-                url: web_hook.url.clone(),
-                method: reqwest::Method::from(web_hook.method),
-                headers: Self::transform_header_map(&headers)?,
-                body: web_hook.body.clone(),
-            })
+            if web_hook.url.is_empty() {
+                Err(Error(String::from("'url' cannot be empty.")))
+            } else {
+                Ok(Self {
+                    url: web_hook.url.clone(),
+                    method: reqwest::Method::from(web_hook.method),
+                    headers: Self::transform_header_map(&headers)?,
+                    body: web_hook.body.clone(),
+                })
+            }
         } else {
             panic!();
         }

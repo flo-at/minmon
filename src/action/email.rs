@@ -21,28 +21,40 @@ impl TryFrom<&config::Action> for Email {
 
     fn try_from(action: &config::Action) -> std::result::Result<Self, Self::Error> {
         if let config::ActionType::Email(email) = &action.type_ {
-            Ok(Self {
-                from: email
-                    .from
-                    .parse()
-                    .map_err(|x| Error(format!("Invalid sender email address: {}", x)))?,
-                to: email
-                    .to
-                    .parse()
-                    .map_err(|x| Error(format!("Invalid recipient email address: {}", x)))?,
-                reply_to: email.reply_to.as_ref().map_or(Ok(None), |x| {
-                    Ok(Some(x.parse().map_err(|x| {
-                        Error(format!("Invalid reply-to email address: {}", x))
-                    })?))
-                })?,
-                subject: email.subject.clone(),
-                body: email.body.clone(),
-                smtp_server: email.smtp_server.clone(),
-                smtp_port: email.smtp_port,
-                smtp_security: email.smtp_security,
-                username: email.username.clone(),
-                password: email.password.clone(),
-            })
+            if email.subject.is_empty() {
+                Err(Error(String::from("'subject' cannot be empty.")))
+            } else if email.body.is_empty() {
+                Err(Error(String::from("'body' cannot be empty.")))
+            } else if email.smtp_server.is_empty() {
+                Err(Error(String::from("'smtp_server' cannot be empty.")))
+            } else if email.username.is_empty() {
+                Err(Error(String::from("'username' cannot be empty.")))
+            } else if email.password.is_empty() {
+                Err(Error(String::from("'password' cannot be empty.")))
+            } else {
+                Ok(Self {
+                    from: email
+                        .from
+                        .parse()
+                        .map_err(|x| Error(format!("Invalid sender email address: {}", x)))?,
+                    to: email
+                        .to
+                        .parse()
+                        .map_err(|x| Error(format!("Invalid recipient email address: {}", x)))?,
+                    reply_to: email.reply_to.as_ref().map_or(Ok(None), |x| {
+                        Ok(Some(x.parse().map_err(|x| {
+                            Error(format!("Invalid reply-to email address: {}", x))
+                        })?))
+                    })?,
+                    subject: email.subject.clone(),
+                    body: email.body.clone(),
+                    smtp_server: email.smtp_server.clone(),
+                    smtp_port: email.smtp_port,
+                    smtp_security: email.smtp_security,
+                    username: email.username.clone(),
+                    password: email.password.clone(),
+                })
+            }
         } else {
             panic!();
         }
