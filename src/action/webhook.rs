@@ -5,7 +5,6 @@ use crate::config;
 use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 
-// NOTE placeholders are replaced in url and body
 pub struct Webhook {
     url: String,
     method: reqwest::Method,
@@ -38,10 +37,14 @@ impl TryFrom<&config::Action> for Webhook {
 
     fn try_from(action: &config::Action) -> std::result::Result<Self, Self::Error> {
         if let config::ActionType::Webhook(web_hook) = &action.type_ {
+            let mut headers = web_hook.headers.clone();
+            if !headers.contains_key("User-Agent") {
+                headers.insert(String::from("User-Agent"), crate::user_agent());
+            }
             Ok(Self {
                 url: web_hook.url.clone(),
                 method: reqwest::Method::from(web_hook.method),
-                headers: Self::transform_header_map(&web_hook.headers)?,
+                headers: Self::transform_header_map(&headers)?,
                 body: web_hook.body.clone(),
             })
         } else {

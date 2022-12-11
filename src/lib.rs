@@ -10,6 +10,10 @@ pub type Result<T> = std::result::Result<T, Error>;
 type PlaceholderMap = std::collections::HashMap<String, String>;
 type ActionMap = std::collections::HashMap<String, std::sync::Arc<dyn action::Action>>;
 
+pub fn user_agent() -> String {
+    format!("MinMon/v{}", env!("CARGO_PKG_VERSION"))
+}
+
 #[derive(Debug)]
 pub struct Error(pub String);
 impl std::error::Error for Error {}

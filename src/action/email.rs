@@ -60,7 +60,8 @@ impl Action for Email {
         let mut message_builder = Message::builder()
             .from(self.from.clone())
             .to(self.to.clone())
-            .subject(&subject);
+            .subject(&subject)
+            .user_agent(crate::user_agent());
         if let Some(reply_to) = &self.reply_to {
             message_builder = message_builder.reply_to(reply_to.clone());
         }
