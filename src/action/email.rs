@@ -79,16 +79,16 @@ impl Action for Email {
         }
         let email = message_builder
             .body(body)
-            .map_err(|x| Error(format!("{}", x)))?;
+            .map_err(|x| Error(x.to_string()))?;
         let credentials = Credentials::new(self.username.clone(), self.password.clone());
         let mut mailer_builder = match self.smtp_security {
             config::SmtpSecurity::TLS => {
                 AsyncSmtpTransport::<Tokio1Executor>::relay(&self.smtp_server)
-                    .map_err(|x| Error(format!("{}", x)))
+                    .map_err(|x| Error(x.to_string()))
             }
             config::SmtpSecurity::STARTTLS => {
                 AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&self.smtp_server)
-                    .map_err(|x| Error(format!("{}", x)))
+                    .map_err(|x| Error(x.to_string()))
             }
             config::SmtpSecurity::Plain => Ok(
                 AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(&self.smtp_server),

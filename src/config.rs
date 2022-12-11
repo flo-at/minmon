@@ -334,7 +334,7 @@ impl TryFrom<&str> for Config {
     type Error = Error;
 
     fn try_from(text: &str) -> Result<Self, Self::Error> {
-        toml::from_str(text).map_err(|x| Error(format!("{}", x)))
+        toml::from_str(text).map_err(|x| Error(x.to_string()))
     }
 }
 
@@ -343,10 +343,10 @@ impl TryFrom<&std::path::Path> for Config {
 
     fn try_from(path: &std::path::Path) -> Result<Self, Self::Error> {
         use std::io::Read;
-        let mut file = std::fs::File::open(path).map_err(|x| Error(format!("{}", x)))?;
+        let mut file = std::fs::File::open(path).map_err(|x| Error(x.to_string()))?;
         let mut content = String::new();
         file.read_to_string(&mut content)
-            .map_err(|x| Error(format!("{}", x)))?;
+            .map_err(|x| Error(x.to_string()))?;
         Config::try_from(content.as_str())
     }
 }

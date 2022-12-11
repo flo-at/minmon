@@ -101,7 +101,7 @@ where
                 let result = match data {
                     Ok(data) => alarm.put_data(data, placeholders).await,
                     Err(err) => {
-                        placeholders.insert(String::from("check_error"), format!("{}", err));
+                        placeholders.insert(String::from("check_error"), err.to_string());
                         alarm.put_error(err, placeholders).await
                     }
                 };

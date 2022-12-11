@@ -227,7 +227,7 @@ mod test {
         data_sink_ctx
             .expect()
             .returning(|data: &u8, placeholders: &mut PlaceholderMap| {
-                placeholders.insert(String::from("data"), format!("{}", data));
+                placeholders.insert(String::from("data"), data.to_string());
             });
         let mock_data_sink = mock_data_sink();
         let mut mock_action = action::MockAction::new();
@@ -285,7 +285,7 @@ mod test {
         data_sink_ctx
             .expect()
             .returning(|data: &u8, placeholders: &mut PlaceholderMap| {
-                placeholders.insert(String::from("data"), format!("{}", data));
+                placeholders.insert(String::from("data"), data.to_string());
             });
         let mock_data_sink = mock_data_sink();
         let mut mock_state_machine = state_machine::MockStateHandler::new();
@@ -398,7 +398,7 @@ mod test {
         data_sink_ctx
             .expect()
             .returning(|data: &u8, placeholders: &mut PlaceholderMap| {
-                placeholders.insert(String::from("data"), format!("{}", data));
+                placeholders.insert(String::from("data"), data.to_string());
             });
         let mock_data_sink = mock_data_sink();
         let mut mock_state_machine = state_machine::MockStateHandler::new();
