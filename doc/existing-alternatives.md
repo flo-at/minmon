@@ -6,7 +6,7 @@ Pretty close to what I wanted but:
 - [Actions are not triggered in server mode](https://github.com/nicolargo/glances/issues/1879). That's the deal-breaker for my use-case.
 
 ## [Netdata](https://www.netdata.cloud/)
-Also pretty close to what I wanted. It's "all in one" and easy enough to get it started. Still quite a big tool for such a small task.
+Also pretty close to what I wanted. It's "all in one" and easy enough to get it started. Still quite a big tool for such a small task. You explicitly need to disable everything you don't want it to monitor, otherwise it will collect lots of data. They also seem to focus on their cloud service but most things seem to work without it.
 
 ## [Monit](https://mmonit.com/monit/)
 - Only e-mail alarms.

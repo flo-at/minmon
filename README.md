@@ -93,12 +93,12 @@ graph TD
 ```toml
 [[checks]]
 interval = 60
-name = "FilesystemUsage 1"
+name = "Filesystem usage"
 type = "FilesystemUsage"
-mountpoints = ["/srv"]
+mountpoints = ["/home"]
 
 [[checks.alarms]]
-name = "LevelAlarm 1"
+name = "Warning"
 level = 70
 cycles = 3
 repeat_cycles = 100
@@ -107,21 +107,22 @@ recover_cycles = 5
 recover_action = "Webhook 1"
 error_repeat_cycles = 200
 error_action = "Log error"
-placeholders = {"what" = "bad!", "level_name" = "Warning"}
-recover_placeholders = {"what" = "recovered!"}
 
 [[actions]]
 name = "Webhook 1"
 type = "Webhook"
 url = "https://example.com/hook1"
-body = """{"text": "Alarm {{alarm_name}} from check {{check_name}} reported '{{what}}' for level {{level_name}}."""
+body = """{"text": "{{alarm_name}}: {{check_name}} on mountpoint '{{alarm_id}}' exceeds {{level}}%."}"""
 headers = {"Content-Type" = "application/json"}
 
 [[actions]]
 name = "Log error"
 type = "Log"
-template = """Check {{check_name}} didn't have valid data for alarm {{alarm_name}}."""
+level = "Error"
+template = """{{check_name}} check didn't have valid data for alarm '{{alarm_name}}' and id '{{alarm_id}}'."""
 ```
+
+The webhook body will be rendered into something like "Warning: Filesystem usage on mountpoint '/home' exceeds 70%."
 ## Diagram
 ```mermaid
 graph TD
