@@ -16,6 +16,7 @@ pub struct StateMachine {
     recover_cycles: u32,
     error_repeat_cycles: u32,
     state: State,
+    log_id: String,
 }
 
 #[derive(Clone)]
@@ -70,6 +71,7 @@ impl StateMachine {
         repeat_cycles: u32,
         recover_cycles: u32,
         error_repeat_cycles: u32,
+        log_id: String,
     ) -> Result<Self> {
         if cycles == 0 {
             Err(Error(String::from("'cycles' cannot be 0.")))
@@ -82,6 +84,7 @@ impl StateMachine {
                 recover_cycles,
                 error_repeat_cycles,
                 state: State::default(),
+                log_id,
             })
         }
     }
@@ -125,6 +128,7 @@ impl StateHandler for StateMachine {
         self.state = match &self.state {
             State::Good(_) => {
                 trigger = true;
+                log::warn!("{} changing from good to error state.", self.log_id);
                 State::Error(ErrorState {
                     timestamp: std::time::SystemTime::now(),
                     uuid: uuid::Uuid::new_v4().to_string(),
@@ -135,6 +139,7 @@ impl StateHandler for StateMachine {
 
             State::Bad(_) => {
                 trigger = true;
+                log::warn!("{} changing from bad to error state.", self.log_id);
                 State::Error(ErrorState {
                     timestamp: std::time::SystemTime::now(),
                     uuid: uuid::Uuid::new_v4().to_string(),
@@ -167,6 +172,7 @@ impl StateHandler for StateMachine {
             State::Good(good) => {
                 if good.bad_cycles + 1 == self.cycles {
                     trigger = true;
+                    log::warn!("{} changing from good to bad state.", self.log_id);
                     State::Bad(BadState {
                         timestamp: std::time::SystemTime::now(),
                         uuid: uuid::Uuid::new_v4().to_string(),
@@ -201,6 +207,7 @@ impl StateHandler for StateMachine {
                 self.state = *error.shadowed_state.clone();
                 let shadowed_trigger = self.bad();
                 trigger = shadowed_trigger;
+                log::warn!("{} changing from error to bad state.", self.log_id);
                 self.state.clone()
             }
         };
@@ -215,6 +222,7 @@ impl StateHandler for StateMachine {
             State::Bad(bad) => {
                 if bad.good_cycles + 1 == self.recover_cycles {
                     trigger = true;
+                    log::info!("{} changing from bad to good state.", self.log_id);
                     State::Good(GoodState {
                         timestamp: std::time::SystemTime::now(),
                         last_alarm: Some(bad.clone()),
@@ -234,6 +242,7 @@ impl StateHandler for StateMachine {
                 self.state = *error.shadowed_state.clone();
                 let shadowed_trigger = self.good();
                 trigger = shadowed_trigger;
+                log::info!("{} changing from error to good state.", self.log_id);
                 self.state.clone()
             }
         };
@@ -247,19 +256,25 @@ mod test {
 
     #[test]
     fn test_validation() {
-        assert!(matches!(StateMachine::new(0, 0, 1, 0), Err(Error(_))));
-        assert!(matches!(StateMachine::new(1, 0, 0, 0), Err(Error(_))));
+        assert!(matches!(
+            StateMachine::new(0, 0, 1, 0, String::from("")),
+            Err(Error(_))
+        ));
+        assert!(matches!(
+            StateMachine::new(1, 0, 0, 0, String::from("")),
+            Err(Error(_))
+        ));
     }
 
     #[test]
     fn test_trigger_action() {
-        let mut state_machine = StateMachine::new(1, 0, 1, 0).unwrap();
+        let mut state_machine = StateMachine::new(1, 0, 1, 0, String::from("")).unwrap();
         assert!(state_machine.bad());
     }
 
     #[test]
     fn test_trigger_action_repeat() {
-        let mut state_machine = StateMachine::new(1, 7, 1, 0).unwrap();
+        let mut state_machine = StateMachine::new(1, 7, 1, 0, String::from("")).unwrap();
         assert!(state_machine.bad());
         for _ in 0..6 {
             assert!(!state_machine.bad());
@@ -269,7 +284,7 @@ mod test {
 
     #[test]
     fn test_trigger_recover_action() {
-        let mut state_machine = StateMachine::new(1, 0, 5, 0).unwrap();
+        let mut state_machine = StateMachine::new(1, 0, 5, 0, String::from("")).unwrap();
         assert!(state_machine.bad());
         for _ in 0..4 {
             assert!(!state_machine.good());
@@ -279,13 +294,13 @@ mod test {
 
     #[test]
     fn test_trigger_error_action() {
-        let mut state_machine = StateMachine::new(1, 0, 1, 0).unwrap();
+        let mut state_machine = StateMachine::new(1, 0, 1, 0, String::from("")).unwrap();
         assert!(state_machine.error());
     }
 
     #[test]
     fn test_trigger_error_action_repeat() {
-        let mut state_machine = StateMachine::new(1, 0, 1, 7).unwrap();
+        let mut state_machine = StateMachine::new(1, 0, 1, 7, String::from("")).unwrap();
         assert!(state_machine.error());
         for _ in 0..6 {
             assert!(!state_machine.error());
@@ -295,7 +310,7 @@ mod test {
 
     #[test]
     fn test_add_placeholders_good() {
-        let mut state_machine = StateMachine::new(1, 0, 1, 0).unwrap();
+        let mut state_machine = StateMachine::new(1, 0, 1, 0, String::from("")).unwrap();
         let mut placeholders = PlaceholderMap::new();
         // starts in good state without "last alarm"
         state_machine.bad();
@@ -310,7 +325,7 @@ mod test {
 
     #[test]
     fn test_add_placeholders_bad() {
-        let mut state_machine = StateMachine::new(1, 0, 1, 0).unwrap();
+        let mut state_machine = StateMachine::new(1, 0, 1, 0, String::from("")).unwrap();
         let mut placeholders = PlaceholderMap::new();
         state_machine.bad();
         state_machine.add_placeholders(&mut placeholders);
@@ -323,7 +338,7 @@ mod test {
 
     #[test]
     fn test_add_placeholders_error_without_bad() {
-        let mut state_machine = StateMachine::new(1, 0, 1, 0).unwrap();
+        let mut state_machine = StateMachine::new(1, 0, 1, 0, String::from("")).unwrap();
         let mut placeholders = PlaceholderMap::new();
         state_machine.error();
         state_machine.add_placeholders(&mut placeholders);
@@ -336,7 +351,7 @@ mod test {
 
     #[test]
     fn test_trigger_error_shadowed_good() {
-        let mut state_machine = StateMachine::new(2, 0, 1, 0).unwrap();
+        let mut state_machine = StateMachine::new(2, 0, 1, 0, String::from("")).unwrap();
         assert!(matches!(state_machine.state, State::Good(_)));
         state_machine.error();
         assert!(matches!(state_machine.state, State::Error(_)));
@@ -346,7 +361,7 @@ mod test {
 
     #[test]
     fn test_trigger_error_shadowed_bad() {
-        let mut state_machine = StateMachine::new(1, 0, 2, 0).unwrap();
+        let mut state_machine = StateMachine::new(1, 0, 2, 0, String::from("")).unwrap();
         state_machine.bad();
         assert!(matches!(state_machine.state, State::Bad(_)));
         state_machine.error();

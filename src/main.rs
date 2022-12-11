@@ -5,8 +5,6 @@ mod systemd;
 
 use minmon::{config, Error, Result};
 
-// TODO log check data and ids on trigger, alarm decisions, state transitions, ..
-
 fn get_config_file_path() -> Result<std::path::PathBuf> {
     if let Some(path_str) = std::env::args().nth(1) {
         Ok(std::path::PathBuf::from(path_str))

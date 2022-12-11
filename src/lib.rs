@@ -102,7 +102,7 @@ fn init_checks(config: &config::Config, actions: &ActionMap) -> Result<Vec<Box<d
         }
         let check = check::from_check_config(check_config, actions)?;
         log::info!(
-            "Check {} will be triggered every {} seconds.",
+            "Check '{}' will be triggered every {} seconds.",
             check.name(),
             check.interval().as_secs()
         );

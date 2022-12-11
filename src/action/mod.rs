@@ -66,6 +66,21 @@ where
 {
     async fn trigger(&self, mut placeholders: PlaceholderMap) -> Result<()> {
         self.add_placeholders(&mut placeholders);
+        if placeholders.contains_key("event_name") {
+            log_ext::info!(
+                "Action '{}' triggered for report event '{}'.",
+                placeholders.get("action_name").unwrap(),
+                placeholders.get("event_name").unwrap()
+            );
+        } else {
+            log_ext::info!(
+                "Action '{}' triggered for alarm '{}', id '{}' from check '{}'.",
+                placeholders.get("action_name").unwrap(),
+                placeholders.get("alarm_name").unwrap(),
+                placeholders.get("alarm_id").unwrap(),
+                placeholders.get("check_name").unwrap()
+            );
+        }
         let res = tokio::time::timeout(self.timeout, self.action.trigger(placeholders)).await;
         match res {
             Ok(inner) => inner,
@@ -91,9 +106,10 @@ impl Action for DisabledAction {
             );
         } else {
             log_ext::debug!(
-                "Disabled action '{}' triggered for alarm '{}' from check '{}'.",
+                "Disabled action '{}' triggered for alarm '{}', id '{}' from check '{}'.",
                 placeholders.get("action_name").unwrap(),
                 placeholders.get("alarm_name").unwrap(),
+                placeholders.get("alarm_id").unwrap(),
                 placeholders.get("check_name").unwrap()
             );
         }

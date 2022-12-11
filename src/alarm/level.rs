@@ -35,10 +35,6 @@ impl DataSink for Level {
         })
     }
 
-    fn format_data(data: &Self::Item) -> String {
-        format!("level {}", data)
-    }
-
     fn add_placeholders(data: &Self::Item, placeholders: &mut PlaceholderMap) {
         placeholders.insert(String::from("level"), format!("{}", data));
     }

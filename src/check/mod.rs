@@ -21,6 +21,7 @@ pub trait DataSource: Send + Sync {
     type Item: Send + Sync;
 
     async fn get_data(&self) -> Result<Vec<Result<Self::Item>>>;
+    fn format_data(data: &Self::Item) -> String;
     fn ids(&self) -> &[String];
 }
 
@@ -78,7 +79,22 @@ where
             .get_data()
             .await
             .map_err(|x| Error(format!("Failed to get data: {}", x)))?;
-        for (data, alarms) in data_vec.iter().zip(self.alarms.iter_mut()) {
+        let ids = self.data_source.ids();
+        for ((i, data), alarms) in data_vec.iter().enumerate().zip(self.alarms.iter_mut()) {
+            match data {
+                Ok(data) => log::debug!(
+                    "Check '{}' got {} for id '{}'.",
+                    self.name,
+                    T::format_data(data),
+                    ids[i]
+                ),
+                Err(err) => log::warn!(
+                    "Check '{}' got no data for id '{}': {}",
+                    self.name,
+                    ids[i],
+                    err
+                ),
+            }
             for alarm in alarms.iter_mut() {
                 let mut placeholders = placeholders.clone();
                 let result = match data {
@@ -89,12 +105,7 @@ where
                     }
                 };
                 if let Err(err) = result {
-                    log::error!(
-                        "Error in alarm '{}' from check '{}': {}",
-                        alarm.name(),
-                        self.name,
-                        err
-                    );
+                    log::error!("{} had an error: {}", alarm.log_id(), err);
                 }
             }
         }
@@ -120,17 +131,21 @@ where
     for (i, id) in data_source.ids().iter().enumerate() {
         let mut alarms: Vec<AlarmBase<U>> = Vec::new();
         for alarm_config in check_config.alarms.iter() {
+            let alarm_log_id = format!(
+                "Alarm '{}', id '{}' from check '{}'",
+                alarm_config.name, id, check_config.name
+            );
             if alarm_config.disable {
-                log::info!("Alarm '{}' is disabled.", alarm_config.name);
+                log::info!("{} is disabled.", alarm_log_id);
                 continue;
             }
             if i == 0 {
                 log::info!(
-                "Alarm '{}' will be triggered after {} bad cycles and recover after {} good cycles.",
-                alarm_config.name,
-                alarm_config.cycles,
-                alarm_config.recover_cycles
-            );
+                    "{} will be triggered after {} bad cycles and recover after {} good cycles.",
+                    alarm_log_id,
+                    alarm_config.cycles,
+                    alarm_config.recover_cycles
+                );
             }
             let data_sink = U::try_from(alarm_config)?;
             let alarm_state_machine = alarm::StateMachine::new(
@@ -138,6 +153,7 @@ where
                 alarm_config.repeat_cycles,
                 alarm_config.recover_cycles,
                 alarm_config.error_repeat_cycles,
+                alarm_log_id.clone(),
             )?;
             let alarm = alarm::AlarmBase::new(
                 alarm_config.name.clone(),
@@ -157,6 +173,7 @@ where
                 alarm_config.invert,
                 alarm_state_machine,
                 data_sink,
+                alarm_log_id,
             )?;
             alarms.push(alarm);
         }

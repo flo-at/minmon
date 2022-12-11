@@ -13,7 +13,6 @@ pub trait DataSink: Send + Sync + Sized {
     type Item: Send + Sync;
 
     fn put_data(&mut self, data: &Self::Item) -> Result<SinkDecision>;
-    fn format_data(data: &Self::Item) -> String;
     fn add_placeholders(data: &Self::Item, placeholders: &mut PlaceholderMap);
 }
 
@@ -37,7 +36,7 @@ impl std::ops::Not for SinkDecision {
 pub trait Alarm: Send + Sync + Sized {
     type Item: Send + Sync;
 
-    fn name(&self) -> &str;
+    fn log_id(&self) -> &str;
 
     async fn put_data(&mut self, data: &Self::Item, mut placeholders: PlaceholderMap)
         -> Result<()>;
@@ -60,6 +59,7 @@ where
     invert: bool,
     state_machine: U,
     data_sink: T,
+    log_id: String,
 }
 
 impl<T, U> AlarmBase<T, U>
@@ -79,6 +79,7 @@ where
         invert: bool,
         state_machine: U,
         data_sink: T,
+        log_id: String,
     ) -> Result<Self> {
         if name.is_empty() {
             Err(Error(String::from("'name' cannot be empty.")))
@@ -95,6 +96,7 @@ where
                 invert,
                 state_machine,
                 data_sink,
+                log_id,
             })
         }
     }
@@ -158,8 +160,8 @@ where
 {
     type Item = T::Item;
 
-    fn name(&self) -> &str {
-        &self.name
+    fn log_id(&self) -> &str {
+        &self.log_id
     }
 
     async fn put_data(
@@ -167,12 +169,6 @@ where
         data: &Self::Item,
         mut placeholders: PlaceholderMap,
     ) -> Result<()> {
-        log::debug!(
-            "Got {} for alarm '{}' at id '{}'",
-            T::format_data(data),
-            self.name,
-            self.id
-        );
         T::add_placeholders(data, &mut placeholders);
         self.add_placeholders(&mut placeholders);
         let mut decision = self.data_sink.put_data(data)?;
@@ -181,17 +177,15 @@ where
         }
         match decision {
             SinkDecision::Good => self.good(placeholders).await,
-            SinkDecision::Bad => self.bad(placeholders).await,
+            SinkDecision::Bad => {
+                log::warn!("{}: Data exceeds limit.", self.log_id);
+                self.bad(placeholders).await
+            }
         }
     }
 
     async fn put_error(&mut self, error: &Error, mut placeholders: PlaceholderMap) -> Result<()> {
-        log::debug!(
-            "Got error for alarm '{}' at id '{}': {}",
-            self.name,
-            self.id,
-            error
-        );
+        log::error!("{} got an error: {}", self.log_id, error);
         self.add_placeholders(&mut placeholders);
         self.error(placeholders).await
     }
@@ -272,6 +266,7 @@ mod test {
             false,
             mock_state_machine,
             mock_data_sink,
+            String::from(""),
         )
         .unwrap();
         alarm
@@ -329,6 +324,7 @@ mod test {
             false,
             mock_state_machine,
             mock_data_sink,
+            String::from(""),
         )
         .unwrap();
         alarm
@@ -383,6 +379,7 @@ mod test {
             false,
             mock_state_machine,
             mock_data_sink,
+            String::from(""),
         )
         .unwrap();
         alarm
@@ -423,6 +420,7 @@ mod test {
             true,
             mock_state_machine,
             mock_data_sink,
+            String::from(""),
         )
         .unwrap();
         alarm.put_data(&10, PlaceholderMap::new()).await.unwrap();

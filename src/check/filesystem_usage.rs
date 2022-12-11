@@ -45,6 +45,10 @@ impl DataSource for FilesystemUsage {
         Ok(res)
     }
 
+    fn format_data(data: &Self::Item) -> String {
+        format!("usage level {}", data)
+    }
+
     fn ids(&self) -> &[String] {
         &self.mountpoints[..]
     }
