@@ -37,7 +37,7 @@ That's why MinMon can trigger regular [report](./doc/report.md) actions to let y
 - All times and dates are UTC. No fiddling with local times and time zones.
 - No internal state is stored between restarts.
 - As of now it's only for Linux but it should be easy to adapt to other *NIXes or Windows.
-- Some of the things mentioned above may change in the future (see [Roadmap](#roadmap))
+- Some of the things mentioned above may change in the future (see [Roadmap](#roadmap)).
 
 # Installation
 ## Docker image
@@ -122,7 +122,7 @@ level = "Error"
 template = """{{check_name}} check didn't have valid data for alarm '{{alarm_name}}' and id '{{alarm_id}}'."""
 ```
 
-The webhook body will be rendered into something like "Warning: Filesystem usage on mountpoint '/home' exceeds 70%."
+The webhook text will be rendered into something like "Warning: Filesystem usage on mountpoint '/home' exceeds 70%."
 ## Diagram
 ```mermaid
 graph TD
@@ -166,4 +166,4 @@ Placeholders that don't have a value available when the acton is triggered will 
 - Docker/Podman container status
 
 ## General ideas
-- Store data/status in time-based database (e.g. rrdtool) and visualize on Webinterface or ncurses UI. This should be optional and separated from the existing code.
+- Store data/status in time-based database (e.g. rrdtool) and visualize on web interface or ncurses UI. This should be optional and separated from the existing code.
