@@ -15,6 +15,7 @@ Actions control what happens when an alarm or report event is triggered.
 - `alarm_name`
 - `alarm_uuid`
 - `alarm_timestamp`
+- `alarm_state`: Either `Good`, `Bad`, or `Error`.
 - `action_name`
 
 # Email

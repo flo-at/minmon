@@ -94,6 +94,7 @@ impl StateHandler for StateMachine {
     fn add_placeholders(&self, placeholders: &mut PlaceholderMap) {
         match &self.state {
             State::Bad(bad) => {
+                placeholders.insert(String::from("alarm_state"), String::from("Bad"));
                 placeholders.insert(
                     String::from("alarm_timestamp"),
                     crate::iso8601(bad.timestamp),
@@ -102,6 +103,7 @@ impl StateHandler for StateMachine {
             }
 
             State::Good(good) => {
+                placeholders.insert(String::from("alarm_state"), String::from("Good"));
                 if let Some(last_alarm) = &good.last_alarm {
                     placeholders.insert(String::from("alarm_uuid"), last_alarm.uuid.clone());
                     placeholders.insert(
@@ -114,6 +116,7 @@ impl StateHandler for StateMachine {
             }
 
             State::Error(error) => {
+                placeholders.insert(String::from("alarm_state"), String::from("Error"));
                 placeholders.insert(String::from("error_uuid"), error.uuid.clone());
                 placeholders.insert(
                     String::from("error_timestamp"),
@@ -320,7 +323,8 @@ mod test {
         use std::str::FromStr;
         chrono::DateTime::<chrono::Utc>::from_str(placeholders.get("alarm_timestamp").unwrap())
             .unwrap();
-        assert_eq!(placeholders.len(), 2);
+        assert_eq!(placeholders.get("alarm_state").unwrap(), "Good");
+        assert_eq!(placeholders.len(), 3);
     }
 
     #[test]
@@ -333,7 +337,8 @@ mod test {
         use std::str::FromStr;
         chrono::DateTime::<chrono::Utc>::from_str(placeholders.get("alarm_timestamp").unwrap())
             .unwrap();
-        assert_eq!(placeholders.len(), 2);
+        assert_eq!(placeholders.get("alarm_state").unwrap(), "Bad");
+        assert_eq!(placeholders.len(), 3);
     }
 
     #[test]
@@ -346,7 +351,8 @@ mod test {
         use std::str::FromStr;
         chrono::DateTime::<chrono::Utc>::from_str(placeholders.get("error_timestamp").unwrap())
             .unwrap();
-        assert_eq!(placeholders.len(), 2);
+        assert_eq!(placeholders.get("alarm_state").unwrap(), "Error");
+        assert_eq!(placeholders.len(), 3);
     }
 
     #[test]
