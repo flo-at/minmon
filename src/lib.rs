@@ -1,4 +1,6 @@
 #![deny(warnings)]
+#[cfg(not(target_os = "linux"))]
+compile_error!("Only Linux is supported");
 
 mod action;
 mod alarm;
