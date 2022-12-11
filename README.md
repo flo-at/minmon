@@ -24,11 +24,6 @@ I wrote this because the [exsiting alternatives](./doc/existing-alternatives.md)
 The absence of alarms can mean two things: everything is okay or the monitoring/alarming failed.
 That's why MinMon can trigger regular [report](./doc/report.md) actions to let you know that it's up and running.
 
-# systemd integration (optional)
-- Logging to journal.
-- Notify systemd about start-up completion (`Type=notify`).
-- Periodically reset systemd watchdog (`WatchdogSec=x`).
-
 # Design decisions
 - No complex scripting language.
 - No fancy config directory structure - just a single TOML file.
@@ -63,6 +58,13 @@ Or if you already checked out the repository, you can build and install your loc
 cargo install --all-features --path .
 ```
 If you don't want to include the systemd integration, leave away the `--all-features` option.
+
+# Config file
+The config file uses the [TOML](https://toml.io) format has the following sections:
+- [log](./doc/log.md)
+- [report](./doc/report.md)
+- [actions](./doc/action.md)
+- [checks](./doc/check.md)
 
 # Architecture
 ## Diagram
@@ -142,13 +144,13 @@ To improve the reusability of the actions, it's possible to define custom placeh
 With this you can - for example - define custom alarm level names as shown in the example.
 When an action is triggered, the placeholders (generic and custom) of the check, the alarm and the action are merged into the final placeholder map.
 Inside the action (depending on the type of the action) the placeholders can be used in one or more config fields using the `{{placeholder_name}}` syntax.
+There are also some [generic placeholders](./doc/action.md#generic-placeholders) that are always available and some that are specific to the check that triggered the action.
+Placeholders that don't have a value available when the acton is triggered will be replaced by an empty string.
 
-### Generic placeholders
-- `check_name`
-- `alarm_name`
-- `alarm_uuid`
-- `alarm_timestamp`
-- `action_name`
+# systemd integration (optional)
+- Logging to journal.
+- Notify systemd about start-up completion (`Type=notify`).
+- Periodically reset systemd watchdog (`WatchdogSec=x`).
 
 # Roadmap
 ## Check ideas

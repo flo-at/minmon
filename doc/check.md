@@ -1,6 +1,6 @@
 # Check
 Besides the generic options, each check has alarms attached to it.
-Some of the type-specific options go into the check's section, some into the alarm's sections - as listed below.
+Some of the type-specific options go into the check's section, some into the sections of the alarms - as listed below.
 
 ## Generic options
 | name | example | optional | default |

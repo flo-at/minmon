@@ -5,7 +5,6 @@ mod systemd;
 
 use minmon::{config, Error, Result};
 
-// TODO README: complete list of placeholders, config.md overview page
 // TODO log check data and ids on trigger, alarm decisions, state transitions, ..
 
 fn get_config_file_path() -> Result<std::path::PathBuf> {

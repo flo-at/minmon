@@ -10,6 +10,13 @@ Actions control what happens when an alarm or report event is triggered.
 | placeholders | `{"internal_action_id" = "id_foobar"}` | ✔ | |
 | type | `Email` | ❌ | |
 
+### Generic placeholders
+- `check_name`
+- `alarm_name`
+- `alarm_uuid`
+- `alarm_timestamp`
+- `action_name`
+
 # Email
 Send an email.
 
