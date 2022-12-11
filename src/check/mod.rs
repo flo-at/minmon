@@ -11,7 +11,7 @@ mod memory_usage;
 
 #[async_trait]
 pub trait Check: Send + Sync {
-    async fn trigger(&mut self) -> Result<()>;
+    async fn trigger(&mut self);
     fn interval(&self) -> std::time::Duration;
     fn name(&self) -> &str;
 }
@@ -71,16 +71,18 @@ where
     T: DataSource,
     U: Alarm<Item = T::Item>,
 {
-    async fn trigger(&mut self) -> Result<()> {
+    async fn trigger(&mut self) {
         let mut placeholders = crate::global_placeholders();
         crate::merge_placeholders(&mut placeholders, &self.placeholders);
         placeholders.insert(String::from("check_name"), self.name.clone());
-        let data_vec = self
-            .data_source
-            .get_data()
-            .await
-            .map_err(|x| Error(format!("Failed to get data: {}", x)))?;
         let ids = self.data_source.ids();
+        let data_vec = self.data_source.get_data().await.unwrap_or_else(|x| {
+            let mut res = Vec::new();
+            for _ in 0..ids.len() {
+                res.push(Err(x.clone()))
+            }
+            res
+        });
         for ((i, data), alarms) in data_vec.iter().enumerate().zip(self.alarms.iter_mut()) {
             match data {
                 Ok(data) => log::debug!(
@@ -110,7 +112,6 @@ where
                 }
             }
         }
-        Ok(())
     }
 
     fn interval(&self) -> std::time::Duration {

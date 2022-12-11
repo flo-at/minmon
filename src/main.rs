@@ -64,9 +64,7 @@ async fn main_wrapper() -> Result<()> {
             let mut interval = tokio::time::interval(check.interval());
             loop {
                 interval.tick().await;
-                if let Err(error) = check.trigger().await {
-                    log::error!("Check '{}' failed: {}", check.name(), error);
-                }
+                check.trigger().await;
             }
         });
     }
@@ -76,9 +74,7 @@ async fn main_wrapper() -> Result<()> {
             let mut interval = tokio::time::interval(report.interval());
             loop {
                 interval.tick().await;
-                if let Err(error) = report.trigger().await {
-                    log::error!("Report failed: {}", error);
-                }
+                report.trigger().await;
             }
         });
     }

@@ -1,4 +1,3 @@
-#![deny(warnings)]
 #[cfg(not(target_os = "linux"))]
 compile_error!("Only Linux is supported");
 
@@ -17,7 +16,7 @@ pub fn user_agent() -> String {
     format!("MinMon/v{}", env!("CARGO_PKG_VERSION"))
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Error(pub String);
 impl std::error::Error for Error {}
 

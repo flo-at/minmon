@@ -22,7 +22,7 @@ impl Report {
         }
     }
 
-    pub async fn trigger(&mut self) -> Result<()> {
+    pub async fn trigger(&mut self) {
         let mut placeholders = crate::global_placeholders();
         crate::merge_placeholders(&mut placeholders, &self.placeholders);
         for event in self.events.iter_mut() {
@@ -31,7 +31,6 @@ impl Report {
                 log::error!("Error in report event '{}': {}", event.name, err);
             }
         }
-        Ok(())
     }
 
     pub fn interval(&self) -> std::time::Duration {
