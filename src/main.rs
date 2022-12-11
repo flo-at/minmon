@@ -41,13 +41,15 @@ fn init_logging(config: &config::Config) -> Result<()> {
 }
 
 async fn main_wrapper() -> Result<()> {
+    minmon::uptime::init()?;
+
     let config_file_path = get_config_file_path()?;
     let config = config::Config::try_from(config_file_path.as_path())
         .map_err(|x| Error(format!("Failed to parse config file: {}", x)))?;
 
     init_logging(&config)?;
 
-    const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+    const VERSION: &str = env!("CARGO_PKG_VERSION");
 
     log::info!("Starting MinMon v{}..", VERSION);
 

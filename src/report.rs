@@ -23,8 +23,10 @@ impl Report {
     }
 
     pub async fn trigger(&mut self) -> Result<()> {
+        let mut placeholders = crate::global_placeholders();
+        crate::merge_placeholders(&mut placeholders, &self.placeholders);
         for event in self.events.iter_mut() {
-            let result = event.trigger(self.placeholders.clone()).await;
+            let result = event.trigger(placeholders.clone()).await;
             if let Err(err) = result {
                 log::error!("Error in report event '{}': {}", event.name, err);
             }

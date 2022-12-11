@@ -5,6 +5,7 @@ mod alarm;
 mod check;
 pub mod config;
 mod report;
+pub mod uptime;
 
 pub type Result<T> = std::result::Result<T, Error>;
 type PlaceholderMap = std::collections::HashMap<String, String>;
@@ -22,6 +23,19 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
+}
+
+fn global_placeholders() -> PlaceholderMap {
+    let mut res = PlaceholderMap::new();
+    res.insert(
+        String::from("system_uptime"),
+        uptime::system().as_secs().to_string(),
+    );
+    res.insert(
+        String::from("minmon_uptime"),
+        uptime::process().as_secs().to_string(),
+    );
+    res
 }
 
 fn merge_placeholders(target: &mut PlaceholderMap, source: &PlaceholderMap) {
@@ -120,6 +134,21 @@ pub fn from_config(
     Ok((report, checks))
 }
 
+fn get_number<T>(error_message: &str, line: &str, column: usize) -> Result<T>
+where
+    T: std::str::FromStr,
+    <T as std::str::FromStr>::Err: std::fmt::Display,
+{
+    {
+        line.split_whitespace()
+            .nth(column)
+            .ok_or_else(|| Error(String::from("Column not found.")))?
+            .parse()
+            .map_err(|x| Error(format!("{}", x)))
+    }
+    .map_err(|x| Error(format!("{}: {}", error_message, x)))
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -148,5 +177,13 @@ mod test {
     fn test_iso8601() {
         let system_time = std::time::SystemTime::UNIX_EPOCH;
         assert_eq!(iso8601(system_time), "1970-01-01T00:00:00Z");
+    }
+
+    #[test]
+    fn test_get_number() {
+        let line = "0 1 2 3 4 5";
+        assert_eq!(get_number::<u32>("error", line, 0).unwrap(), 0);
+        assert_eq!(get_number::<u32>("error", line, 5).unwrap(), 5);
+        assert!(matches!(get_number::<u32>("error", line, 6), Err(_)));
     }
 }

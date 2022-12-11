@@ -72,7 +72,8 @@ where
     U: Alarm<Item = T::Item>,
 {
     async fn trigger(&mut self) -> Result<()> {
-        let mut placeholders = self.placeholders.clone();
+        let mut placeholders = crate::global_placeholders();
+        crate::merge_placeholders(&mut placeholders, &self.placeholders);
         placeholders.insert(String::from("check_name"), self.name.clone());
         let data_vec = self
             .data_source

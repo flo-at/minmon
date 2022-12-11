@@ -16,19 +16,11 @@ pub struct MemoryUsage {
 
 impl MemoryUsage {
     fn get_number(id: &str, line: &str) -> Result<usize> {
-        {
-            line.split_whitespace()
-                .nth(1)
-                .ok_or_else(|| Error(String::from("Second column not found.")))?
-                .parse()
-                .map_err(|x| Error(format!("{}", x)))
-        }
-        .map_err(|x| {
-            Error(format!(
-                "Could not read {} from {}: {}",
-                id, MEMINFO_PATH, x
-            ))
-        })
+        crate::get_number(
+            &format!("Could not read {} from {}", id, MEMINFO_PATH),
+            line,
+            1,
+        )
     }
 }
 
