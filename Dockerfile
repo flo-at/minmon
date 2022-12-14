@@ -1,6 +1,11 @@
-FROM rust:alpine as builder
+FROM rust:slim-bullseye as builder
 
-RUN apk add --no-cache musl-dev openssl-dev lm-sensors-dev
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libc-dev \
+    libssl-dev \
+    libsensors-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 RUN cargo init
@@ -12,9 +17,12 @@ COPY ./src ./src
 RUN cargo install --path .
 
 
-FROM alpine
+FROM debian:bullseye-slim
 
-RUN apk add --no-cache openssl lm-sensors-libs
+RUN apt-get update && apt-get install -y \
+    openssl \
+    libsensors5 \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/local/cargo/bin/minmon /usr/local/bin
 
