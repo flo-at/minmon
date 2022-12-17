@@ -1,5 +1,5 @@
 # Report
-The report can be triggered on an interval just like the checks. It's main purpose is to let the user know that the service is up and running.
+The report can be triggered on an interval just like the checks. Its main purpose is to let the user know that the service is up and running.
 
 ## Options
 | name | example | optional | default |
@@ -12,7 +12,7 @@ The report can be triggered on an interval just like the checks. It's main purpo
 ---
 
 # Event
-Events configure the connection between the report and the actions.
+Events configure the relation between the report and the actions.
 
 ## Options
 | name | example | optional | default |

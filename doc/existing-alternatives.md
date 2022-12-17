@@ -15,4 +15,5 @@ Also pretty close to what I wanted. It's "all in one" and easy enough to get it 
 - Pretty complex config file with it's own scripting language.
 
 ## Others
-There are numerous options such as InnoDB/Telegraf, Prometheus, and many more with tons of features and complex configuration that seem overkill for single-instance monitoring/alarming.
+There are numerous options such as InnoDB/Telegraf, Prometheus, and many more with tons of features and complex configuration that seem overkill for single-instance monitoring/alarming.\
+Maybe I've overlooked a tool that meets my requirements. I will stick to (and maintain) MinMon either way because it's very easy to extend with new checks and actions.

@@ -1,5 +1,5 @@
 # Action
-Actions control what happens when an alarm or report event is triggered.
+Actions control what happens when an alarm (check) or event (report) is triggered.
 
 ## Generic options
 | name | example | optional | default |

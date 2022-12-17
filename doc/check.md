@@ -1,6 +1,7 @@
 # Check
 Besides the generic options, each check has alarms attached to it.
 Some of the type-specific options go into the check's section, some into the sections of the alarms - as listed below.
+A single check can generate data for one or more "IDs", e.g. mountpoints. Each alarm is instantiated for every ID.
 
 ## Generic options
 | name | example | optional | default |

@@ -21,22 +21,22 @@ I wrote this because the [exsiting alternatives](./doc/existing-alternatives.md)
 - [Webhook](./doc/action.md#webhook)
 
 # Report
-The absence of alarms can mean two things: everything is okay or the monitoring/alarming failed.
-That's why MinMon can trigger regular [report](./doc/report.md) actions to let you know that it's up and running.
+The absence of alarms can mean two things: everything is okay or the monitoring/alarming failed altogether.
+That's why MinMon can trigger regular [report](./doc/report.md) events to let you know that it's up and running.
 
 # Design decisions
 - No complex scripting language.
 - No fancy config directory structure - just a single TOML file.
 - No cryptic abbreviations. The few extra letters in the config file won't hurt anyone.
 - There are no predefined threshold names like "Warning" or "Critical". You might might want more than just two, or only one. So that's up to you to define in the config.
-- The same check plugin can be used multiple times. You might want different levels to trigger different actions for different filesystems/storages/..
-- Alarms are timed in "cycles" (i.e. multiples of the `interval` of the check) instead of seconds. It's not very user-friendly but helps keep the internal processing simple and efficient.
-- Alarms stand for themselves - they are not related. This means that depending on your configuration, two (or more) events may be triggered at the same time for the same check. There are cases where this is not desired.
+- The same check plugin can be used multiple times. You might want different levels to trigger different actions for different filesystems at different intervals.
+- Alarms are timed in "cycles" (i.e. multiples of the `interval` of the check) instead of seconds. It's not very user-friendly but helps to keep the internal processing and the code simple and efficient.
+- Alarms stand for themselves - they are not related. This means that depending on your configuration, two (or more) events may be triggered at the same time for the same check. There are cases where this could be undesirable.
 - Simple, clean, bloat-free code with good test coverage.
-- Depending on your configuration, there may be similar or identical blocks in the config file. This is a consequence of the flexibility and simpleness of the config file format (and thus the code).
+- Depending on your configuration, there may be similar or identical blocks in the config file. This is a consequence of the flexibility and simpleness of the config file format.
 - All times and dates are UTC. No fiddling with local times and time zones.
 - No internal state is stored between restarts.
-- As of now it's only for Linux but it should be easy to adapt to other *NIXes or Windows.
+- As of now it's only for Linux but it should be easy to adapt to other *NIXes or maybe even Windows.
 - Some of the things mentioned above may change in the future (see [Roadmap](#roadmap)).
 
 # Installation
@@ -57,10 +57,10 @@ Or if you already checked out the repository, you can build and install your loc
 ```sh
 cargo install --all-features --path .
 ```
-If you don't want to include the systemd integration, leave away the `--all-features` option.
+If you don't want to include the systemd integration, leave out the `--all-features` option.
 
 # Config file
-The config file uses the [TOML](https://toml.io) format has the following sections:
+The config file uses the [TOML](https://toml.io) format and has the following sections:
 - [log](./doc/log.md)
 - [report](./doc/report.md)
 - [actions](./doc/action.md)
@@ -89,6 +89,8 @@ graph TD
 ```
 
 # Example
+Check the mountpoint at `/home` every minute. If the usage level exceeds 70% for 3 consecutive cycles (i.e. 3 minutes), the "Warning" alarm triggers the "Webhook 1" action. The action repeats every 100 cycles until the "Warning" alarm recovers. This happens after 5 consecutive cycles below 70% which also triggers the "Webhook 1" action. If there is an error while checking the filesystem usage, the "Log error" action is triggered. This is repeated every 200 cycles.
+
 ## Config
 ```toml
 [[checks]]
@@ -112,7 +114,7 @@ error_action = "Log error"
 name = "Webhook 1"
 type = "Webhook"
 url = "https://example.com/hook1"
-body = """{"text": "{{alarm_name}}: {{check_name}} on mountpoint '{{alarm_id}}' exceeds {{level}}%."}"""
+body = """{"text": "{{alarm_name}}: {{check_name}} on mountpoint '{{alarm_id}}' reached {{level}}%."}"""
 headers = {"Content-Type" = "application/json"}
 
 [[actions]]
@@ -122,7 +124,8 @@ level = "Error"
 template = """{{check_name}} check didn't have valid data for alarm '{{alarm_name}}' and id '{{alarm_id}}'."""
 ```
 
-The webhook text will be rendered into something like "Warning: Filesystem usage on mountpoint '/home' exceeds 70%."
+The webhook text will be rendered into something like "Warning: Filesystem usage on mountpoint '/home' reached 70%."
+
 ## Diagram
 ```mermaid
 graph TD
@@ -140,13 +143,17 @@ graph TD
     style G fill:blue;
 ```
 
-## Placeholders
-To improve the reusability of the actions, it's possible to define custom placeholders for checks, alarms and actions.
-With this you can - for example - define custom alarm level names as shown in the example.
-When an action is triggered, the placeholders (generic and custom) of the check, the alarm and the action are merged into the final placeholder map.
+## Some (more exotic) ideas
+Just to give some ideas of what's possible:
+- Run it locally on your workstation and let it send you notifications to your desktop environment using the Process action and `notify-send` when the filesystem fills up.
+- Use the report in combination with the Webhook action and [telepush](https://telepush.dev) and let it send you "I'm still alive, since {{minmon_uptime}} seconds!" once a week to your Telegram messenger for the peace of mind.
+
+# Placeholders
+To improve the reusability of the actions, it's possible to define custom placeholders for the report, events, checks, alarms and actions.
+When an action is triggered, the placeholders (generic and custom) are merged into the final placeholder map.
 Inside the action (depending on the type of the action) the placeholders can be used in one or more config fields using the `{{placeholder_name}}` syntax.
 There are also some [generic placeholders](./doc/action.md#generic-placeholders) that are always available and some that are specific to the check that triggered the action.
-Placeholders that don't have a value available when the acton is triggered will be replaced by an empty string.
+Placeholders that don't have a value available when the action is triggered will be replaced by an empty string.
 
 # systemd integration (optional)
 - Logging to journal.
@@ -167,3 +174,6 @@ Placeholders that don't have a value available when the acton is triggered will 
 
 ## General ideas
 - Store data/status in time-based database (e.g. rrdtool) and visualize on web interface or ncurses UI. This should be optional and separated from the existing code.
+
+# Contributions
+Contributions are very welcome! Right now MinMon is pretty basic but it's also super easy to extend. Even if it's just a typo in the documentation, I'll be happy to merge your PR. If you're looking for a new check or action type, just open a new issue (if it doesn't exist yet) and tag it with the "enhancement" label.
