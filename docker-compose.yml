@@ -4,4 +4,4 @@ services:
   minmon:
     image: ghcr.io/flo-at/minmon:latest
     volumes:
-      - ./config.toml:/etc/minmon.toml:ro
+      - ./minmon.toml:/etc/minmon.toml:ro
