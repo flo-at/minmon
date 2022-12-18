@@ -9,6 +9,7 @@ I wrote this because the [exsiting alternatives](./doc/existing-alternatives.md)
 [![crates.io](https://img.shields.io/crates/v/minmon)](https://crates.io/crates/minmon)
 [![License](https://img.shields.io/github/license/flo-at/minmon)](./LICENSE)
 [![Latest SemVer tag](https://img.shields.io/github/v/tag/flo-at/minmon)](https://github.com/flo-at/minmon/tags)
+[![AUR version](https://img.shields.io/aur/version/minmon)](https://aur.archlinux.org/packages/minmon)
 
 # Checks
 - [Filesystem usage](./doc/check.md#filesystemusage)
@@ -39,26 +40,6 @@ That's why MinMon can trigger regular [report](./doc/report.md) events to let yo
 - As of now it's only for Linux but it should be easy to adapt to other *NIXes or maybe even Windows.
 - Some of the things mentioned above may change in the future (see [Roadmap](#roadmap)).
 
-# Installation
-## Docker image
-To pull the docker image use
-```sh
-docker pull ghcr.io/flo-at/minmon:latest
-```
-or the example [docker-compose.yml](docker-compose.yml) file.
-
-## Build and install using cargo
-Make sure cargo is correctly installed on your local machine.
-You can either install MinMon from crates.io using
-```sh
-cargo install --all-features minmon
-```
-Or if you already checked out the repository, you can build and install your local copy like this:
-```sh
-cargo install --all-features --path .
-```
-If you don't want to include the systemd integration, leave out the `--all-features` option.
-
 # Config file
 The config file uses the [TOML](https://toml.io) format and has the following sections:
 - [log](./doc/log.md)
@@ -67,7 +48,7 @@ The config file uses the [TOML](https://toml.io) format and has the following se
 - [checks](./doc/check.md)
 
 # Architecture
-## Diagram
+## System overview
 ```mermaid
 graph TD
     A(Config file) --> B(Main loop)
@@ -86,6 +67,33 @@ graph TD
     style G fill:blue;
     style H fill:blue;
     style I fill:blue;
+```
+
+## Alarm state machine
+Each alarm has 3 possible states. "Good", "Bad" and "Error".\
+It takes `cycles` consecutive bad data points to trigger the transition from "Good" to "Bad" and `recover_cycles` good ones to go back. These transitions trigger the `action` and `recover_action` actions.
+During the "Bad" state, `action` will be triggered again every `repeat_cycles` cycles (if `repeat_cycles` is not 0).\
+\
+The "Error" state is a bit special as it only "shadows" the other states.
+An error means that there is no data available at all, e.g. the filesystem usage for `/home` could not be determined.
+Since this should rarely ever happen, the transition to the error state always triggers the `error_action` on the first cycle. If there is valid data on the next cycle, the state machine continues as if the error state did not exist.
+
+```mermaid
+stateDiagram-v2
+    direction LR
+
+    [*] --> Good
+    Good --> Good
+    Good --> Bad: action/cycles
+    Good --> Error: error_action
+
+    Bad --> Good: recover_action/recover_cycles
+    Bad --> Bad: repeat_action/repeat_cycles
+    Bad --> Error: error_action
+
+    Error --> Good
+    Error --> Bad
+    Error --> Error: error_repeat_action/error_repeat_cycles
 ```
 
 # Example
@@ -154,6 +162,35 @@ When an action is triggered, the placeholders (generic and custom) are merged in
 Inside the action (depending on the type of the action) the placeholders can be used in one or more config fields using the `{{placeholder_name}}` syntax.
 There are also some [generic placeholders](./doc/action.md#generic-placeholders) that are always available and some that are specific to the check that triggered the action.
 Placeholders that don't have a value available when the action is triggered will be replaced by an empty string.
+
+# Installation
+## Docker image
+To pull the docker image use
+```sh
+docker pull ghcr.io/flo-at/minmon:latest
+```
+or the example [docker-compose.yml](docker-compose.yml) file.\
+In both cases, read-only mount your config file to `/etc/minmon.toml`.
+
+## Build and install using cargo
+Make sure cargo is correctly installed on your local machine.
+You can either install MinMon from crates.io using
+```sh
+cargo install --all-features minmon
+```
+Or if you already checked out the repository, you can build and install your local copy like this:
+```sh
+cargo install --all-features --path .
+```
+Copy the `systemd.minmon.service` file to `/etc/systemd/system/minmon.service` and place your config file at path `/etc/minmon.toml`.
+You can enable and start the service with `systemctl daemon-reload && systemctl enable --now minmon.service`.\
+\
+If you don't want to include the systemd integration, leave out the `--all-features` option.
+
+## Install for the AUR (Arch Linux)
+Use your package manager of choice to install the [minmon](https://aur.archlinux.org/packages/minmon) package from the AUR.\
+Place your config file at path `/etc/minmon.toml`.
+You can enable and start the service with `systemctl daemon-reload && systemctl enable --now minmon.service`.\
 
 # systemd integration (optional)
 - Logging to journal.
