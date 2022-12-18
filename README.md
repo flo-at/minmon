@@ -11,8 +11,13 @@ I wrote this because the [exsiting alternatives](./doc/existing-alternatives.md)
 [![License](https://img.shields.io/github/license/flo-at/minmon)](./LICENSE)
 
 # Checks
+
+Implemented are these checks:
+
 - [Filesystem usage](./doc/check.md#filesystemusage)
 - [Memory usage](./doc/check.md#memoryusage)
+
+See Roadmap for [further ideas](#check-ideas).
 
 # Actions
 - [Email](./doc/action.md#email)
@@ -205,6 +210,7 @@ You can enable and start the service with `systemctl daemon-reload && systemctl 
 - Temperatures
 - Ping
 - HTTP response, keyword, ..
+- HTTPS certificate expire date
 - systemd service status
 - Docker/Podman container status
 
