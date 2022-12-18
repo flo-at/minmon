@@ -1,6 +1,6 @@
 # MinMon - an opinionated minimal monitoring and alarming tool (for Linux)
 This tool is just a single binary and a config file. No database, no GUI, no graphs. Just monitoring and alarms.
-I wrote this because the [exsiting alternatives](./doc/existing-alternatives.md) I could find were too heavy, mainly focused on nice GUIs with graphs (not on alarming), too complex to setup or targeted at cloud/multi-instance setups.
+I wrote this because the [existing alternatives](./doc/existing-alternatives.md) I could find were too heavy, mainly focused on nice GUIs with graphs (not on alarming), too complex to setup, or targeted at cloud/multi-instance setups.
 
 [![test workflow](https://img.shields.io/github/actions/workflow/status/flo-at/minmon/test.yml?branch=main&label=tests)](https://github.com/flo-at/minmon/actions/workflows/test.yml)
 [![docker workflow](https://img.shields.io/github/actions/workflow/status/flo-at/minmon/docker-publish.yml?branch=main&label=docker)](https://github.com/flo-at/minmon/pkgs/container/minmon)
