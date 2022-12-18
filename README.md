@@ -2,14 +2,13 @@
 This tool is just a single binary and a config file. No database, no GUI, no graphs. Just monitoring and alarms.
 I wrote this because the [exsiting alternatives](./doc/existing-alternatives.md) I could find were too heavy, mainly focused on nice GUIs with graphs (not on alarming), too complex to setup or targeted at cloud/multi-instance setups.
 
-[![test workflow](https://img.shields.io/github/workflow/status/flo-at/minmon/test/main?label=tests)](https://github.com/flo-at/minmon/actions/workflows/test.yml)
-[![docker workflow](https://img.shields.io/github/workflow/status/flo-at/minmon/docker-publish/main?label=docker)](https://github.com/flo-at/minmon/pkgs/container/minmon)
-[![cargo-publish workflow](https://img.shields.io/github/workflow/status/flo-at/minmon/cargo-publish/main?label=cargo-publish)](https://github.com/flo-at/minmon/actions/workflows/cargo-publish.yml)
-[![cargo-deny workflow](https://img.shields.io/github/workflow/status/flo-at/minmon/cargo-deny/main?label=cargo-deny)](https://github.com/flo-at/minmon/actions/workflows/cargo-deny.yml)
+[![test workflow](https://img.shields.io/github/actions/workflow/status/flo-at/minmon/test.yml?branch=main&label=tests)](https://github.com/flo-at/minmon/actions/workflows/test.yml)
+[![docker workflow](https://img.shields.io/github/actions/workflow/status/flo-at/minmon/docker-publish.yml?branch=main&label=docker)](https://github.com/flo-at/minmon/pkgs/container/minmon)
+[![cargo-deny workflow](https://img.shields.io/github/actions/workflow/status/flo-at/minmon/cargo-deny.yml?branch=main&label=cargo-deny)](https://github.com/flo-at/minmon/actions/workflows/cargo-deny.yml)
 [![crates.io](https://img.shields.io/crates/v/minmon)](https://crates.io/crates/minmon)
-[![License](https://img.shields.io/github/license/flo-at/minmon)](./LICENSE)
-[![Latest SemVer tag](https://img.shields.io/github/v/tag/flo-at/minmon)](https://github.com/flo-at/minmon/tags)
+[![Latest SemVer release](https://img.shields.io/github/v/release/flo-at/minmon)](https://github.com/flo-at/minmon/releases)
 [![AUR version](https://img.shields.io/aur/version/minmon)](https://aur.archlinux.org/packages/minmon)
+[![License](https://img.shields.io/github/license/flo-at/minmon)](./LICENSE)
 
 # Checks
 - [Filesystem usage](./doc/check.md#filesystemusage)
