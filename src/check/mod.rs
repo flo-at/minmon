@@ -144,8 +144,9 @@ where
             }
             if i == 0 {
                 log::info!(
-                    "{} will be triggered after {} bad cycles and recover after {} good cycles.",
-                    alarm_log_id,
+                    "Alarm '{}' from check '{}' will be triggered after {} bad cycles and recover after {} good cycles.",
+                    alarm_config.name,
+                    check_config.name,
                     alarm_config.cycles,
                     alarm_config.recover_cycles
                 );
