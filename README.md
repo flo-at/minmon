@@ -210,7 +210,7 @@ You can enable and start the service with `systemctl daemon-reload && systemctl 
 - Temperatures
 - Ping
 - HTTP response, keyword, ..
-- HTTPS certificate expire date
+- HTTPS certificate expiration date
 - systemd service status
 - Docker/Podman container status
 
