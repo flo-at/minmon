@@ -8,6 +8,7 @@ use async_trait::async_trait;
 
 mod filesystem_usage;
 mod memory_usage;
+mod pressure_average;
 
 #[async_trait]
 pub trait Check: Send + Sync {
@@ -201,6 +202,9 @@ pub fn from_check_config(
         }
         config::CheckType::MemoryUsage(_) => {
             factory::<memory_usage::MemoryUsage, alarm::Level>(check_config, actions)
+        }
+        config::CheckType::PressureAverage(_) => {
+            factory::<pressure_average::PressureAverage, alarm::Level>(check_config, actions)
         }
     }
     .map_err(|x| {

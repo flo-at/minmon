@@ -13,6 +13,7 @@ I wrote this because the [existing alternatives](./doc/existing-alternatives.md)
 # Checks
 - [Filesystem usage](./doc/check.md#filesystemusage)
 - [Memory usage](./doc/check.md#memoryusage)
+- [Pressure average](./doc/check.md#pressureaverage)
 
 # Actions
 - [Email](./doc/action.md#email)

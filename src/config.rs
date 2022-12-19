@@ -225,6 +225,7 @@ pub struct Check {
 pub enum CheckType {
     FilesystemUsage(CheckFilesystemUsage),
     MemoryUsage(CheckMemoryUsage),
+    PressureAverage(CheckPressureAverage),
 }
 
 impl std::fmt::Display for CheckType {
@@ -232,6 +233,7 @@ impl std::fmt::Display for CheckType {
         match *self {
             CheckType::FilesystemUsage(_) => write!(f, "FilesystemUsage"),
             CheckType::MemoryUsage(_) => write!(f, "MemoryUsage"),
+            CheckType::PressureAverage(_) => write!(f, "PressureAverage"),
         }
     }
 }
@@ -249,6 +251,32 @@ pub struct CheckMemoryUsage {
     pub memory: bool,
     #[serde(default = "default::check_memory_usage_swap")]
     pub swap: bool,
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct CheckPressureAverage {
+    #[serde(default)]
+    pub cpu: bool,
+    #[serde(default)]
+    pub io: PressureChoice,
+    #[serde(default)]
+    pub memory: PressureChoice,
+    #[serde(default)]
+    pub avg10: bool,
+    #[serde(default)]
+    pub avg60: bool,
+    #[serde(default)]
+    pub avg300: bool,
+}
+
+#[derive(Deserialize, PartialEq, Debug, Clone, Copy, Default)]
+pub enum PressureChoice {
+    #[default]
+    None,
+    Some,
+    Full,
+    Both,
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
