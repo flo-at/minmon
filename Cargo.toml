@@ -23,11 +23,13 @@ async-trait = "0.1"
 text_placeholder = "0.4"
 chrono = { version = "0.4", features = ["std", "clock"], default-features = false }
 lettre = { version = "0.10", features = ["smtp-transport", "tokio1-native-tls", "builder"], default-features = false }
+sensors = { version = "0.2", optional = true }
 
 [dev-dependencies]
 mockall = "0.11"
 
 [features]
+sensors = ["dep:sensors"]
 systemd = ["dep:libsystemd", "dep:systemd-journal-logger"]
 
 [profile.release]

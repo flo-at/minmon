@@ -19,6 +19,7 @@ Implemented are these checks:
 - [Memory usage](./doc/check.md#memoryusage)
 - [Pressure average](./doc/check.md#pressureaverage)
 - [Process exit status](./doc/check.md#processexitstatus)
+- [Temperature](./doc/check.md#temperature)
 
 See Roadmap for [further ideas](#check-ideas).
 
@@ -204,6 +205,10 @@ You can enable and start the service with `systemctl daemon-reload && systemctl 
 - Logging to journal.
 - Notify systemd about start-up completion (`Type=notify`).
 - Periodically reset systemd watchdog (`WatchdogSec=x`).
+
+# lm_sensors integration (optional)
+Build with `--features sensors` to enable support for lm_sensors.\
+For the docker image, optionally mount your lm_sensors config file(s) to `/etc/sensors.d/`.
 
 # Roadmap
 ## Check ideas

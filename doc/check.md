@@ -106,6 +106,28 @@ Name of the file given by the path.
 ## Placeholders
 - `status_code`: Process exit status code.
 
+# Temperature
+Checks a temperature using lm_sensors.
+
+## Check options
+Wildcards are allowed in the sensor name as long as only one sensor is matched.\
+Specifying the feature is optional as long as there is only one temperature feature in the sensor.
+
+| name | example | optional | default |
+|:---|:---|:---:|:---|
+| sensors | `[sensor = "acpitz-*", feature = "temp1"]` | ❌ | |
+
+## Alarm options
+| name | example | optional | default |
+|:---|:---|:---:|:---|
+| temperature | `80` | ❌ | |
+
+## IDs
+Name of the sensor and feature as provided by lm_sensors (e.g. `acpitz-acpi-0/temp1).
+
+## Placeholders
+- `temperature`: Measured temperature (in °C).
+
 ---
 
 # Alarm
