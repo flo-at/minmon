@@ -33,6 +33,7 @@ That's why MinMon can trigger regular [report](./doc/report.md) events to let yo
 # Design decisions
 - No complex scripting language.
 - No fancy config directory structure - just a single TOML file.
+- No users, groups or roles.
 - No cryptic abbreviations. The few extra letters in the config file won't hurt anyone.
 - There are no predefined threshold names like "Warning" or "Critical". You might might want more than just two, or only one. So that's up to you to define in the config.
 - The same check plugin can be used multiple times. You might want different levels to trigger different actions for different filesystems at different intervals.
