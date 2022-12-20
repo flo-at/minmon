@@ -112,7 +112,7 @@ impl DataSource for MemoryUsage {
     }
 
     fn format_data(data: &Self::Item) -> String {
-        format!("usage level {}", data)
+        format!("usage level {}%", data)
     }
 
     fn ids(&self) -> &[String] {

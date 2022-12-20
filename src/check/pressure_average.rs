@@ -187,7 +187,7 @@ impl DataSource for PressureAverage {
     }
 
     fn format_data(data: &Self::Item) -> String {
-        format!("pressure level {}", data)
+        format!("pressure level {}%", data)
     }
 
     fn ids(&self) -> &[String] {
