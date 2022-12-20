@@ -178,7 +178,7 @@ or the example [docker-compose.yml](docker-compose.yml) file.\
 In both cases, read-only mount your config file to `/etc/minmon.toml`.
 
 ## Build and install using cargo
-Make sure cargo is correctly installed on your local machine.
+Make sure cargo and OpenSSL are correctly installed on your local machine.\
 You can either install MinMon from crates.io using
 ```sh
 cargo install --all-features minmon
