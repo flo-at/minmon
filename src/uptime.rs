@@ -20,6 +20,8 @@ fn read_system_uptime() -> Result<std::time::Duration> {
 static mut START_TIME: Option<std::time::Instant> = None;
 static mut START_SYSTEM_UPTIME: Option<std::time::Duration> = None;
 
+static INIT: std::sync::Once = std::sync::Once::new();
+
 pub fn system() -> std::time::Duration {
     unsafe { START_SYSTEM_UPTIME }.unwrap() + process()
 }
@@ -29,9 +31,14 @@ pub fn process() -> std::time::Duration {
 }
 
 pub fn init() -> Result<()> {
-    unsafe {
+    let mut res = Ok(());
+    INIT.call_once(|| unsafe {
         START_TIME = Some(std::time::Instant::now());
-        START_SYSTEM_UPTIME = Some(read_system_uptime()?);
-    }
-    Ok(())
+        let system_uptime = read_system_uptime();
+        match system_uptime {
+            Ok(system_uptime) => START_SYSTEM_UPTIME = Some(system_uptime),
+            Err(err) => res = Err(err),
+        }
+    });
+    res
 }
