@@ -1,10 +1,7 @@
-use std::io::BufRead;
-
 use super::DataSource;
 use crate::config;
 use crate::{Error, Result};
 use async_trait::async_trait;
-use tokio::io::AsyncReadExt;
 
 const MEMINFO_PATH: &str = "/proc/meminfo";
 
@@ -58,16 +55,12 @@ impl DataSource for MemoryUsage {
     type Item = u8;
 
     async fn get_data(&self) -> Result<Vec<Result<Self::Item>>> {
-        let mut file = tokio::fs::File::open(MEMINFO_PATH).await.map_err(|x| {
+        let buffer = tokio::fs::read_to_string(MEMINFO_PATH).await.map_err(|x| {
             Error(format!(
                 "Could not open {} for reading: {}",
                 MEMINFO_PATH, x
             ))
         })?;
-        let mut buffer = Vec::new();
-        file.read_to_end(&mut buffer)
-            .await
-            .map_err(|x| Error(format!("Could not read from {}: {}", MEMINFO_PATH, x)))?;
         let mut mem_total: Option<usize> = None;
         let mut mem_available: Option<usize> = None;
         let mut mem_usage: Option<u8> = None;
@@ -75,19 +68,18 @@ impl DataSource for MemoryUsage {
         let mut swap_free: Option<usize> = None;
         let mut swap_usage: Option<u8> = None;
         for line in buffer.lines() {
-            let line = line.map_err(|x| Error(format!("Error reading line: {}", x)))?;
             if self.memory {
                 if line.starts_with("MemTotal") {
-                    mem_total = Some(Self::get_number("MemTotal", &line)?);
+                    mem_total = Some(Self::get_number("MemTotal", line)?);
                 } else if line.starts_with("MemAvailable") {
-                    mem_available = Some(Self::get_number("MemAvailable", &line)?);
+                    mem_available = Some(Self::get_number("MemAvailable", line)?);
                 }
             }
             if self.swap {
                 if line.starts_with("SwapTotal") {
-                    swap_total = Some(Self::get_number("SwapTotal", &line)?);
+                    swap_total = Some(Self::get_number("SwapTotal", line)?);
                 } else if line.starts_with("SwapFree") {
-                    swap_free = Some(Self::get_number("SwapFree", &line)?);
+                    swap_free = Some(Self::get_number("SwapFree", line)?);
                 }
             }
         }

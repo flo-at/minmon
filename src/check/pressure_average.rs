@@ -2,7 +2,6 @@ use super::DataSource;
 use crate::config;
 use crate::{Error, Result};
 use async_trait::async_trait;
-use tokio::io::AsyncReadExt;
 
 const PRESSURE_CPU_PATH: &str = "/proc/pressure/cpu";
 const PRESSURE_IO_PATH: &str = "/proc/pressure/io";
@@ -202,13 +201,9 @@ struct PressureFileContent {
 
 impl PressureFileContent {
     async fn try_from_file(path: &str) -> Result<Self> {
-        let mut file = tokio::fs::File::open(path)
+        let buffer = tokio::fs::read_to_string(path)
             .await
             .map_err(|x| Error(format!("Could not open {} for reading: {}", path, x)))?;
-        let mut buffer = String::new();
-        file.read_to_string(&mut buffer)
-            .await
-            .map_err(|x| Error(format!("Could not read from {}: {}", path, x)))?;
         Self::try_from(&*buffer)
     }
 }
