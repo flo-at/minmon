@@ -632,6 +632,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "201de327520df007757c1f0adce6e827fe8562fbc28bfd9c15571c66ca1f5f79"
 
 [[package]]
+name = "libsensors-sys"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1730cc7164b96de1d460c1f87c993430a3dda88ee336f0d2ea9a52097243132"
+
+[[package]]
 name = "libsystemd"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -724,6 +730,7 @@ dependencies = [
  "mockall",
  "nix",
  "reqwest",
+ "sensors",
  "serde",
  "systemd-journal-logger",
  "text_placeholder",
@@ -1157,6 +1164,16 @@ checksum = "0160a13a177a45bfb43ce71c01580998474f556ad854dcbca936dd2841a5c556"
 dependencies = [
  "core-foundation-sys",
  "libc",
+]
+
+[[package]]
+name = "sensors"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a3af4792f6a434642b5805ab1f086a621a369ad06a0d466ab89aeb556ddd6d0"
+dependencies = [
+ "libc",
+ "libsensors-sys",
 ]
 
 [[package]]

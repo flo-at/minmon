@@ -11,4 +11,4 @@ copyleft = "deny"
 allow-osi-fsf-free = "both"
 unused-allowed-license = "warn"
 confidence-threshold = 0.95
-allow = ["Unicode-DFS-2016", "0BSD"]
+allow = ["Unicode-DFS-2016", "0BSD", "MirOS"]

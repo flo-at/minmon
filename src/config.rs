@@ -207,6 +207,8 @@ pub enum CheckType {
     MemoryUsage(CheckMemoryUsage),
     PressureAverage(CheckPressureAverage),
     ProcessExitStatus(CheckProcessExitStatus),
+    #[cfg(feature = "sensors")]
+    Temperature(CheckTemperature),
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
@@ -248,6 +250,28 @@ pub enum PressureChoice {
     Some,
     Full,
     Both,
+}
+
+#[cfg(feature = "sensors")]
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct CheckTemperature {
+    pub sensors: Vec<SensorsId>,
+}
+
+#[derive(Deserialize, PartialEq, Debug, Clone)]
+pub struct SensorsId {
+    pub sensor: String,
+    pub feature: Option<String>,
+}
+
+impl std::fmt::Display for SensorsId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(feature) = &self.feature {
+            return write!(f, "{}/{feature}", self.sensor);
+        }
+        write!(f, "{}", self.sensor)
+    }
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
@@ -309,6 +333,8 @@ pub enum AlarmType {
     Default(AlarmDefault),
     StatusCode(AlarmStatusCode),
     Level(AlarmLevel),
+    #[cfg(feature = "sensors")]
+    Temperature(AlarmTemperature),
 }
 
 // This is a dummy that is used if no alarm specific fields are found.
@@ -327,6 +353,13 @@ pub struct AlarmLevel {
 #[serde(deny_unknown_fields)]
 pub struct AlarmStatusCode {
     pub status_codes: Vec<u8>,
+}
+
+#[cfg(feature = "sensors")]
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct AlarmTemperature {
+    pub temperature: i16,
 }
 
 mod default {

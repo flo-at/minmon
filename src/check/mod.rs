@@ -10,6 +10,8 @@ mod filesystem_usage;
 mod memory_usage;
 mod pressure_average;
 mod process_exit_status;
+#[cfg(feature = "sensors")]
+mod temperature;
 
 #[async_trait]
 pub trait Check: Send + Sync {
@@ -212,6 +214,10 @@ pub fn from_check_config(
             process_exit_status::ProcessExitStatus,
             alarm::StatusCode,
         >(check_config, actions),
+        #[cfg(feature = "sensors")]
+        config::CheckType::Temperature(_) => {
+            factory::<temperature::Temperature, alarm::Temperature>(check_config, actions)
+        }
     }
     .map_err(|x| {
         Error(format!(
