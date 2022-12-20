@@ -19,7 +19,7 @@ impl TryFrom<&config::Alarm> for Level {
                 Ok(Self { level: level.level })
             }
         } else {
-            panic!();
+            Err(Error(String::from("Expected level alarm config.")))
         }
     }
 }
