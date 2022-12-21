@@ -128,7 +128,7 @@ error_action = "Log error"
 name = "Webhook 1"
 type = "Webhook"
 url = "https://example.com/hook1"
-body = """{"text": "{{alarm_name}}: {{check_name}} on mountpoint '{{alarm_id}}' reached {{level}}%."}"""
+body = """{"text": "{{alarm_name}}: {{check_name}} on mountpoint '{{check_id}}' reached {{level}}%."}"""
 headers = {"Content-Type" = "application/json"}
 
 [[actions]]

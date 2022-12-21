@@ -147,7 +147,7 @@ where
 
     fn add_placeholders(&self, placeholders: &mut PlaceholderMap) {
         placeholders.insert(String::from("alarm_name"), self.name.clone());
-        placeholders.insert(String::from("alarm_id"), self.id.clone());
+        placeholders.insert(String::from("check_id"), self.id.clone());
         crate::merge_placeholders(placeholders, &self.placeholders);
     }
 }
@@ -236,7 +236,7 @@ mod test {
             .once()
             .with(function(|placeholders: &PlaceholderMap| {
                 assert_eq!(placeholders.get("alarm_name").unwrap(), "Name");
-                assert_eq!(placeholders.get("alarm_id").unwrap(), "ID");
+                assert_eq!(placeholders.get("check_id").unwrap(), "ID");
                 assert_eq!(placeholders.get("Hello").unwrap(), "World");
                 assert_eq!(placeholders.get("Foo").unwrap(), "Bar");
                 assert_eq!(placeholders.get("data").unwrap(), "20");
@@ -304,7 +304,7 @@ mod test {
             .once()
             .with(function(|placeholders: &PlaceholderMap| {
                 assert_eq!(placeholders.get("alarm_name").unwrap(), "Name");
-                assert_eq!(placeholders.get("alarm_id").unwrap(), "ID");
+                assert_eq!(placeholders.get("check_id").unwrap(), "ID");
                 assert_eq!(placeholders.get("Hello").unwrap(), "World");
                 assert_eq!(placeholders.get("Foo").unwrap(), "Bar");
                 assert_eq!(placeholders.get("data").unwrap(), "10");
@@ -350,7 +350,7 @@ mod test {
             .once()
             .with(function(|placeholders: &PlaceholderMap| {
                 assert_eq!(placeholders.get("alarm_name").unwrap(), "Name");
-                assert_eq!(placeholders.get("alarm_id").unwrap(), "ID");
+                assert_eq!(placeholders.get("check_id").unwrap(), "ID");
                 assert_eq!(placeholders.get("Hello").unwrap(), "World");
                 assert_eq!(placeholders.get("Foo").unwrap(), "Bar");
                 assert_eq!(placeholders.len(), 4);

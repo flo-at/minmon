@@ -77,7 +77,7 @@ where
                 "Action '{}' triggered for alarm '{}', id '{}' from check '{}'.",
                 placeholders.get("action_name").unwrap(),
                 placeholders.get("alarm_name").unwrap(),
-                placeholders.get("alarm_id").unwrap(),
+                placeholders.get("check_id").unwrap(),
                 placeholders.get("check_name").unwrap()
             );
         }
@@ -109,7 +109,7 @@ impl Action for DisabledAction {
                 "Disabled action '{}' triggered for alarm '{}', id '{}' from check '{}'.",
                 placeholders.get("action_name").unwrap(),
                 placeholders.get("alarm_name").unwrap(),
-                placeholders.get("alarm_id").unwrap(),
+                placeholders.get("check_id").unwrap(),
                 placeholders.get("check_name").unwrap()
             );
         }
