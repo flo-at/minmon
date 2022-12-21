@@ -13,6 +13,7 @@ Actions control what happens when an alarm (check) or event (report) is triggere
 ### Generic placeholders
 - `check_name`
 - `alarm_name`
+- `alarm_id`
 - `alarm_uuid`
 - `alarm_timestamp`
 - `alarm_state`: Either `Good`, `Bad`, or `Error`.
