@@ -247,9 +247,9 @@ pub struct CheckFilesystemUsage {
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct CheckMemoryUsage {
-    #[serde(default = "default::check_memory_usage_memory")]
+    #[serde(default)]
     pub memory: bool,
-    #[serde(default = "default::check_memory_usage_swap")]
+    #[serde(default)]
     pub swap: bool,
 }
 
@@ -345,16 +345,6 @@ mod default {
     pub const CHECK_ALARM_RECOVER_CYCLES: u32 = 1;
     pub fn check_alarm_recover_cycles() -> u32 {
         CHECK_ALARM_RECOVER_CYCLES
-    }
-
-    pub const CHECK_MEMORY_USAGE_MEMORY: bool = true;
-    pub fn check_memory_usage_memory() -> bool {
-        CHECK_MEMORY_USAGE_MEMORY
-    }
-
-    pub const CHECK_MEMORY_USAGE_SWAP: bool = false;
-    pub fn check_memory_usage_swap() -> bool {
-        CHECK_MEMORY_USAGE_SWAP
     }
 }
 

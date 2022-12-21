@@ -39,7 +39,7 @@ Reads the system memory (physical RAM) and swap file usage.
 ## Check options
 | name | example | optional | default |
 |:---|:---|:---:|:---|
-| memory | `false` | ✔ | `true` | |
+| memory | `true` | ✔ | `false` | |
 | swap | `true` | ✔ | `false` | |
 
 ## Alarm options
