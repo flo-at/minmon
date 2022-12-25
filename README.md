@@ -5,7 +5,7 @@ I wrote this because the [existing alternatives](./doc/existing-alternatives.md)
 [![test workflow](https://img.shields.io/github/actions/workflow/status/flo-at/minmon/test.yml?branch=main&label=tests)](https://github.com/flo-at/minmon/actions/workflows/test.yml)
 [![docker workflow](https://img.shields.io/github/actions/workflow/status/flo-at/minmon/docker-publish.yml?branch=main&label=docker)](https://github.com/flo-at/minmon/pkgs/container/minmon)
 [![cargo-deny workflow](https://img.shields.io/github/actions/workflow/status/flo-at/minmon/cargo-deny.yml?branch=main&label=cargo-deny)](https://github.com/flo-at/minmon/actions/workflows/cargo-deny.yml)
-[![dependency status](https://deps.rs/repo/github/flo-at/minmon/status.svg)](https://deps.rs/repo/github/flo-at/minmon)
+[![dependency status](https://deps.rs/repo/github/flo-at/minmon/status.svg)](https://deps.rs/repo/github/flo-at/minmon)\
 [![Latest SemVer release](https://img.shields.io/github/v/release/flo-at/minmon)](https://github.com/flo-at/minmon/releases)
 [![crates.io](https://img.shields.io/crates/v/minmon)](https://crates.io/crates/minmon)
 [![AUR version](https://img.shields.io/aur/version/minmon)](https://aur.archlinux.org/packages/minmon)
@@ -222,3 +222,5 @@ You can enable and start the service with `systemctl daemon-reload && systemctl 
 
 # Contributions
 Contributions are very welcome! Right now MinMon is pretty basic but it's also super easy to extend. Even if it's just a typo in the documentation, I'll be happy to merge your PR. If you're looking for a new check or action type, just open a new issue (if it doesn't exist yet) and tag it with the "enhancement" label.
+
+If you have an idea for a new check or action please use use the [discussions](https://github.com/flo-at/minmon/discussions) page instead of opening a new issue.
