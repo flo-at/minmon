@@ -73,11 +73,7 @@ fn init_actions(config: &config::Config) -> Result<ActionMap> {
         }
         let action = action::from_action_config(action_config)?;
         res.insert(action_config.name.clone(), action);
-        log::info!(
-            "Action {}::'{}' initialized.",
-            action_config.type_,
-            action_config.name
-        );
+        log::info!("Action '{}' initialized.", action_config.name);
     }
     Ok(res)
 }
@@ -109,11 +105,7 @@ fn init_checks(config: &config::Config, actions: &ActionMap) -> Result<Vec<Box<d
             )));
         }
         if check_config.disable {
-            log::info!(
-                "Check {}::'{}' is disabled.",
-                check_config.type_,
-                check_config.name
-            );
+            log::info!("Check '{}' is disabled.", check_config.name);
             continue;
         }
         let check = check::from_check_config(check_config, actions)?;

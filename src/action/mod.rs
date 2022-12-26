@@ -119,11 +119,7 @@ impl Action for DisabledAction {
 
 pub fn from_action_config(action_config: &config::Action) -> Result<std::sync::Arc<dyn Action>> {
     if action_config.disable {
-        log_ext::info!(
-            "Action {}::'{}' is disabled.",
-            action_config.type_,
-            action_config.name
-        );
+        log_ext::info!("Action '{}' is disabled.", action_config.name);
         Ok(std::sync::Arc::new(ActionBase::new(
             action_config.name.clone(),
             std::time::Duration::from_secs(action_config.timeout as u64),

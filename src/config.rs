@@ -120,17 +120,6 @@ pub enum ActionType {
     Webhook(ActionWebhook),
 }
 
-impl std::fmt::Display for ActionType {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match *self {
-            ActionType::Email(_) => write!(f, "Email"),
-            ActionType::Log(_) => write!(f, "Log"),
-            ActionType::Process(_) => write!(f, "Process"),
-            ActionType::Webhook(_) => write!(f, "Webhook"),
-        }
-    }
-}
-
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct ActionEmail {
@@ -226,16 +215,6 @@ pub enum CheckType {
     FilesystemUsage(CheckFilesystemUsage),
     MemoryUsage(CheckMemoryUsage),
     PressureAverage(CheckPressureAverage),
-}
-
-impl std::fmt::Display for CheckType {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match *self {
-            CheckType::FilesystemUsage(_) => write!(f, "FilesystemUsage"),
-            CheckType::MemoryUsage(_) => write!(f, "MemoryUsage"),
-            CheckType::PressureAverage(_) => write!(f, "PressureAverage"),
-        }
-    }
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
