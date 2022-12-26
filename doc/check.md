@@ -25,7 +25,7 @@ This check reads the "available blocks" (not "free blocks") i.e. blocks availabl
 ## Alarm options
 | name | example | optional | default |
 |:---|:---|:---:|:---|
-| level | `75` | ❌ | | |
+| level | `75` | ❌ | |
 
 ## IDs
 Equivalent to the "mountpoints" config option.
@@ -45,7 +45,7 @@ Reads the system memory (physical RAM) and swap file usage.
 ## Alarm options
 | name | example | optional | default |
 |:---|:---|:---:|:---|
-| level | `75` | ❌ | | |
+| level | `75` | ❌ | |
 
 ## IDs
 - `Memory`
