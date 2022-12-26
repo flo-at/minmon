@@ -22,9 +22,9 @@ impl Webhook {
             .map(
                 |(k, v)| -> Result<(reqwest::header::HeaderName, reqwest::header::HeaderValue)> {
                     let name = reqwest::header::HeaderName::from_str(k)
-                        .map_err(|x| Error(format!("Could not parse header name: {}", x)))?;
+                        .map_err(|x| Error(format!("Could not parse header name: {x}")))?;
                     let value = reqwest::header::HeaderValue::from_str(v)
-                        .map_err(|x| Error(format!("Could not parse header value: {}", x)))?;
+                        .map_err(|x| Error(format!("Could not parse header value: {x}")))?;
                     Ok((name, value))
                 },
             )
@@ -69,7 +69,7 @@ impl Action for Webhook {
             .body(body)
             .send()
             .await
-            .map_err(|x| Error(format!("HTTP request failed: {}", x)))?;
+            .map_err(|x| Error(format!("HTTP request failed: {x}")))?;
         let status = response.status();
         if status.is_success() {
             Ok(())

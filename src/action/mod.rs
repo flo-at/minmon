@@ -166,7 +166,7 @@ pub fn get_action(action: &String, actions: &ActionMap) -> Result<std::sync::Arc
     } else {
         Ok(actions
             .get(action)
-            .ok_or_else(|| Error(format!("Action '{}' not found.", action)))?
+            .ok_or_else(|| Error(format!("Action '{action}' not found.")))?
             .clone())
     }
 }

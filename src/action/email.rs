@@ -36,14 +36,14 @@ impl TryFrom<&config::Action> for Email {
                     from: email
                         .from
                         .parse()
-                        .map_err(|x| Error(format!("Invalid sender email address: {}", x)))?,
+                        .map_err(|x| Error(format!("Invalid sender email address: {x}")))?,
                     to: email
                         .to
                         .parse()
-                        .map_err(|x| Error(format!("Invalid recipient email address: {}", x)))?,
+                        .map_err(|x| Error(format!("Invalid recipient email address: {x}")))?,
                     reply_to: email.reply_to.as_ref().map_or(Ok(None), |x| {
                         Ok(Some(x.parse().map_err(|x| {
-                            Error(format!("Invalid reply-to email address: {}", x))
+                            Error(format!("Invalid reply-to email address: {x}"))
                         })?))
                     })?,
                     subject: email.subject.clone(),
@@ -103,7 +103,7 @@ impl Action for Email {
         mailer
             .send(email)
             .await
-            .map_err(|x| Error(format!("Failed to send email: {}", x)))?;
+            .map_err(|x| Error(format!("Failed to send email: {x}")))?;
         Ok(())
     }
 }

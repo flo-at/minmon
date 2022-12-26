@@ -13,11 +13,7 @@ pub struct MemoryUsage {
 
 impl MemoryUsage {
     fn get_number(id: &str, line: &str) -> Result<usize> {
-        crate::get_number(
-            &format!("Could not read {} from {}", id, MEMINFO_PATH),
-            line,
-            1,
-        )
+        crate::get_number(&format!("Could not read {id} from {MEMINFO_PATH}"), line, 1)
     }
 }
 
@@ -55,12 +51,9 @@ impl DataSource for MemoryUsage {
     type Item = u8;
 
     async fn get_data(&self) -> Result<Vec<Result<Self::Item>>> {
-        let buffer = tokio::fs::read_to_string(MEMINFO_PATH).await.map_err(|x| {
-            Error(format!(
-                "Could not open {} for reading: {}",
-                MEMINFO_PATH, x
-            ))
-        })?;
+        let buffer = tokio::fs::read_to_string(MEMINFO_PATH)
+            .await
+            .map_err(|x| Error(format!("Could not open {MEMINFO_PATH} for reading: {x}")))?;
         let mut mem_total: Option<usize> = None;
         let mut mem_available: Option<usize> = None;
         let mut mem_usage: Option<u8> = None;
@@ -104,7 +97,7 @@ impl DataSource for MemoryUsage {
     }
 
     fn format_data(data: &Self::Item) -> String {
-        format!("usage level {}%", data)
+        format!("usage level {data}%")
     }
 
     fn ids(&self) -> &[String] {

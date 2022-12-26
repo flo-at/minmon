@@ -64,12 +64,12 @@ impl Action for Process {
         let output = command
             .output()
             .await
-            .map_err(|x| Error(format!("Failed to run process: {}", x)))?;
+            .map_err(|x| Error(format!("Failed to run process: {x}")))?;
         match output.status.code() {
             Some(0) => Ok(()),
             Some(code) => {
                 if output.stderr.is_empty() {
-                    Err(Error(format!("Process failed with code {}.", code)))
+                    Err(Error(format!("Process failed with code {code}.")))
                 } else {
                     Err(Error(format!(
                         "Process failed with code {}: {}",

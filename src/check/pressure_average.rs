@@ -108,24 +108,24 @@ impl TryFrom<&config::Check> for PressureAverage {
                 let mut id = Vec::new();
                 if pressure.cpu {
                     for avg_id in avg_ids.iter() {
-                        id.push(format!("cpu/{}", avg_id));
+                        id.push(format!("cpu/{avg_id}"));
                     }
                 }
                 match pressure.io {
                     config::PressureChoice::Some => {
                         for avg_id in avg_ids.iter() {
-                            id.push(format!("io/some/{}", avg_id));
+                            id.push(format!("io/some/{avg_id}"));
                         }
                     }
                     config::PressureChoice::Full => {
                         for avg_id in avg_ids.iter() {
-                            id.push(format!("io/full/{}", avg_id));
+                            id.push(format!("io/full/{avg_id}"));
                         }
                     }
                     config::PressureChoice::Both => {
                         for avg_id in avg_ids.iter() {
-                            id.push(format!("io/some/{}", avg_id));
-                            id.push(format!("io/full/{}", avg_id));
+                            id.push(format!("io/some/{avg_id}"));
+                            id.push(format!("io/full/{avg_id}"));
                         }
                     }
                     config::PressureChoice::None => {}
@@ -133,18 +133,18 @@ impl TryFrom<&config::Check> for PressureAverage {
                 match pressure.memory {
                     config::PressureChoice::Some => {
                         for avg_id in avg_ids.iter() {
-                            id.push(format!("memory/some/{}", avg_id));
+                            id.push(format!("memory/some/{avg_id}"));
                         }
                     }
                     config::PressureChoice::Full => {
                         for avg_id in avg_ids.iter() {
-                            id.push(format!("memory/full/{}", avg_id));
+                            id.push(format!("memory/full/{avg_id}"));
                         }
                     }
                     config::PressureChoice::Both => {
                         for avg_id in avg_ids.iter() {
-                            id.push(format!("memory/some/{}", avg_id));
-                            id.push(format!("memory/full/{}", avg_id));
+                            id.push(format!("memory/some/{avg_id}"));
+                            id.push(format!("memory/full/{avg_id}"));
                         }
                     }
                     config::PressureChoice::None => {}
@@ -186,7 +186,7 @@ impl DataSource for PressureAverage {
     }
 
     fn format_data(data: &Self::Item) -> String {
-        format!("pressure level {}%", data)
+        format!("pressure level {data}%")
     }
 
     fn ids(&self) -> &[String] {
@@ -203,7 +203,7 @@ impl PressureFileContent {
     async fn try_from_file(path: &str) -> Result<Self> {
         let buffer = tokio::fs::read_to_string(path)
             .await
-            .map_err(|x| Error(format!("Could not open {} for reading: {}", path, x)))?;
+            .map_err(|x| Error(format!("Could not open {path} for reading: {x}")))?;
         Self::try_from(&*buffer)
     }
 }

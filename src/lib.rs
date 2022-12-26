@@ -146,9 +146,9 @@ where
             .nth(column)
             .ok_or_else(|| Error(String::from("Column not found.")))?
             .parse()
-            .map_err(|x| Error(format!("{}", x)))
+            .map_err(|x| Error(format!("{x}")))
     }
-    .map_err(|x| Error(format!("{}: {}", error_message, x)))
+    .map_err(|x| Error(format!("{error_message}: {x}")))
 }
 
 #[cfg(test)]

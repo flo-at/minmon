@@ -35,7 +35,7 @@ impl DataSource for FilesystemUsage {
         let mut res = Vec::new();
         for mountpoint in self.mountpoints.iter() {
             res.push(match nix::sys::statvfs::statvfs(mountpoint.as_str()) {
-                Err(err) => Err(Error(format!("Call to 'statvfs' failed: {}", err))),
+                Err(err) => Err(Error(format!("Call to 'statvfs' failed: {err}"))),
                 Ok(stat) => {
                     let usage = (stat.blocks() - stat.blocks_available()) * 100 / stat.blocks();
                     Ok(usage as u8)
@@ -46,7 +46,7 @@ impl DataSource for FilesystemUsage {
     }
 
     fn format_data(data: &Self::Item) -> String {
-        format!("usage level {}%", data)
+        format!("usage level {data}%")
     }
 
     fn ids(&self) -> &[String] {

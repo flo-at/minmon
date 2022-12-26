@@ -4,13 +4,13 @@ const UPTIME_PATH: &str = "/proc/uptime";
 
 fn read_system_uptime() -> Result<std::time::Duration> {
     let buffer = std::fs::read_to_string(UPTIME_PATH)
-        .map_err(|x| Error(format!("Error reading from {}: {}", UPTIME_PATH, x)))?;
+        .map_err(|x| Error(format!("Error reading from {UPTIME_PATH}: {x}")))?;
     let line = buffer
         .lines()
         .next()
-        .ok_or_else(|| Error(format!("Could not read from {}.", UPTIME_PATH)))?;
+        .ok_or_else(|| Error(format!("Could not read from {UPTIME_PATH}.")))?;
     let uptime: f64 = crate::get_number(
-        &format!("Could not read uptime from {}", UPTIME_PATH),
+        &format!("Could not read uptime from {UPTIME_PATH}"),
         line,
         0,
     )?;
