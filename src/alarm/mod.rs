@@ -180,7 +180,7 @@ where
         match decision {
             SinkDecision::Good => self.good(placeholders).await,
             SinkDecision::Bad => {
-                log::warn!("{}: Data exceeds limit.", self.log_id);
+                log::warn!("{}: Data is bad.", self.log_id);
                 self.bad(placeholders).await
             }
         }
