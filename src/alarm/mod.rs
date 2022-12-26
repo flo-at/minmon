@@ -4,9 +4,11 @@ use async_trait::async_trait;
 
 mod level;
 mod state_machine;
+mod status_code;
 
 pub use level::Level;
 pub use state_machine::{StateHandler, StateMachine};
+pub use status_code::StatusCode;
 
 #[cfg_attr(test, mockall::automock(type Item=u8;))]
 pub trait DataSink: Send + Sync + Sized {

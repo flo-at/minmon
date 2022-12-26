@@ -158,17 +158,8 @@ pub struct ActionLog {
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct ActionProcess {
-    pub path: std::path::PathBuf,
-    #[serde(default)]
-    pub arguments: Vec<String>,
-    #[serde(default)]
-    pub environment_variables: std::collections::HashMap<String, String>,
-    #[serde(default)]
-    pub working_directory: Option<String>,
-    #[serde(default)]
-    pub uid: Option<u32>,
-    #[serde(default)]
-    pub gid: Option<u32>,
+    #[serde(flatten)]
+    pub process_config: ProcessConfig,
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
@@ -215,6 +206,7 @@ pub enum CheckType {
     FilesystemUsage(CheckFilesystemUsage),
     MemoryUsage(CheckMemoryUsage),
     PressureAverage(CheckPressureAverage),
+    ProcessExitStatus(CheckProcessExitStatus),
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
@@ -259,6 +251,29 @@ pub enum PressureChoice {
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct CheckProcessExitStatus {
+    #[serde(flatten)]
+    pub process_config: ProcessConfig,
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ProcessConfig {
+    pub path: std::path::PathBuf,
+    #[serde(default)]
+    pub arguments: Vec<String>,
+    #[serde(default)]
+    pub environment_variables: std::collections::HashMap<String, String>,
+    #[serde(default)]
+    pub working_directory: Option<String>,
+    #[serde(default)]
+    pub uid: Option<u32>,
+    #[serde(default)]
+    pub gid: Option<u32>,
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
 pub struct Alarm {
     #[serde(default)]
     pub disable: bool,
@@ -291,13 +306,27 @@ pub struct Alarm {
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(untagged)]
 pub enum AlarmType {
+    Default(AlarmDefault),
+    StatusCode(AlarmStatusCode),
     Level(AlarmLevel),
 }
+
+// This is a dummy that is used if no alarm specific fields are found.
+// Works only for alarms with only optional/defaulted fields.
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct AlarmDefault {}
 
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct AlarmLevel {
     pub level: u8,
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct AlarmStatusCode {
+    pub status_codes: Vec<u8>,
 }
 
 mod default {

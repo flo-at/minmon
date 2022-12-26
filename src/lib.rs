@@ -6,6 +6,7 @@ mod action;
 mod alarm;
 mod check;
 pub mod config;
+mod process;
 mod report;
 pub mod uptime;
 

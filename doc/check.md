@@ -80,6 +80,32 @@ See the [kernel documentation](https://www.kernel.org/doc/html/latest/accounting
 ## Placeholders
 - `level`: Pressure average (in percent).
 
+# ProcessExitStatus
+Runs a process and checks its exit status code.
+
+## Check options
+| name | example | optional | default |
+|:---|:---|:---:|:---|
+| path | `/usr/bin/echo` | ❌ | |
+| arguments | `["-e", "Checking things.."]` | ✔ | |
+| environment_variables | `{"FOO": "BAR"}` | ✔ | |
+| working_directory | `/home/user/` | ✔ | inherited (\*) |
+| uid | `1000` | ✔ | inherited (*) |
+| gid | `1000` | ✔ | inherited (*) |
+
+(\*) Inherited from MinMon's process.
+
+## Alarm options
+| name | example | optional | default |
+|:---|:---|:---:|:---|
+| status_codes | `[1, 255]` | ✔ | `[0]` |
+
+## IDs
+Name of the file given by the path.
+
+## Placeholders
+- `status_code`: Process exit status code.
+
 ---
 
 # Alarm

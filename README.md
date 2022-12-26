@@ -18,6 +18,7 @@ Implemented are these checks:
 - [Filesystem usage](./doc/check.md#filesystemusage)
 - [Memory usage](./doc/check.md#memoryusage)
 - [Pressure average](./doc/check.md#pressureaverage)
+- [Process exit status](./doc/check.md#processexitstatus)
 
 See Roadmap for [further ideas](#check-ideas).
 

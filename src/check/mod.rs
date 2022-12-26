@@ -9,6 +9,7 @@ use async_trait::async_trait;
 mod filesystem_usage;
 mod memory_usage;
 mod pressure_average;
+mod process_exit_status;
 
 #[async_trait]
 pub trait Check: Send + Sync {
@@ -207,6 +208,10 @@ pub fn from_check_config(
         config::CheckType::PressureAverage(_) => {
             factory::<pressure_average::PressureAverage, alarm::Level>(check_config, actions)
         }
+        config::CheckType::ProcessExitStatus(_) => factory::<
+            process_exit_status::ProcessExitStatus,
+            alarm::StatusCode,
+        >(check_config, actions),
     }
     .map_err(|x| {
         Error(format!(
