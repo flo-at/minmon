@@ -216,7 +216,6 @@ For the docker image, optionally mount your lm_sensors config file(s) to `/etc/s
 - Folder size
 - S.M.A.R.T.
 - Load
-- Temperatures
 - Ping
 - HTTP response, keyword, ..
 - HTTPS certificate expiration date
