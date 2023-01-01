@@ -30,13 +30,23 @@ impl std::fmt::Display for Error {
 
 fn global_placeholders() -> PlaceholderMap {
     let mut res = PlaceholderMap::new();
+    let system_uptime = uptime::system();
+    let minmon_uptime = uptime::process();
     res.insert(
         String::from("system_uptime"),
-        uptime::system().as_secs().to_string(),
+        system_uptime.as_secs().to_string(),
+    );
+    res.insert(
+        String::from("system_uptime_iso"),
+        duration_iso8601(system_uptime),
     );
     res.insert(
         String::from("minmon_uptime"),
-        uptime::process().as_secs().to_string(),
+        minmon_uptime.as_secs().to_string(),
+    );
+    res.insert(
+        String::from("minmon_uptime_iso"),
+        duration_iso8601(minmon_uptime),
     );
     res
 }
@@ -57,9 +67,49 @@ fn fill_placeholders(template: &str, placeholders: &PlaceholderMap) -> String {
     )
 }
 
-fn iso8601(system_time: std::time::SystemTime) -> String {
+fn datetime_iso8601(system_time: std::time::SystemTime) -> String {
     let date_time: chrono::DateTime<chrono::Utc> = system_time.into();
     date_time.format("%FT%TZ").to_string()
+}
+
+// only up to "days" because the number of days in a month/year are not defined in the standard
+fn duration_iso8601(duration: std::time::Duration) -> String {
+    const SECONDS_PER_MINUTE: u64 = 60;
+    const MINUTES_PER_HOUR: u64 = 60;
+    const HOURS_PER_DAY: u64 = 24;
+    const SECONDS_PER_HOUR: u64 = SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
+    const SECONDS_PER_DAY: u64 = SECONDS_PER_HOUR * HOURS_PER_DAY;
+    let mut remainder = duration.as_secs();
+    if remainder == 0 {
+        return String::from("PT0S");
+    }
+    let mut res = String::new();
+    let days = remainder / SECONDS_PER_DAY;
+    if days > 0 {
+        res = format!("P{days}D");
+    }
+    remainder %= SECONDS_PER_DAY;
+    if remainder == 0 {
+        return res;
+    }
+    res.push('T');
+    let hours = remainder / SECONDS_PER_HOUR;
+    if hours > 0 {
+        res = format!("{res}{hours}H");
+    }
+    remainder %= SECONDS_PER_HOUR;
+    if remainder == 0 {
+        return res;
+    }
+    let minutes = remainder / SECONDS_PER_MINUTE;
+    if minutes > 0 {
+        res = format!("{res}{minutes}M");
+    }
+    remainder %= SECONDS_PER_MINUTE;
+    if remainder > 0 {
+        res = format!("{res}{remainder}S");
+    }
+    res
 }
 
 fn init_actions(config: &config::Config) -> Result<ActionMap> {
@@ -169,9 +219,19 @@ mod test {
     }
 
     #[test]
-    fn test_iso8601() {
+    fn test_datetime_iso8601() {
         let system_time = std::time::SystemTime::UNIX_EPOCH;
-        assert_eq!(iso8601(system_time), "1970-01-01T00:00:00Z");
+        assert_eq!(datetime_iso8601(system_time), "1970-01-01T00:00:00Z");
+    }
+
+    #[test]
+    fn test_duration_iso8601() {
+        let duration = std::time::Duration::from_secs(123630);
+        assert_eq!(duration_iso8601(duration), "P1DT10H20M30S");
+        let duration = std::time::Duration::from_secs(37230);
+        assert_eq!(duration_iso8601(duration), "T10H20M30S");
+        let duration = std::time::Duration::from_secs(0);
+        assert_eq!(duration_iso8601(duration), "PT0S");
     }
 
     #[test]

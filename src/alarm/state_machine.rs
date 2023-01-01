@@ -97,7 +97,7 @@ impl StateHandler for StateMachine {
                 placeholders.insert(String::from("alarm_state"), String::from("Bad"));
                 placeholders.insert(
                     String::from("alarm_timestamp"),
-                    crate::iso8601(bad.timestamp),
+                    crate::datetime_iso8601(bad.timestamp),
                 );
                 placeholders.insert(String::from("alarm_uuid"), bad.uuid.clone());
             }
@@ -108,7 +108,7 @@ impl StateHandler for StateMachine {
                     placeholders.insert(String::from("alarm_uuid"), last_alarm.uuid.clone());
                     placeholders.insert(
                         String::from("alarm_timestamp"),
-                        crate::iso8601(last_alarm.timestamp),
+                        crate::datetime_iso8601(last_alarm.timestamp),
                     );
                 } else {
                     panic!();
@@ -120,7 +120,7 @@ impl StateHandler for StateMachine {
                 placeholders.insert(String::from("error_uuid"), error.uuid.clone());
                 placeholders.insert(
                     String::from("error_timestamp"),
-                    crate::iso8601(error.timestamp),
+                    crate::datetime_iso8601(error.timestamp),
                 );
             }
         }

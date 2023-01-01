@@ -19,7 +19,9 @@ Actions control what happens when an alarm (check) or event (report) is triggere
 - `alarm_state`: Either `Good`, `Bad`, or `Error`.
 - `action_name`
 - `system_uptime`
+- `system_uptime_iso`
 - `minmon_uptime`
+- `minmon_uptime_iso`
 
 # Email
 Send an email.
