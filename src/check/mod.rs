@@ -36,6 +36,7 @@ where
 {
     interval: u32,
     name: String,
+    timeout: std::time::Duration,
     placeholders: PlaceholderMap,
     data_source: T,
     alarms: Vec<Vec<U>>,
@@ -49,6 +50,7 @@ where
     fn new(
         interval: u32,
         name: String,
+        timeout: std::time::Duration,
         placeholders: PlaceholderMap,
         data_source: T,
         alarms: Vec<Vec<U>>,
@@ -57,10 +59,13 @@ where
             Err(Error(String::from("'interval' cannot be 0.")))
         } else if name.is_empty() {
             Err(Error(String::from("'name' cannot be empty.")))
+        } else if timeout.is_zero() {
+            Err(Error(String::from("'timeout' cannot be 0.")))
         } else {
             Ok(Self {
                 interval,
                 name,
+                timeout,
                 placeholders,
                 data_source,
                 alarms,
@@ -80,7 +85,15 @@ where
         crate::merge_placeholders(&mut placeholders, &self.placeholders);
         placeholders.insert(String::from("check_name"), self.name.clone());
         let ids = self.data_source.ids();
-        let data_vec = self.data_source.get_data().await.unwrap_or_else(|x| {
+        let res = tokio::time::timeout(self.timeout, self.data_source.get_data()).await;
+        let data_vec = match res {
+            Ok(inner) => inner,
+            Err(_) => Err(Error(format!(
+                "Timed out after {} seconds.",
+                self.timeout.as_secs()
+            ))),
+        };
+        let data_vec = data_vec.unwrap_or_else(|x| {
             let mut res = Vec::new();
             for _ in 0..ids.len() {
                 res.push(Err(x.clone()))
@@ -189,6 +202,7 @@ where
     Ok(Box::new(CheckBase::new(
         check_config.interval,
         check_config.name.clone(),
+        std::time::Duration::from_secs(check_config.timeout as u64),
         check_config.placeholders.clone(),
         data_source,
         all_alarms,

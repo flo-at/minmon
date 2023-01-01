@@ -9,6 +9,7 @@ A single check can generate data for one or more "IDs", e.g. mountpoints. Each a
 | disable | `true` | ✔ | `false` |
 | interval | `60` | ✔ | `300` |
 | name | `Foobar` | ❌ | |
+| timeout | `1` | ✔ | `5` |
 | placeholders | `{"internal_check_id" = "id_foobar"}` | ✔ | |
 | type | `FilesystemUsage` | ❌ | |
 | alarms | List of [Alarm](#alarm) | ✔ | |

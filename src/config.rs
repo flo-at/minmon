@@ -192,6 +192,8 @@ pub struct Check {
     #[serde(default = "default::check_interval")]
     pub interval: u32,
     pub name: String,
+    #[serde(default = "default::check_timeout")]
+    pub timeout: u32,
     #[serde(default)]
     pub placeholders: PlaceholderMap,
     #[serde(flatten)]
@@ -386,6 +388,11 @@ mod default {
     pub const CHECK_ALARM_RECOVER_CYCLES: u32 = 1;
     pub fn check_alarm_recover_cycles() -> u32 {
         CHECK_ALARM_RECOVER_CYCLES
+    }
+
+    pub const CHECK_TIMEOUT: u32 = 5;
+    pub fn check_timeout() -> u32 {
+        CHECK_TIMEOUT
     }
 }
 
