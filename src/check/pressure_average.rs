@@ -81,7 +81,7 @@ impl PressureAverage {
 impl TryFrom<&config::Check> for PressureAverage {
     type Error = Error;
 
-    fn try_from(check: &config::Check) -> std::result::Result<Self, self::Error> {
+    fn try_from(check: &config::Check) -> std::result::Result<Self, Self::Error> {
         if let config::CheckType::PressureAverage(pressure) = &check.type_ {
             if !pressure.cpu
                 && pressure.io == config::PressureChoice::None
@@ -211,7 +211,7 @@ impl PressureFileContent {
 impl TryFrom<&str> for PressureFileContent {
     type Error = Error;
 
-    fn try_from(text: &str) -> std::result::Result<Self, self::Error> {
+    fn try_from(text: &str) -> std::result::Result<Self, Self::Error> {
         let mut some: Option<PressureFileLine> = None;
         let mut full: Option<PressureFileLine> = None;
         for line in text.lines() {
@@ -254,7 +254,7 @@ impl PressureFileLine {
 impl TryFrom<&str> for PressureFileLine {
     type Error = Error;
 
-    fn try_from(line: &str) -> std::result::Result<Self, self::Error> {
+    fn try_from(line: &str) -> std::result::Result<Self, Self::Error> {
         let mut parts = line.split_whitespace();
         let label = match parts.next() {
             Some("some") => Ok(PressureLabel::Some),

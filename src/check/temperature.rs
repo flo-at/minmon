@@ -88,7 +88,7 @@ impl TryFrom<&config::SensorsId> for SensorsId {
 impl TryFrom<&config::Check> for Temperature {
     type Error = Error;
 
-    fn try_from(check: &config::Check) -> std::result::Result<Self, self::Error> {
+    fn try_from(check: &config::Check) -> std::result::Result<Self, Self::Error> {
         if let config::CheckType::Temperature(temperature) = &check.type_ {
             let sensors = temperature
                 .sensors

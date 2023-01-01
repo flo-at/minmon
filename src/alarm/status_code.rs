@@ -10,7 +10,7 @@ pub struct StatusCode {
 impl TryFrom<&config::Alarm> for StatusCode {
     type Error = Error;
 
-    fn try_from(alarm: &config::Alarm) -> std::result::Result<Self, self::Error> {
+    fn try_from(alarm: &config::Alarm) -> std::result::Result<Self, Self::Error> {
         match &alarm.type_ {
             config::AlarmType::StatusCode(status_code) => Ok(Self {
                 status_codes: status_code.status_codes.clone(),

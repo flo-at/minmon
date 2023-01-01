@@ -10,7 +10,7 @@ pub struct Temperature {
 impl TryFrom<&config::Alarm> for Temperature {
     type Error = Error;
 
-    fn try_from(alarm: &config::Alarm) -> std::result::Result<Self, self::Error> {
+    fn try_from(alarm: &config::Alarm) -> std::result::Result<Self, Self::Error> {
         if let config::AlarmType::Temperature(temperature) = &alarm.type_ {
             if temperature.temperature < -273 {
                 Err(Error(String::from(

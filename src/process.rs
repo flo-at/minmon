@@ -73,7 +73,7 @@ impl ProcessConfig {
 impl TryFrom<&config::ProcessConfig> for ProcessConfig {
     type Error = Error;
 
-    fn try_from(process: &config::ProcessConfig) -> std::result::Result<Self, self::Error> {
+    fn try_from(process: &config::ProcessConfig) -> std::result::Result<Self, Self::Error> {
         if !process.path.is_file() {
             Err(Error(format!(
                 "'path' is not a file: {}.",

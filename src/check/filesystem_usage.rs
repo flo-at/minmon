@@ -10,7 +10,7 @@ pub struct FilesystemUsage {
 impl TryFrom<&config::Check> for FilesystemUsage {
     type Error = Error;
 
-    fn try_from(check: &config::Check) -> std::result::Result<Self, self::Error> {
+    fn try_from(check: &config::Check) -> std::result::Result<Self, Self::Error> {
         if let config::CheckType::FilesystemUsage(filesystem_usage) = &check.type_ {
             if filesystem_usage.mountpoints.iter().any(|x| x.is_empty()) {
                 Err(Error(String::from(

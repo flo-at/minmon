@@ -12,7 +12,7 @@ pub struct ProcessExitStatus {
 impl TryFrom<&config::Check> for ProcessExitStatus {
     type Error = Error;
 
-    fn try_from(check: &config::Check) -> std::result::Result<Self, self::Error> {
+    fn try_from(check: &config::Check) -> std::result::Result<Self, Self::Error> {
         if let config::CheckType::ProcessExitStatus(process_exit_status) = &check.type_ {
             let process_config = ProcessConfig::try_from(&process_exit_status.process_config)?;
             Ok(Self {

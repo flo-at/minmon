@@ -22,7 +22,7 @@ impl MemoryUsage {
 impl TryFrom<&config::Check> for MemoryUsage {
     type Error = Error;
 
-    fn try_from(check: &config::Check) -> std::result::Result<Self, self::Error> {
+    fn try_from(check: &config::Check) -> std::result::Result<Self, Self::Error> {
         if let config::CheckType::MemoryUsage(memory_usage) = &check.type_ {
             if !memory_usage.memory && !memory_usage.swap {
                 Err(Error(String::from(
