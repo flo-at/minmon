@@ -1,4 +1,6 @@
 use crate::action;
+use crate::filter;
+use crate::measurement;
 use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 
@@ -18,9 +20,9 @@ pub use status_code::StatusCode;
 #[cfg(feature = "sensors")]
 pub use temperature::Temperature;
 
-#[cfg_attr(test, mockall::automock(type Item=u8;))]
+#[cfg_attr(test, mockall::automock(type Item=measurement::Level;))]
 pub trait DataSink: Send + Sync + Sized {
-    type Item: Send + Sync;
+    type Item: Send + Sync + measurement::Measurement;
 
     fn put_data(&mut self, data: &Self::Item) -> Result<SinkDecision>;
     fn add_placeholders(data: &Self::Item, placeholders: &mut PlaceholderMap);
@@ -62,6 +64,7 @@ where
     id: String,
     action: std::sync::Arc<dyn action::Action>,
     placeholders: PlaceholderMap,
+    filter: Option<Box<dyn filter::Filter<T::Item>>>,
     recover_action: Option<std::sync::Arc<dyn action::Action>>,
     recover_placeholders: PlaceholderMap,
     error_action: Option<std::sync::Arc<dyn action::Action>>,
@@ -85,6 +88,7 @@ where
         id: String,
         action: std::sync::Arc<dyn action::Action>,
         placeholders: PlaceholderMap,
+        filter: Option<Box<dyn filter::Filter<T::Item>>>,
         recover_action: Option<std::sync::Arc<dyn action::Action>>,
         recover_placeholders: PlaceholderMap,
         error_action: Option<std::sync::Arc<dyn action::Action>>,
@@ -104,6 +108,7 @@ where
                 id,
                 action,
                 placeholders,
+                filter,
                 recover_action,
                 recover_placeholders,
                 error_action,
@@ -203,9 +208,14 @@ where
         data: &Self::Item,
         mut placeholders: PlaceholderMap,
     ) -> Result<()> {
-        T::add_placeholders(data, &mut placeholders);
+        let data = self
+            .filter
+            .as_mut()
+            .map(|x| x.filter(*data))
+            .unwrap_or(*data);
+        T::add_placeholders(&data, &mut placeholders);
         self.add_placeholders(&mut placeholders);
-        let mut decision = self.data_sink.put_data(data)?;
+        let mut decision = self.data_sink.put_data(&data)?;
         if self.invert {
             decision = !decision;
         }
@@ -220,6 +230,9 @@ where
 
     async fn put_error(&mut self, error: &Error, mut placeholders: PlaceholderMap) -> Result<()> {
         log::error!("{} got an error: {}", self.log_id, error);
+        if let Some(filter) = self.filter.as_mut() {
+            filter.error();
+        }
         self.add_placeholders(&mut placeholders);
         self.error(placeholders).await
     }
@@ -228,6 +241,7 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
+    use measurement::Measurement;
     use mockall::predicate::*;
 
     static SEMAPHORE: tokio::sync::Semaphore = tokio::sync::Semaphore::const_new(1);
@@ -245,11 +259,11 @@ mod test {
         let mut mock_data_sink = MockDataSink::new();
         mock_data_sink
             .expect_put_data()
-            .with(eq(10))
+            .with(eq(measurement::Level::new(10).unwrap()))
             .returning(|_| Ok(SinkDecision::Good));
         mock_data_sink
             .expect_put_data()
-            .with(eq(20))
+            .with(eq(measurement::Level::new(20).unwrap()))
             .returning(|_| Ok(SinkDecision::Bad));
         mock_data_sink
     }
@@ -258,11 +272,11 @@ mod test {
     async fn test_trigger_action() {
         let _permit = SEMAPHORE.acquire().await.unwrap();
         let data_sink_ctx = MockDataSink::add_placeholders_context();
-        data_sink_ctx
-            .expect()
-            .returning(|data: &u8, placeholders: &mut PlaceholderMap| {
+        data_sink_ctx.expect().returning(
+            |data: &measurement::Level, placeholders: &mut PlaceholderMap| {
                 placeholders.insert(String::from("data"), data.to_string());
-            });
+            },
+        );
         let mock_data_sink = mock_data_sink();
         let mut mock_action = action::MockAction::new();
         mock_action
@@ -273,7 +287,7 @@ mod test {
                 assert_eq!(placeholders.get("check_id").unwrap(), "ID");
                 assert_eq!(placeholders.get("Hello").unwrap(), "World");
                 assert_eq!(placeholders.get("Foo").unwrap(), "Bar");
-                assert_eq!(placeholders.get("data").unwrap(), "20");
+                assert_eq!(placeholders.get("data").unwrap(), "20%");
                 assert_eq!(placeholders.len(), 5);
                 true
             }))
@@ -296,6 +310,7 @@ mod test {
             String::from("ID"),
             std::sync::Arc::new(mock_action),
             PlaceholderMap::from([(String::from("Hello"), String::from("World"))]),
+            None,
             Some(times_action(0)),
             PlaceholderMap::new(),
             Some(times_action(0)),
@@ -310,7 +325,7 @@ mod test {
         .unwrap();
         alarm
             .put_data(
-                &20,
+                &measurement::Level::new(20).unwrap(),
                 PlaceholderMap::from([(String::from("Foo"), String::from("Bar"))]),
             )
             .await
@@ -321,11 +336,11 @@ mod test {
     async fn test_trigger_recover_action() {
         let _permit = SEMAPHORE.acquire().await.unwrap();
         let data_sink_ctx = MockDataSink::add_placeholders_context();
-        data_sink_ctx
-            .expect()
-            .returning(|data: &u8, placeholders: &mut PlaceholderMap| {
+        data_sink_ctx.expect().returning(
+            |data: &measurement::Level, placeholders: &mut PlaceholderMap| {
                 placeholders.insert(String::from("data"), data.to_string());
-            });
+            },
+        );
         let mock_data_sink = mock_data_sink();
         let mut mock_state_machine = state_machine::MockStateHandler::new();
         mock_state_machine
@@ -349,7 +364,7 @@ mod test {
                 assert_eq!(placeholders.get("check_id").unwrap(), "ID");
                 assert_eq!(placeholders.get("Hello").unwrap(), "World");
                 assert_eq!(placeholders.get("Foo").unwrap(), "Bar");
-                assert_eq!(placeholders.get("data").unwrap(), "10");
+                assert_eq!(placeholders.get("data").unwrap(), "10%");
                 assert_eq!(placeholders.len(), 5);
                 true
             }))
@@ -359,6 +374,7 @@ mod test {
             String::from("ID"),
             times_action(0),
             PlaceholderMap::new(),
+            None,
             Some(std::sync::Arc::new(mock_recover_action)),
             PlaceholderMap::from([(String::from("Hello"), String::from("World"))]),
             Some(times_action(0)),
@@ -373,7 +389,7 @@ mod test {
         .unwrap();
         alarm
             .put_data(
-                &10,
+                &measurement::Level::new(10).unwrap(),
                 PlaceholderMap::from([(String::from("Foo"), String::from("Bar"))]),
             )
             .await
@@ -412,6 +428,7 @@ mod test {
             String::from("ID"),
             times_action(0),
             PlaceholderMap::new(),
+            None,
             Some(times_action(0)),
             PlaceholderMap::new(),
             Some(std::sync::Arc::new(mock_error_action)),
@@ -437,15 +454,15 @@ mod test {
     async fn test_trigger_error_recover_action() {
         let _permit = SEMAPHORE.acquire().await.unwrap();
         let data_sink_ctx = MockDataSink::add_placeholders_context();
-        data_sink_ctx
-            .expect()
-            .returning(|data: &u8, placeholders: &mut PlaceholderMap| {
+        data_sink_ctx.expect().returning(
+            |data: &measurement::Level, placeholders: &mut PlaceholderMap| {
                 placeholders.insert(String::from("data"), data.to_string());
-            });
+            },
+        );
         let mut mock_data_sink = MockDataSink::new();
         mock_data_sink
             .expect_put_data()
-            .with(eq(10))
+            .with(eq(measurement::Level::new(10).unwrap()))
             .returning(|_| Ok(SinkDecision::Good));
         let mut mock_action = action::MockAction::new();
         mock_action.expect_trigger().never();
@@ -463,7 +480,7 @@ mod test {
                 assert_eq!(placeholders.get("check_id").unwrap(), "ID");
                 assert_eq!(placeholders.get("Hello").unwrap(), "World");
                 assert_eq!(placeholders.get("Foo").unwrap(), "Bar");
-                assert_eq!(placeholders.get("data").unwrap(), "10");
+                assert_eq!(placeholders.get("data").unwrap(), "10%");
                 assert_eq!(placeholders.len(), 5);
                 true
             }))
@@ -487,6 +504,7 @@ mod test {
             String::from("ID"),
             times_action(0),
             PlaceholderMap::new(),
+            None,
             Some(times_action(0)),
             PlaceholderMap::new(),
             Some(std::sync::Arc::new(mock_error_action)),
@@ -508,7 +526,7 @@ mod test {
             .unwrap();
         alarm
             .put_data(
-                &10,
+                &measurement::Level::new(10).unwrap(),
                 PlaceholderMap::from([(String::from("Foo"), String::from("Bar"))]),
             )
             .await
@@ -519,11 +537,11 @@ mod test {
     async fn test_invert() {
         let _permit = SEMAPHORE.acquire().await.unwrap();
         let data_sink_ctx = MockDataSink::add_placeholders_context();
-        data_sink_ctx
-            .expect()
-            .returning(|data: &u8, placeholders: &mut PlaceholderMap| {
+        data_sink_ctx.expect().returning(
+            |data: &measurement::Level, placeholders: &mut PlaceholderMap| {
                 placeholders.insert(String::from("data"), data.to_string());
-            });
+            },
+        );
         let mock_data_sink = mock_data_sink();
         let mut mock_state_machine = state_machine::MockStateHandler::new();
         mock_state_machine
@@ -543,6 +561,7 @@ mod test {
             String::from("ID"),
             times_action(1),
             PlaceholderMap::new(),
+            None,
             Some(times_action(0)),
             PlaceholderMap::new(),
             Some(times_action(0)),
@@ -555,9 +574,15 @@ mod test {
             String::from(""),
         )
         .unwrap();
-        alarm.put_data(&10, PlaceholderMap::new()).await.unwrap();
+        alarm
+            .put_data(&measurement::Level::new(10).unwrap(), PlaceholderMap::new())
+            .await
+            .unwrap();
         alarm.action = times_action(0);
         alarm.recover_action = Some(times_action(1));
-        alarm.put_data(&20, PlaceholderMap::new()).await.unwrap();
+        alarm
+            .put_data(&measurement::Level::new(20).unwrap(), PlaceholderMap::new())
+            .await
+            .unwrap();
     }
 }

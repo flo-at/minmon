@@ -9,6 +9,7 @@ Actions control what happens when an alarm (check) or event (report) is triggere
 | name | `"Foobar"` | ❌ | |
 | timeout | `3` | ✔ | `10` | ❌ |
 | placeholders | `{"internal_action_id" = "id_foobar"}` | ✔ | |
+| filter | `{type = "Average", window_size = 16 }` | ✔ | |
 | type | `"Email"` | ❌ | |
 
 ### disable
@@ -23,6 +24,9 @@ The maximum time in seconds an action may take to finish its execution before be
 
 ### placeholders
 Custom placeholders that will be merged with ones of the check/alarm.
+
+## filter
+[Filter](./filter.md) to transform the measurement data using a transformation function.
 
 ### type
 Type of the check as listed below.

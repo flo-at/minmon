@@ -186,6 +186,16 @@ Inside the action (depending on the type of the action) the placeholders can be 
 There are also some [generic placeholders](./doc/placeholders.md) that are always available.
 Placeholders that don't have a value available when the action is triggered will be replaced by an empty string.
 
+# Filters
+[Filters](./doc/filter.md) can be applied to transform the measurement data.
+This has different use cases. For example:
+- Compensate for fluctuations in the measurement.
+- Determine the total network traffic over a number of cycles.
+
+They can be configured for checks, in which case they affect all alarms that belong to the check, or alarms individually.
+Having both options reduces duplication in the config file in some cases.
+The check is the preferred place for filtering because it's only done once for all alarms which reduces memory and CPU usage.
+
 # Installation
 ## Docker image
 To pull the docker image use

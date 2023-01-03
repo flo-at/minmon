@@ -25,6 +25,9 @@ lettre = { version = "0.10", features = ["smtp-transport", "builder"], default-f
 sensors = { version = "0.2", optional = true }
 rand = "0.8"
 bollard = { version = "0.15.0", optional = true }
+dasp_ring_buffer = "0.11"
+num-bigint = "0.4"
+num-integer = "0.1"
 
 [dev-dependencies]
 mockall = "0.11"

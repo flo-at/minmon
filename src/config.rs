@@ -202,6 +202,8 @@ pub struct Check {
     pub timeout: Option<u32>,
     #[serde(default)]
     pub placeholders: PlaceholderMap,
+    #[serde(default)]
+    pub filter: Option<Filter>,
     #[serde(flatten)]
     pub type_: CheckType,
     #[serde(default)]
@@ -405,6 +407,41 @@ pub struct ProcessConfig {
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
+#[serde(tag = "type")]
+pub enum Filter {
+    Average(FilterAverage),
+    Peak(FilterPeak),
+    Sum(FilterSum),
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct FilterAverage {
+    #[serde(flatten)]
+    pub window_config: FilterWindowConfig,
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct FilterPeak {
+    #[serde(flatten)]
+    pub window_config: FilterWindowConfig,
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct FilterSum {
+    #[serde(flatten)]
+    pub window_config: FilterWindowConfig,
+}
+
+#[derive(Deserialize, PartialEq, Debug, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct FilterWindowConfig {
+    pub window_size: u16,
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
 pub struct Alarm {
     #[serde(default)]
     pub disable: bool,
@@ -412,6 +449,8 @@ pub struct Alarm {
     pub action: String,
     #[serde(default)]
     pub placeholders: PlaceholderMap,
+    #[serde(default)]
+    pub filter: Option<Filter>,
     #[serde(default = "default::check_alarm_cycles")]
     pub cycles: u32,
     #[serde(default)]

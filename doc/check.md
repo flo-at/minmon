@@ -11,6 +11,7 @@ Each alarm is instantiated for every ID.
 | name | `"Foobar"` | ❌ | |
 | timeout | `1` | ✔ | min(`5`, interval) |
 | placeholders | `{"internal_check_id" = "id_foobar"}` | ✔ | |
+| filter | `{type = "Average", window_size = 16 }` | ✔ | |
 | type | `"FilesystemUsage"` | ❌ | |
 | alarms | see below | ✔ | |
 
@@ -31,6 +32,9 @@ Has to be less or equal to the interval.
 
 ### placeholders
 Custom placeholders that will be merged with the ones of the alarms/actions.
+
+## filter
+[Filter](./filter.md) to transform the measurement data using a transformation function.
 
 ### type
 Type of the check as listed below.
@@ -72,6 +76,7 @@ Besides the generic options listed below, alarms have additional options that ar
 | name | `"Foobar"` | ❌ | |
 | action | `"FooAction"` | ❌ | |
 | placeholders | `{"internal_alarm_id" = "id_foobar"}` | ✔ | |
+| filter | `{type = "Average", window_size = 16 }` | ✔ | |
 | cycles | `3` | ✔ | `1` |
 | repeat_cycles | `100` | ✔ | |
 | recover_action | `"FooAction"` | ✔ | |
@@ -95,6 +100,9 @@ The name of the action to trigger when the state transitions from good to bad.
 
 ### placeholders
 Custom placeholders that will be merged with the ones of the check and the actions. This one is used for all actions.
+
+## filter
+Filter to transform the measurement using a transformation function.
 
 ### cycles
 Number of bad cycles it takes to transition from good to bad state.
