@@ -208,7 +208,8 @@ You can enable and start the service with `systemctl daemon-reload && systemctl 
 
 # lm_sensors integration (optional)
 Build with `--features sensors` to enable support for lm_sensors.\
-For the docker image, optionally mount your lm_sensors config file(s) to `/etc/sensors.d/`.
+For the docker image, optionally mount your lm_sensors config file(s) to `/etc/sensors.d/`.\
+Note: libsensors is not cooperative and might theoretically block the event loop.
 
 # Roadmap
 ## Check ideas
