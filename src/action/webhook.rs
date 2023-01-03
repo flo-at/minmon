@@ -19,15 +19,13 @@ impl Webhook {
         use std::str::FromStr;
         headers
             .iter()
-            .map(
-                |(k, v)| -> Result<(reqwest::header::HeaderName, reqwest::header::HeaderValue)> {
-                    let name = reqwest::header::HeaderName::from_str(k)
-                        .map_err(|x| Error(format!("Could not parse header name: {x}")))?;
-                    let value = reqwest::header::HeaderValue::from_str(v)
-                        .map_err(|x| Error(format!("Could not parse header value: {x}")))?;
-                    Ok((name, value))
-                },
-            )
+            .map(|(k, v)| {
+                let name = reqwest::header::HeaderName::from_str(k)
+                    .map_err(|x| Error(format!("Could not parse header name: {x}")))?;
+                let value = reqwest::header::HeaderValue::from_str(v)
+                    .map_err(|x| Error(format!("Could not parse header value: {x}")))?;
+                Ok((name, value))
+            })
             .collect()
     }
 }
