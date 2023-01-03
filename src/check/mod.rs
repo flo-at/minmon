@@ -2,6 +2,8 @@ use crate::action;
 use crate::alarm;
 use crate::alarm::{Alarm, AlarmBase, DataSink};
 use crate::config;
+use crate::filter;
+use crate::filter::FilterFactory;
 use crate::measurement;
 use crate::ActionMap;
 use crate::{Error, PlaceholderMap, Result};
@@ -46,6 +48,7 @@ where
     name: String,
     timeout: std::time::Duration,
     placeholders: PlaceholderMap,
+    filters: Option<Vec<Box<dyn filter::Filter<T::Item>>>>,
     data_source: T,
     alarms: Vec<Vec<U>>,
 }
@@ -60,6 +63,7 @@ where
         name: String,
         timeout: Option<std::time::Duration>,
         placeholders: PlaceholderMap,
+        filters: Option<Vec<Box<dyn filter::Filter<T::Item>>>>,
         data_source: T,
         alarms: Vec<Vec<U>>,
     ) -> Result<Self> {
@@ -84,6 +88,7 @@ where
                 name,
                 timeout,
                 placeholders,
+                filters,
                 data_source,
                 alarms,
             })
@@ -111,13 +116,27 @@ where
                 self.timeout.as_secs()
             ))),
         };
-        let data_vec = data_vec.unwrap_or_else(|x| {
+        let mut data_vec = data_vec.unwrap_or_else(|x| {
             let mut res = Vec::new();
             for _ in 0..ids.len() {
                 res.push(Err(x.clone()))
             }
             res
         });
+        if let Some(filters) = &mut self.filters {
+            data_vec = data_vec
+                .into_iter()
+                .zip(filters.iter_mut())
+                .map(|(data, filter)| match data {
+                    Ok(Some(data)) => Ok(Some(filter.filter(data))),
+                    Ok(None) => Ok(None),
+                    Err(x) => {
+                        filter.error();
+                        Err(x)
+                    }
+                })
+                .collect();
+        }
         for ((i, data), alarms) in data_vec.iter().enumerate().zip(self.alarms.iter_mut()) {
             match data {
                 Ok(data) => match data {
@@ -168,6 +187,7 @@ fn factory<'a, T, U>(check_config: &'a config::Check, actions: &ActionMap) -> Re
 where
     T: DataSource + TryFrom<&'a config::Check, Error = Error> + 'static,
     U: DataSink<Item = T::Item> + TryFrom<&'a config::Alarm, Error = Error> + 'static,
+    T::Item: filter::FilterFactory,
 {
     let data_source = T::try_from(check_config)?;
     let mut all_alarms: Vec<Vec<AlarmBase<U>>> = Vec::new();
@@ -211,6 +231,11 @@ where
                 id.clone(),
                 action::get_action(&alarm_config.action, actions)?,
                 alarm_config.placeholders.clone(),
+                check_config
+                    .filter
+                    .as_ref()
+                    .map(T::Item::factory)
+                    .transpose()?,
                 match &alarm_config.recover_action {
                     Some(action) => Some(action::get_action(action, actions)?),
                     None => None,
@@ -235,6 +260,15 @@ where
         }
         all_alarms.push(alarms);
     }
+    let filters = check_config
+        .filter
+        .as_ref()
+        .map(|x| {
+            (0..data_source.ids().len())
+                .map(|_| T::Item::factory(x))
+                .collect()
+        })
+        .transpose()?;
     Ok(Box::new(CheckBase::new(
         std::time::Duration::from_secs(check_config.interval.into()),
         check_config.name.clone(),
@@ -242,6 +276,7 @@ where
             .timeout
             .map(|x| std::time::Duration::from_secs(x.into())),
         check_config.placeholders.clone(),
+        filters,
         data_source,
         all_alarms,
     )?))

@@ -1,6 +1,6 @@
 use crate::{Error, Result};
 
-pub trait Measurement: std::fmt::Display + Copy + Clone + Default {
+pub trait Measurement: std::fmt::Display + std::fmt::Debug + Copy + Clone + Default {
     type Data: Copy + Clone + Default;
     const UNIT: &'static str;
 
@@ -21,7 +21,7 @@ macro_rules! impl_Display {
     };
 }
 
-#[derive(PartialEq, Eq, Copy, Clone, Default)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, Default)]
 pub struct BinaryState {
     data: bool,
 }
@@ -110,6 +110,15 @@ impl std::ops::Add for DataSize {
     }
 }
 
+impl std::iter::Sum<DataSize> for DataSize {
+    fn sum<I>(iter: I) -> Self
+    where
+        I: Iterator<Item = DataSize>,
+    {
+        iter.fold(Self::default(), |a, b| a + b)
+    }
+}
+
 impl std::ops::Sub for DataSize {
     type Output = Self;
 
@@ -120,7 +129,7 @@ impl std::ops::Sub for DataSize {
     }
 }
 
-#[derive(PartialEq, PartialOrd, Eq, Ord, Copy, Clone, Default)]
+#[derive(PartialEq, PartialOrd, Eq, Ord, Copy, Clone, Debug, Default)]
 pub struct Level {
     data: u8,
 }
@@ -144,7 +153,7 @@ impl Measurement for Level {
     }
 }
 
-#[derive(PartialEq, Eq, Copy, Clone, Default)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, Default)]
 pub struct StatusCode {
     data: u8,
 }
@@ -164,7 +173,7 @@ impl Measurement for StatusCode {
     }
 }
 
-#[derive(PartialEq, PartialOrd, Eq, Ord, Copy, Clone, Default)]
+#[derive(PartialEq, PartialOrd, Eq, Ord, Copy, Clone, Debug, Default)]
 pub struct Temperature {
     data: i16,
 }
