@@ -1,7 +1,8 @@
 use super::DataSource;
-use crate::config;
+use crate::{config, measurement};
 use crate::{Error, Result};
 use async_trait::async_trait;
+use measurement::Measurement;
 
 pub struct FilesystemUsage {
     mountpoints: Vec<String>,
@@ -29,7 +30,7 @@ impl TryFrom<&config::Check> for FilesystemUsage {
 
 #[async_trait]
 impl DataSource for FilesystemUsage {
-    type Item = u8;
+    type Item = measurement::Level;
 
     async fn get_data(&self) -> Result<Vec<Result<Self::Item>>> {
         let mut res = Vec::new();
@@ -38,7 +39,7 @@ impl DataSource for FilesystemUsage {
                 Err(err) => Err(Error(format!("Call to 'statvfs' failed: {err}"))),
                 Ok(stat) => {
                     let usage = (stat.blocks() - stat.blocks_available()) * 100 / stat.blocks();
-                    Ok(usage as u8)
+                    Self::Item::new(usage as u8)
                 }
             })
         }
@@ -46,7 +47,7 @@ impl DataSource for FilesystemUsage {
     }
 
     fn format_data(data: &Self::Item) -> String {
-        format!("usage level {data}%")
+        format!("usage level {data}")
     }
 
     fn ids(&self) -> &[String] {

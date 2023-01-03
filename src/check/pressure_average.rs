@@ -1,7 +1,10 @@
 use super::DataSource;
-use crate::config;
+use crate::{config, measurement};
 use crate::{Error, Result};
 use async_trait::async_trait;
+use measurement::Measurement;
+
+type Item = measurement::Level;
 
 const PRESSURE_CPU_PATH: &str = "/proc/pressure/cpu";
 const PRESSURE_IO_PATH: &str = "/proc/pressure/io";
@@ -20,19 +23,19 @@ pub struct PressureAverage {
 }
 
 impl PressureAverage {
-    fn add_data_from_line(&self, line: &PressureFileLine, res: &mut Vec<Result<u8>>) {
+    fn add_data_from_line(&self, line: &PressureFileLine, res: &mut Vec<Result<Item>>) {
         if self.avg10 {
-            res.push(Ok(line.avg10));
+            res.push(Item::new(line.avg10));
         }
         if self.avg60 {
-            res.push(Ok(line.avg60));
+            res.push(Item::new(line.avg60));
         }
         if self.avg300 {
-            res.push(Ok(line.avg300));
+            res.push(Item::new(line.avg300));
         }
     }
 
-    fn add_data_from_error(&self, error: &Error, res: &mut Vec<Result<u8>>) {
+    fn add_data_from_error(&self, error: &Error, res: &mut Vec<Result<Item>>) {
         if self.avg10 {
             res.push(Err(error.clone()));
         }
@@ -48,7 +51,7 @@ impl PressureAverage {
         &self,
         choice: config::PressureChoice,
         path: &str,
-        res: &mut Vec<Result<u8>>,
+        res: &mut Vec<Result<Item>>,
     ) {
         if choice != config::PressureChoice::None {
             match PressureFileContent::try_from_file(path).await {
@@ -167,7 +170,7 @@ impl TryFrom<&config::Check> for PressureAverage {
 
 #[async_trait]
 impl DataSource for PressureAverage {
-    type Item = u8;
+    type Item = Item;
 
     async fn get_data(&self) -> Result<Vec<Result<Self::Item>>> {
         let mut res = Vec::new();
@@ -186,7 +189,7 @@ impl DataSource for PressureAverage {
     }
 
     fn format_data(data: &Self::Item) -> String {
-        format!("pressure level {data}%")
+        format!("pressure level {data}")
     }
 
     fn ids(&self) -> &[String] {

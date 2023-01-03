@@ -1,8 +1,9 @@
 use super::DataSource;
-use crate::config;
 use crate::process::ProcessConfig;
+use crate::{config, measurement};
 use crate::{Error, Result};
 use async_trait::async_trait;
+use measurement::Measurement;
 
 pub struct ProcessExitStatus {
     id: Vec<String>,
@@ -27,11 +28,11 @@ impl TryFrom<&config::Check> for ProcessExitStatus {
 
 #[async_trait]
 impl DataSource for ProcessExitStatus {
-    type Item = u8;
+    type Item = measurement::StatusCode;
 
     async fn get_data(&self) -> Result<Vec<Result<Self::Item>>> {
         let (code, _) = self.process_config.run(None).await?;
-        Ok(vec![Ok(code)])
+        Ok(vec![Self::Item::new(code)])
     }
 
     fn format_data(data: &Self::Item) -> String {

@@ -1,7 +1,8 @@
 use super::DataSource;
-use crate::config;
+use crate::{config, measurement};
 use crate::{Error, Result};
 use async_trait::async_trait;
+use measurement::Measurement;
 
 const MEMINFO_PATH: &str = "/proc/meminfo";
 
@@ -50,7 +51,7 @@ impl TryFrom<&config::Check> for MemoryUsage {
 
 #[async_trait]
 impl DataSource for MemoryUsage {
-    type Item = u8;
+    type Item = measurement::Level;
 
     async fn get_data(&self) -> Result<Vec<Result<Self::Item>>> {
         let buffer = tokio::fs::read_to_string(MEMINFO_PATH)
@@ -90,16 +91,24 @@ impl DataSource for MemoryUsage {
         }
         let mut res = Vec::new();
         if self.memory {
-            res.push(mem_usage.ok_or_else(|| Error(String::from("Could not read memory usage."))));
+            res.push(
+                mem_usage
+                    .ok_or_else(|| Error(String::from("Could not read memory usage.")))
+                    .and_then(|x| Self::Item::new(x)),
+            );
         }
         if self.swap {
-            res.push(swap_usage.ok_or_else(|| Error(String::from("Could not read swap usage."))));
+            res.push(
+                swap_usage
+                    .ok_or_else(|| Error(String::from("Could not read swap usage.")))
+                    .and_then(|x| Self::Item::new(x)),
+            );
         }
         Ok(res)
     }
 
     fn format_data(data: &Self::Item) -> String {
-        format!("usage level {data}%")
+        format!("usage level {data}")
     }
 
     fn ids(&self) -> &[String] {

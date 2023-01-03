@@ -2,6 +2,7 @@ use crate::action;
 use crate::alarm;
 use crate::alarm::{Alarm, AlarmBase, DataSink};
 use crate::config;
+use crate::measurement;
 use crate::ActionMap;
 use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
@@ -22,7 +23,7 @@ pub trait Check: Send + Sync {
 
 #[async_trait]
 pub trait DataSource: Send + Sync {
-    type Item: Send + Sync;
+    type Item: Send + Sync + measurement::Measurement;
 
     async fn get_data(&self) -> Result<Vec<Result<Self::Item>>>;
     fn format_data(data: &Self::Item) -> String;

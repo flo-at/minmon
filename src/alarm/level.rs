@@ -1,10 +1,13 @@
-use crate::{Error, PlaceholderMap, Result};
+use crate::measurement::Measurement;
+use crate::{measurement, Error, PlaceholderMap, Result};
 
 use super::{DataSink, SinkDecision};
 use crate::config;
 
+type Item = measurement::Level;
+
 pub struct Level {
-    level: u8,
+    level: Item,
 }
 
 impl TryFrom<&config::Alarm> for Level {
@@ -12,11 +15,9 @@ impl TryFrom<&config::Alarm> for Level {
 
     fn try_from(alarm: &config::Alarm) -> std::result::Result<Self, Self::Error> {
         if let config::AlarmType::Level(level) = &alarm.type_ {
-            if level.level > 100 {
-                Err(Error(String::from("'level' cannot be greater than 100.")))
-            } else {
-                Ok(Self { level: level.level })
-            }
+            Ok(Self {
+                level: Item::new(level.level)?,
+            })
         } else {
             Err(Error(String::from("Expected level alarm config.")))
         }
@@ -24,7 +25,7 @@ impl TryFrom<&config::Alarm> for Level {
 }
 
 impl DataSink for Level {
-    type Item = u8;
+    type Item = Item;
 
     fn put_data(&mut self, data: &Self::Item) -> Result<SinkDecision> {
         Ok(if *data > self.level {

@@ -1,9 +1,10 @@
 use super::DataSource;
-use crate::config;
+use crate::measurement::Measurement;
+use crate::{config, measurement};
 use crate::{Error, Result};
 use async_trait::async_trait;
 
-type Item = i16;
+type Item = measurement::Temperature;
 
 pub struct Temperature {
     id: Vec<String>,
@@ -22,7 +23,7 @@ impl std::fmt::Display for SensorsId {
 }
 
 impl Temperature {
-    fn get_temperature(sensors_id: &SensorsId) -> Result<i16> {
+    fn get_temperature(sensors_id: &SensorsId) -> Result<Item> {
         let sensor = sensors::Sensors::new();
         // these unwraps cannot happen here as they are checked in try_from
         for chip in sensor.detected_chips(&sensors_id.sensor).unwrap() {
@@ -33,10 +34,12 @@ impl Temperature {
                 if let Some(subfeature) = feature.into_iter().find(|x| {
                     *x.subfeature_type() == sensors::SubfeatureType::SENSORS_SUBFEATURE_TEMP_INPUT
                 }) {
-                    return Ok(subfeature
-                        .get_value()
-                        .map_err(|x| Error(format!("Could not read temperature: {x}")))?
-                        as Item);
+                    return Item::new(
+                        subfeature
+                            .get_value()
+                            .map(|x| x as <Item as Measurement>::Data)
+                            .map_err(|x| Error(format!("Could not read temperature: {x}")))?,
+                    );
                 };
             }
         }
@@ -105,7 +108,7 @@ impl TryFrom<&config::Check> for Temperature {
 
 #[async_trait]
 impl DataSource for Temperature {
-    type Item = Item;
+    type Item = measurement::Temperature;
 
     async fn get_data(&self) -> Result<Vec<Result<Self::Item>>> {
         Ok(self
@@ -116,7 +119,7 @@ impl DataSource for Temperature {
     }
 
     fn format_data(data: &Self::Item) -> String {
-        format!("temperature {data}°C")
+        format!("temperature {data}")
     }
 
     fn ids(&self) -> &[String] {

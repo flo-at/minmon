@@ -1,10 +1,13 @@
-use crate::{Error, PlaceholderMap, Result};
+use crate::{measurement, Error, PlaceholderMap, Result};
 
 use super::{DataSink, SinkDecision};
 use crate::config;
+use crate::measurement::Measurement;
+
+type Item = measurement::Temperature;
 
 pub struct Temperature {
-    temperature: i16,
+    temperature: Item,
 }
 
 impl TryFrom<&config::Alarm> for Temperature {
@@ -12,15 +15,9 @@ impl TryFrom<&config::Alarm> for Temperature {
 
     fn try_from(alarm: &config::Alarm) -> std::result::Result<Self, Self::Error> {
         if let config::AlarmType::Temperature(temperature) = &alarm.type_ {
-            if temperature.temperature < -273 {
-                Err(Error(String::from(
-                    "'temperature' cannot be less than -273°C.",
-                )))
-            } else {
-                Ok(Self {
-                    temperature: temperature.temperature,
-                })
-            }
+            Ok(Self {
+                temperature: Item::new(temperature.temperature)?,
+            })
         } else {
             Err(Error(String::from("Expected temperature alarm config.")))
         }
@@ -28,7 +25,7 @@ impl TryFrom<&config::Alarm> for Temperature {
 }
 
 impl DataSink for Temperature {
-    type Item = i16;
+    type Item = Item;
 
     fn put_data(&mut self, data: &Self::Item) -> Result<SinkDecision> {
         Ok(if *data > self.temperature {
