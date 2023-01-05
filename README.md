@@ -19,6 +19,7 @@ Implemented are these checks:
 - [Memory usage](./doc/check.md#memoryusage)
 - [Pressure average](./doc/check.md#pressureaverage)
 - [Process exit status](./doc/check.md#processexitstatus)
+- [SystemdUnitStatus](./doc/check.md#systemdunitstatus)
 - [Temperature](./doc/check.md#temperature)
 
 See Roadmap for [further ideas](#check-ideas).
@@ -220,7 +221,6 @@ Note: libsensors is not cooperative and might theoretically block the event loop
 - Ping
 - HTTP response, keyword, ..
 - HTTPS certificate expiration date
-- systemd service status
 - Docker/Podman container status
 
 ## General ideas

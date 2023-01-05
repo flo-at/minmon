@@ -68,26 +68,41 @@ impl ProcessConfig {
             None => Err(Error(String::from("Process was terminated by a signal."))),
         }
     }
+
+    pub fn new(
+        path: std::path::PathBuf,
+        arguments: Vec<String>,
+        environment_variables: std::collections::HashMap<String, String>,
+        working_directory: Option<String>,
+        uid: Option<u32>,
+        gid: Option<u32>,
+    ) -> Result<Self> {
+        if !path.is_file() {
+            Err(Error(format!("'path' is not a file: {}.", path.display())))
+        } else {
+            Ok(Self {
+                path,
+                arguments,
+                environment_variables,
+                working_directory,
+                uid,
+                gid,
+            })
+        }
+    }
 }
 
 impl TryFrom<&config::ProcessConfig> for ProcessConfig {
     type Error = Error;
 
     fn try_from(process: &config::ProcessConfig) -> std::result::Result<Self, Self::Error> {
-        if !process.path.is_file() {
-            Err(Error(format!(
-                "'path' is not a file: {}.",
-                process.path.display()
-            )))
-        } else {
-            Ok(Self {
-                path: process.path.clone(),
-                arguments: process.arguments.clone(),
-                environment_variables: process.environment_variables.clone(),
-                working_directory: process.working_directory.clone(),
-                uid: process.uid,
-                gid: process.gid,
-            })
-        }
+        Self::new(
+            process.path.clone(),
+            process.arguments.clone(),
+            process.environment_variables.clone(),
+            process.working_directory.clone(),
+            process.uid,
+            process.gid,
+        )
     }
 }

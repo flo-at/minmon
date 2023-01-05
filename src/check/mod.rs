@@ -11,6 +11,7 @@ mod filesystem_usage;
 mod memory_usage;
 mod pressure_average;
 mod process_exit_status;
+mod systemd_unit_status;
 #[cfg(feature = "sensors")]
 mod temperature;
 
@@ -228,6 +229,10 @@ pub fn from_check_config(
         config::CheckType::ProcessExitStatus(_) => factory::<
             process_exit_status::ProcessExitStatus,
             alarm::StatusCode,
+        >(check_config, actions),
+        config::CheckType::SystemdUnitStatus(_) => factory::<
+            systemd_unit_status::SystemdUnitStatus,
+            alarm::BinaryState,
         >(check_config, actions),
         #[cfg(feature = "sensors")]
         config::CheckType::Temperature(_) => {

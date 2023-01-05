@@ -107,6 +107,24 @@ Name of the file given by the path.
 ## Placeholders
 - `status_code`: Process exit status code.
 
+# SystemdUnitStatus
+Checks whether a systemd unit is active or not.\
+The `uid` value is optional. If it is non-zero, `systemctl --user` will be run with the given UID.
+
+## Check options
+| name | example | optional | default |
+|:---|:---|:---:|:---|
+| units | `[{unit = "foo.service", uid = 1000}]` | ❌ | |
+
+## Alarm options
+None.
+
+## IDs
+Unit names with UIDs (if non-zero) (e.g. `foo.service[1000]`).
+
+## Placeholders
+- `state`: `true` if service is active else `false`.
+
 # Temperature
 Checks a temperature using lm_sensors.
 

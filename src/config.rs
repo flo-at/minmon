@@ -209,6 +209,7 @@ pub enum CheckType {
     MemoryUsage(CheckMemoryUsage),
     PressureAverage(CheckPressureAverage),
     ProcessExitStatus(CheckProcessExitStatus),
+    SystemdUnitStatus(CheckSystemdUnitStatus),
     #[cfg(feature = "sensors")]
     Temperature(CheckTemperature),
 }
@@ -252,6 +253,20 @@ pub enum PressureChoice {
     Some,
     Full,
     Both,
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct CheckSystemdUnitStatus {
+    pub units: Vec<SystemdUnitConfig>,
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct SystemdUnitConfig {
+    pub unit: String,
+    #[serde(default)]
+    pub uid: u32,
 }
 
 #[cfg(feature = "sensors")]

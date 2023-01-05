@@ -2,12 +2,14 @@ use crate::action;
 use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 
+mod binary_state;
 mod level;
 mod state_machine;
 mod status_code;
 #[cfg(feature = "sensors")]
 mod temperature;
 
+pub use binary_state::BinaryState;
 pub use level::Level;
 pub use state_machine::{StateHandler, StateMachine};
 pub use status_code::StatusCode;

@@ -21,6 +21,26 @@ macro_rules! impl_Display {
     };
 }
 
+#[derive(PartialEq, Eq, Copy, Clone, Default)]
+pub struct BinaryState {
+    data: bool,
+}
+
+impl_Display!(BinaryState);
+
+impl Measurement for BinaryState {
+    type Data = bool;
+    const UNIT: &'static str = "";
+
+    fn new(data: Self::Data) -> Result<Self> {
+        Ok(Self { data })
+    }
+
+    fn data(&self) -> Self::Data {
+        self.data
+    }
+}
+
 #[derive(PartialEq, PartialOrd, Eq, Ord, Copy, Clone, Default)]
 pub struct Level {
     data: u8,
