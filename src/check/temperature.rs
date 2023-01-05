@@ -84,7 +84,7 @@ impl TryFrom<&config::SensorsId> for SensorsId {
                 }
             }
         }
-        res.ok_or(Error(format!("Sensor '{sensors_id}' not found.")))
+        res.ok_or_else(|| Error(format!("Sensor '{sensors_id}' not found.")))
     }
 }
 

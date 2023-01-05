@@ -94,14 +94,14 @@ impl DataSource for MemoryUsage {
             res.push(
                 mem_usage
                     .ok_or_else(|| Error(String::from("Could not read memory usage.")))
-                    .and_then(|x| Self::Item::new(x)),
+                    .and_then(Self::Item::new),
             );
         }
         if self.swap {
             res.push(
                 swap_usage
                     .ok_or_else(|| Error(String::from("Could not read swap usage.")))
-                    .and_then(|x| Self::Item::new(x)),
+                    .and_then(Self::Item::new),
             );
         }
         Ok(res)
