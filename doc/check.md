@@ -116,7 +116,7 @@ Specifying the feature is optional as long as there is only one temperature feat
 
 | name | example | optional | default |
 |:---|:---|:---:|:---|
-| sensors | `[sensor = "acpitz-*", feature = "temp1"]` | ❌ | |
+| sensors | `[{sensor = "acpitz-*", feature = "temp1"}]` | ❌ | |
 
 ## Alarm options
 | name | example | optional | default |
@@ -124,7 +124,7 @@ Specifying the feature is optional as long as there is only one temperature feat
 | temperature | `80` | ❌ | |
 
 ## IDs
-Name of the sensor and feature as provided by lm_sensors (e.g. `acpitz-acpi-0/temp1).
+Names of the sensors and features as provided by lm_sensors (e.g. `acpitz-acpi-0/temp1).
 
 ## Placeholders
 - `temperature`: Measured temperature (in °C).
