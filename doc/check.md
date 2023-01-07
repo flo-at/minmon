@@ -114,7 +114,7 @@ The `uid` value is optional. If it is non-zero, `systemctl --user` will be run w
 ## Check options
 | name | example | optional | default |
 |:---|:---|:---:|:---|
-| units | `[{unit = "foo.service", uid = 1000}]` | ❌ | |
+| units | `["dbus.service", {unit = "foo.service", uid = 1000}]` | ❌ | |
 
 ## Alarm options
 None.

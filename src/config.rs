@@ -263,10 +263,34 @@ pub struct CheckSystemdUnitStatus {
 
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
-pub struct SystemdUnitConfig {
+#[serde(untagged)]
+pub enum SystemdUnitConfig {
+    System(String),
+    User(SystemdUnitConfigUser),
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct SystemdUnitConfigUser {
     pub unit: String,
     #[serde(default)]
     pub uid: u32,
+}
+
+impl SystemdUnitConfig {
+    pub fn unit(&self) -> &str {
+        match self {
+            SystemdUnitConfig::System(unit) => unit,
+            SystemdUnitConfig::User(config) => &config.unit,
+        }
+    }
+
+    pub fn uid(&self) -> u32 {
+        match self {
+            SystemdUnitConfig::System(_) => 0,
+            SystemdUnitConfig::User(config) => config.uid,
+        }
+    }
 }
 
 #[cfg(feature = "sensors")]

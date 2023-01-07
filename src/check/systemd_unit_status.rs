@@ -29,19 +29,19 @@ impl TryFrom<&config::Check> for SystemdUnitStatus {
             for unit in unit_status.units.iter() {
                 let mut arguments = Vec::new();
                 arguments.push(STATUS_ARG.into());
-                if unit.uid != 0 {
+                if unit.uid() != 0 {
                     arguments.push(USER_ARG.into());
-                    id.push(format!("{}[{}]", unit.unit, unit.uid));
+                    id.push(format!("{}[{}]", unit.unit(), unit.uid()));
                 } else {
-                    id.push(unit.unit.clone());
+                    id.push(unit.unit().to_string());
                 }
-                arguments.push(unit.unit.clone());
+                arguments.push(unit.unit().to_string());
                 process_configs.push(ProcessConfig::new(
                     SYSTEMCTL_BINARY.into(),
                     arguments,
                     std::collections::HashMap::new(),
                     None,
-                    match unit.uid {
+                    match unit.uid() {
                         0 => None,
                         uid => Some(uid),
                     },
