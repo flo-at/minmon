@@ -14,6 +14,7 @@ I wrote this because the [existing alternatives](./doc/existing-alternatives.md)
 # Checks
 The [checks](./doc/check.md) read the measurement values that will be monitored by MinMon.
 
+- [DockerContainerStatus](./doc/check/docker_container_status.md)
 - [FilesystemUsage](./doc/check/filesystem_usage.md)
 - [MemoryUsage](./doc/check/memory_usage.md)
 - [NetworkThroughput](./doc/check/network_throughput.md)
