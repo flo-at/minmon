@@ -130,11 +130,11 @@ Checks a temperature using lm_sensors.
 
 ## Check options
 Wildcards are allowed in the sensor name as long as only one sensor is matched.\
-Specifying the feature is optional as long as there is only one temperature feature in the sensor.
+Specifying the label is optional as long as there is only one temperature feature in the sensor.
 
 | name | example | optional | default |
 |:---|:---|:---:|:---|
-| sensors | `[{sensor = "acpitz-*", feature = "temp1"}]` | ❌ | |
+| sensors | `["acpitz-*", {sensor = "coretemp-*", label = "Core 0"}]` | ❌ | |
 
 ## Alarm options
 | name | example | optional | default |
@@ -142,7 +142,7 @@ Specifying the feature is optional as long as there is only one temperature feat
 | temperature | `80` | ❌ | |
 
 ## IDs
-Names of the sensors and features as provided by lm_sensors (e.g. `acpitz-acpi-0/temp1).
+Names of the sensors and labels as provided by lm_sensors (e.g. `acpitz-acpi-0[temp1]).
 
 ## Placeholders
 - `temperature`: Measured temperature (in °C).

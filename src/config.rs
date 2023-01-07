@@ -301,17 +301,41 @@ pub struct CheckTemperature {
 }
 
 #[derive(Deserialize, PartialEq, Debug, Clone)]
-pub struct SensorsId {
+#[serde(deny_unknown_fields)]
+#[serde(untagged)]
+pub enum SensorsId {
+    Sensor(String),
+    SensorWithLabel(SensorsIdLabel),
+}
+
+#[derive(Deserialize, PartialEq, Debug, Clone)]
+pub struct SensorsIdLabel {
     pub sensor: String,
-    pub feature: Option<String>,
+    pub label: String,
+}
+
+impl SensorsId {
+    pub fn sensor(&self) -> &str {
+        match self {
+            SensorsId::Sensor(sensor) => sensor,
+            SensorsId::SensorWithLabel(config) => &config.sensor,
+        }
+    }
+
+    pub fn label(&self) -> Option<&str> {
+        match self {
+            SensorsId::Sensor(_) => None,
+            SensorsId::SensorWithLabel(config) => Some(&config.label),
+        }
+    }
 }
 
 impl std::fmt::Display for SensorsId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if let Some(feature) = &self.feature {
-            return write!(f, "{}/{feature}", self.sensor);
+        match self {
+            SensorsId::Sensor(sensor) => write!(f, "{sensor}"),
+            SensorsId::SensorWithLabel(config) => write!(f, "{}[{}]", config.sensor, config.label),
         }
-        write!(f, "{}", self.sensor)
     }
 }
 

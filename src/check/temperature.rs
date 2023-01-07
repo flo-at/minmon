@@ -13,12 +13,12 @@ pub struct Temperature {
 
 struct SensorsId {
     pub sensor: String,
-    pub feature: String,
+    pub label: String,
 }
 
 impl std::fmt::Display for SensorsId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}/{}", self.sensor, self.feature)
+        write!(f, "{}[{}]", self.sensor, self.label)
     }
 }
 
@@ -29,7 +29,7 @@ impl Temperature {
         for chip in sensor.detected_chips(&sensors_id.sensor).unwrap() {
             if let Some(feature) = chip
                 .into_iter()
-                .find(|x| x.get_label().unwrap() == sensors_id.feature)
+                .find(|x| x.get_label().unwrap() == sensors_id.label)
             {
                 if let Some(subfeature) = feature.into_iter().find(|x| {
                     *x.subfeature_type() == sensors::SubfeatureType::SENSORS_SUBFEATURE_TEMP_INPUT
@@ -53,10 +53,10 @@ impl TryFrom<&config::SensorsId> for SensorsId {
     fn try_from(sensors_id: &config::SensorsId) -> std::result::Result<Self, Self::Error> {
         let mut res = None;
         let sensor = sensors::Sensors::new();
-        for chip in sensor.detected_chips(&sensors_id.sensor).map_err(|x| {
+        for chip in sensor.detected_chips(sensors_id.sensor()).map_err(|x| {
             Error(format!(
                 "Failed to parse sensor name '{}': {x}",
-                sensors_id.sensor
+                sensors_id.sensor()
             ))
         })? {
             // these unwraps cannot happen when using the iterator
@@ -66,7 +66,7 @@ impl TryFrom<&config::SensorsId> for SensorsId {
                 .filter(|x| *x.feature_type() == sensors::FeatureType::SENSORS_FEATURE_TEMP)
             {
                 let label = feature.get_label().unwrap();
-                if let Some(feature_label) = &sensors_id.feature {
+                if let Some(feature_label) = &sensors_id.label() {
                     if *feature_label != label {
                         continue;
                     }
@@ -79,7 +79,7 @@ impl TryFrom<&config::SensorsId> for SensorsId {
                     }
                     res = Some(Self {
                         sensor: chip_name.clone(),
-                        feature: label.clone(),
+                        label: label.clone(),
                     });
                 }
             }
