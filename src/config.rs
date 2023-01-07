@@ -210,6 +210,8 @@ pub struct Check {
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(tag = "type")]
 pub enum CheckType {
+    #[cfg(feature = "docker")]
+    DockerContainerStatus(CheckDockerContainerStatus),
     FilesystemUsage(CheckFilesystemUsage),
     MemoryUsage(CheckMemoryUsage),
     NetworkThroughput(CheckNetworkThroughput),
@@ -218,6 +220,15 @@ pub enum CheckType {
     SystemdUnitStatus(CheckSystemdUnitStatus),
     #[cfg(feature = "sensors")]
     Temperature(CheckTemperature),
+}
+
+#[cfg(feature = "docker")]
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct CheckDockerContainerStatus {
+    #[serde(default = "default::docker_socket_path")]
+    pub socket_path: String,
+    pub containers: Vec<String>,
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
@@ -522,6 +533,11 @@ pub mod default {
     pub const CHECK_TIMEOUT: u32 = 5;
     pub fn check_timeout() -> u32 {
         CHECK_TIMEOUT
+    }
+
+    pub const DOCKER_SOCKET_PATH: &str = "/var/run/docker.sock";
+    pub fn docker_socket_path() -> String {
+        DOCKER_SOCKET_PATH.into()
     }
 }
 

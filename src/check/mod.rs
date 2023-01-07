@@ -7,6 +7,8 @@ use crate::ActionMap;
 use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 
+#[cfg(feature = "docker")]
+mod docker_container_status;
 mod filesystem_usage;
 mod memory_usage;
 mod network_throughput;
@@ -247,6 +249,11 @@ pub fn from_check_config(
 ) -> Result<Box<dyn Check>> {
     match &check_config.type_ {
         // NOTE Add mapping here when implementing new data source / alarms.
+        #[cfg(feature = "docker")]
+        config::CheckType::DockerContainerStatus(_) => factory::<
+            docker_container_status::DockerContainerStatus,
+            alarm::BinaryState,
+        >(check_config, actions),
         config::CheckType::FilesystemUsage(_) => {
             factory::<filesystem_usage::FilesystemUsage, alarm::Level>(check_config, actions)
         }

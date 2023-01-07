@@ -37,6 +37,7 @@ Type of the check as listed below.
 This determines which specific check and alarm options are available.
 
 One of:
+- [DockerContainerStatus](./check/docker_container_status.md)
 - [FilesystemUsage](./check/filesystem_usage.md)
 - [MemoryUsage](./check/memory_usage.md)
 - [NetworkThroughput](./check/network_throughput.md)
