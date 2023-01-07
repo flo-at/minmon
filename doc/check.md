@@ -14,6 +14,24 @@ A single check can generate data for one or more "IDs", e.g. mountpoints. Each a
 | type | `FilesystemUsage` | ❌ | |
 | alarms | List of [Alarm](#alarm) | ✔ | |
 
+# DockerContainerStatus
+Checks whether a docker container is running (and healthy).
+
+## Check options
+| name | example | optional | default |
+|:---|:---|:---:|:---|
+| socket_path | `/srv/docker.sock` | ✔ | `/var/run/docker.sock` |
+| containers | `["foo", "bar"]` | ❌ | |
+
+## Alarm options
+None.
+
+## IDs
+Container names.
+
+## Placeholders
+- `state`: `true` if container is running (and healthy) else `false`.
+
 # FilesystemUsage
 Reads the filesystem usage of the given mountpoints.
 This check reads the "available blocks" (not "free blocks") i.e. blocks available to unprivileged users.
