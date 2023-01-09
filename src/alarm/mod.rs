@@ -75,6 +75,7 @@ where
     T: DataSink,
     U: StateHandler,
 {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         name: String,
         id: String,
