@@ -155,7 +155,14 @@ where
     let mut all_alarms: Vec<Vec<AlarmBase<U>>> = Vec::new();
     for (i, id) in data_source.ids().iter().enumerate() {
         let mut alarms: Vec<AlarmBase<U>> = Vec::new();
+        let mut used_names = std::collections::HashSet::new();
         for alarm_config in check_config.alarms.iter() {
+            if !used_names.insert(alarm_config.name.clone()) {
+                return Err(Error(format!(
+                    "Found duplicate alarm name '{}' for check '{}'.",
+                    alarm_config.name, check_config.name
+                )));
+            }
             let alarm_log_id = format!(
                 "Alarm '{}', id '{}' from check '{}'",
                 alarm_config.name, id, check_config.name
