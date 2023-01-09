@@ -63,6 +63,10 @@ where
             Err(Error(String::from("'name' cannot be empty.")))
         } else if timeout.is_zero() {
             Err(Error(String::from("'timeout' cannot be 0.")))
+        } else if timeout > interval {
+            Err(Error(String::from(
+                "'timeout' cannot be greater than 'interval'.",
+            )))
         } else {
             Ok(Self {
                 interval,
