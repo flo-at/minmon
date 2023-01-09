@@ -171,9 +171,9 @@ fn init_checks(config: &config::Config, actions: &ActionMap) -> Result<Vec<Box<d
     Ok(res)
 }
 
-pub fn from_config(
-    config: &config::Config,
-) -> Result<(Option<report::Report>, Vec<Box<dyn check::Check>>)> {
+type ConfigState = (Option<report::Report>, Vec<Box<dyn check::Check>>);
+
+pub fn from_config(config: &config::Config) -> Result<ConfigState> {
     let actions = init_actions(config)?;
     let report = init_report(config, &actions)?;
     let checks = init_checks(config, &actions)?;
