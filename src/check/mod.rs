@@ -36,7 +36,7 @@ where
     T: DataSource,
     U: Alarm,
 {
-    interval: u32,
+    interval: std::time::Duration,
     name: String,
     timeout: std::time::Duration,
     placeholders: PlaceholderMap,
@@ -50,14 +50,14 @@ where
     U: Alarm<Item = T::Item>,
 {
     fn new(
-        interval: u32,
+        interval: std::time::Duration,
         name: String,
         timeout: std::time::Duration,
         placeholders: PlaceholderMap,
         data_source: T,
         alarms: Vec<Vec<U>>,
     ) -> Result<Self> {
-        if interval == 0 {
+        if interval.is_zero() {
             Err(Error(String::from("'interval' cannot be 0.")))
         } else if name.is_empty() {
             Err(Error(String::from("'name' cannot be empty.")))
@@ -134,7 +134,7 @@ where
     }
 
     fn interval(&self) -> std::time::Duration {
-        std::time::Duration::from_secs(self.interval.into())
+        self.interval
     }
 
     fn name(&self) -> &str {
@@ -202,9 +202,9 @@ where
         all_alarms.push(alarms);
     }
     Ok(Box::new(CheckBase::new(
-        check_config.interval,
+        std::time::Duration::from_secs(check_config.interval.into()),
         check_config.name.clone(),
-        std::time::Duration::from_secs(check_config.timeout as u64),
+        std::time::Duration::from_secs(check_config.timeout.into()),
         check_config.placeholders.clone(),
         data_source,
         all_alarms,
