@@ -1,76 +1,40 @@
 # Action
+Besides the generic options listed below, actions have additional options that are specific to their type.
 Actions control what happens when an alarm (check) or event (report) is triggered.
 
 ## Generic options
 | name | example | optional | default |
 |:---|:---|:---:|:---|
 | disable | `true` | ✔ | `false` |
-| name | `Foobar` | ❌ | |
+| name | `"Foobar"` | ❌ | |
 | timeout | `3` | ✔ | `10` | ❌ |
 | placeholders | `{"internal_action_id" = "id_foobar"}` | ✔ | |
-| type | `Email` | ❌ | |
+| type | `"Email"` | ❌ | |
 
-### Generic placeholders
-- `check_name`
-- `check_id`
-- `alarm_name`
-- `alarm_uuid`
-- `alarm_timestamp`
-- `alarm_state`: Either `Good`, `Bad`, or `Error`.
-- `action_name`
-- `system_uptime`
-- `system_uptime_iso`
-- `minmon_uptime`
-- `minmon_uptime_iso`
+### disable
+If `true`, the action is disabled and will not be triggered.
 
-# Email
-Send an email.
+### name
+The name of the action. It is used for logging and the `action_name` placeholder.
+Must be unique.
 
-## Options
-| name | example | optional | default | placeholders |
-|:---|:---|:---:|:---|:---:|
-| from | `foo@example.com` | ❌ | | ❌ |
-| to | `bar@example.com` | ❌ | | ❌ |
-| reply_to | `noreply@example.com` | ✔ | | ❌ |
-| subject | `Alarm from check '{{check_name}}'!` | ❌ | | ✔ |
-| body | `Check '{{check_name}}' is not happy!` | ❌ | | ✔ |
-| smtp_server | `smtp.example.com` | ❌ | | ❌ |
-| smtp_port | `587` | ✔ | auto | ❌ |
-| smtp_security | `TLS`, `STARTTLS`, `Plain` | ✔ | `TLS` | ❌ |
-| username | `johndoe` | ❌ | | ❌ |
-| password | `topsecret` | ❌ | | ❌ |
+### timeout
+The maximum time in seconds an action may take to finish its execution before being interrupted.
 
-# Log
-Write a line to the log (as configured in the `[log]` section of the config file).
+### placeholders
+Custom placeholders that will be merged with ones of the check/alarm.
 
-## Options
-| name | example | optional | default | placeholders |
-|:---|:---|:---:|:---|:---:|
-| level | `Debug`, `Info`, `Warning`, `Error` | ✔ | `Info` | ❌ |
-| template | `Alarm '{{alarm_name}}' was triggered.` | ❌ | | ✔ |
+### type
+Type of the check as listed below.
+This determines which specific check and alarm options are available.
 
-# Process
-Call a process.
+One of:
+- [Email](./action/email.md)
+- [Log](./action/log.md)
+- [Process](./action/process.md)
+- [Webhook](./action/webhook.md)
 
-## Options
-| name | example | optional | default | placeholders |
-|:---|:---|:---:|:---|:---:|
-| path | `/usr/bin/echo` | ❌ | | ❌ |
-| arguments | `["-e", "Alarm '{{alarm_name}}' was triggered."]` | ✔ | | ✔ |
-| environment_variables | `{"ALARM_NAME": "{{alarm_name}}"}` | ✔ | | ✔ |
-| working_directory | `/home/user/` | ✔ | inherited (\*) | ❌ |
-| uid | `1000` | ✔ | inherited (*) | ❌ |
-| gid | `1000` | ✔ | inherited (*) | ❌ |
+## Generic placeholders (for all action types)
 
-(\*) Inherited from MinMon's process.
-
-# Webhook
-Trigger a Webhook.
-
-## Options
-| name | example | optional | default | placeholders |
-|:---|:---|:---:|:---|:---:|
-| url | `http://example.com/webhook?alarm={{alarm_name}}` | ❌ | | ✔ |
-| method | `GET`, `POST`, `PUT`, `DELETE`, `PATCH` | ✔ | `POST` | ❌ |
-| headers | `{"Content-Type" = "application/json"}` | ✔ | | ❌ |
-| body | `{"text": "Triggered from check '{{check_name}}'."}`  | ✔ | | ✔ |
+### action_name
+Name of the action that was triggered.

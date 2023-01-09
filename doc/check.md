@@ -1,169 +1,145 @@
 # Check
-Besides the generic options, each check has alarms attached to it.
-Some of the type-specific options go into the check's section, some into the sections of the alarms - as listed below.
-A single check can generate data for one or more "IDs", e.g. mountpoints. Each alarm is instantiated for every ID.
+Besides the generic options listed below, checks have additional options that are specific to their type.
+A single check can generate data for one or more "IDs", e.g. mountpoints, temperature sensors, and so on.
+Each alarm is instantiated for every ID.
 
-## Generic options
+## Generic options (for all check types)
 | name | example | optional | default |
 |:---|:---|:---:|:---|
 | disable | `true` | ✔ | `false` |
 | interval | `60` | ✔ | `300` |
-| name | `Foobar` | ❌ | |
-| timeout | `1` | ✔ | `5` |
+| name | `"Foobar"` | ❌ | |
+| timeout | `1` | ✔ | min(`5`, interval) |
 | placeholders | `{"internal_check_id" = "id_foobar"}` | ✔ | |
-| type | `FilesystemUsage` | ❌ | |
-| alarms | List of [Alarm](#alarm) | ✔ | |
+| type | `"FilesystemUsage"` | ❌ | |
+| alarms | see below | ✔ | |
 
-# FilesystemUsage
-Reads the filesystem usage of the given mountpoints.
-This check reads the "available blocks" (not "free blocks") i.e. blocks available to unprivileged users.
+### disable
+If `true`, the check is disabled and will not be instantiated.
 
-## Check options
-| name | example | optional | default |
-|:---|:---|:---:|:---|
-| mountpoints | `["/srv", "/home"]` | ❌ | | |
+### interval
+The time between two consecutive checks in seconds.
+Has to be greater or equal to the timeout.
 
-## Alarm options
-| name | example | optional | default |
-|:---|:---|:---:|:---|
-| level | `75` | ❌ | |
+### name
+The name of the check. It is used for logging and the `check_name` placeholder.
+Must be unique.
 
-## IDs
-Equivalent to the "mountpoints" config option.
+### timeout
+The maximum time in seconds a check may take to return its measurement data before being interrupted.
+Has to be less or equal to the interval.
 
-## Placeholders
-- `level`: Filesystem space usage (in percent).
+### placeholders
+Custom placeholders that will be merged with ones of the alarms/actions.
 
-# MemoryUsage
-Reads the system memory (physical RAM) and swap file usage.
+### type
+Type of the check as listed below.
+This determines which specific check and alarm options are available.
 
-## Check options
-| name | example | optional | default |
-|:---|:---|:---:|:---|
-| memory | `true` | ✔ | `false` | |
-| swap | `true` | ✔ | `false` | |
+One of:
+- [FilesystemUsage](./check/filesystem_usage.md)
+- [MemoryUsage](./check/memory_usage.md)
+- [PressureAverage](./check/pressure_average.md)
+- [ProcessExitStatus](./check/process_exit_status.md)
+- [SystemdUnitStatus](./check/systemd_unit_status.md)
+- [Temperature](./check/temperature.md)
 
-## Alarm options
-| name | example | optional | default |
-|:---|:---|:---:|:---|
-| level | `75` | ❌ | |
+### alarm
+List of [alarms](#alarm).
 
-## IDs
-- `Memory`
-- `Swap`
+## Generic placeholders (for all check types)
 
-## Placeholders
-- `level`: Memory space usage (in percent).
+### check_name
+Name of the check that triggered the alarm.
 
-# PressureAverage
-Reads the average values from the Linux kernel's Pressure Stall Information (PSI).
-See the [kernel documentation](https://www.kernel.org/doc/html/latest/accounting/psi.html) for more information.
+### check_id
+ID of the check that triggered the alarm.
 
-## Check options
-| name | example | optional | default |
-|:---|:---|:---:|:---|
-| cpu | `true` | ✔ | `false` | |
-| io | `None`, `Some`, `Full`, `Both` | ✔ | `None` | |
-| memory | `None`, `Some`, `Full`, `Both` | ✔ | `None` | |
-| avg10 | `true` | ✔ | `false` | |
-| avg60 | `true` | ✔ | `false` | |
-| avg300 | `true` | ✔ | `false` | |
-
-## Alarm options
-| name | example | optional | default |
-|:---|:---|:---:|:---|
-| level | `75` | ❌ | | |
-
-## IDs
-- All combinations of `cpu/{avg10,avg60,avg300}`
-- All combinations of `{io,memory}/{some,full}/{avg10,avg60,avg300}`
-
-## Placeholders
-- `level`: Pressure average (in percent).
-
-# ProcessExitStatus
-Runs a process and checks its exit status code.
-
-## Check options
-| name | example | optional | default |
-|:---|:---|:---:|:---|
-| path | `/usr/bin/echo` | ❌ | |
-| arguments | `["-e", "Checking things.."]` | ✔ | |
-| environment_variables | `{"FOO": "BAR"}` | ✔ | |
-| working_directory | `/home/user/` | ✔ | inherited (\*) |
-| uid | `1000` | ✔ | inherited (*) |
-| gid | `1000` | ✔ | inherited (*) |
-
-(\*) Inherited from MinMon's process.
-
-## Alarm options
-| name | example | optional | default |
-|:---|:---|:---:|:---|
-| status_codes | `[1, 255]` | ✔ | `[0]` |
-
-## IDs
-Name of the file given by the path.
-
-## Placeholders
-- `status_code`: Process exit status code.
-
-# SystemdUnitStatus
-Checks whether a systemd unit is active or not.\
-The `uid` value is optional. If it is non-zero, `systemctl --user` will be run with the given UID.
-
-## Check options
-| name | example | optional | default |
-|:---|:---|:---:|:---|
-| units | `["dbus.service", {unit = "foo.service", uid = 1000}]` | ❌ | |
-
-## Alarm options
-None.
-
-## IDs
-Unit names with UIDs (if non-zero) (e.g. `foo.service[1000]`).
-
-## Placeholders
-- `state`: `true` if service is active else `false`.
-
-# Temperature
-Checks a temperature using lm_sensors.
-
-## Check options
-Wildcards are allowed in the sensor name as long as only one sensor is matched.\
-Specifying the label is optional as long as there is only one temperature feature in the sensor.
-
-| name | example | optional | default |
-|:---|:---|:---:|:---|
-| sensors | `["acpitz-*", {sensor = "coretemp-*", label = "Core 0"}]` | ❌ | |
-
-## Alarm options
-| name | example | optional | default |
-|:---|:---|:---:|:---|
-| temperature | `80` | ❌ | |
-
-## IDs
-Names of the sensors and labels as provided by lm_sensors (e.g. `acpitz-acpi-0[temp1]).
-
-## Placeholders
-- `temperature`: Measured temperature (in °C).
+### check_error
+Error while getting the measurement data, if any.
 
 ---
 
 # Alarm
+Besides the generic options listed below, alarms have additional options that are specific to check's type.
 
-## Generic options
+## Generic options (for all alarm types)
 | name | example | optional | default |
 |:---|:---|:---:|:---|
 | disable | `true` | ✔ | `false` |
-| name | `Foobar` | ❌ | |
-| action | `FooAction` | ❌ | |
+| name | `"Fooba"r` | ❌ | |
+| action | `"FooAction"` | ❌ | |
 | placeholders | `{"internal_alarm_id" = "id_foobar"}` | ✔ | |
 | cycles | `3` | ❌ | `1` |
 | repeat_cycles | `100` | ✔ | |
-| recover_action | `FooAction` | ✔ | |
+| recover_action | `"FooAction"` | ✔ | |
 | recover_placeholders | `{"internal_alarm_id" = "id_foobar"}` | ✔ | |
 | recover_cycles | `3` | ✔ | `1` |
-| error_action | `FooAction` | ✔ | |
+| error_action | `"FooAction"` | ✔ | |
 | error_placeholders | `{"internal_alarm_id" = "id_foobar"}` | ✔ | |
 | error_repeat_cycles | `100` | ✔ | |
 | invert | `true` | ✔ | `false` |
+
+### disable
+If `true`, the alarm is disabled and will not be instantiated.
+
+### name
+The name of the alarm. It is used for logging and the `alarm_name` placeholder. Must be unique for the check.
+
+### action
+The name of the action to trigger when the state transitions from good to bad.
+
+### placeholders
+Custom placeholders that will be merged with ones of the check and the actions. This one is used for all actions.
+
+### cycles
+Number of bad cycles it takes to transition from good to bad state.
+Must be at least 1.
+
+### repeat_cycles
+If this is non-zero, the action is triggered repeatedly every `repeat_cycles` cycles while in the bad state.
+If it is zero, the action is only triggered once when the state transitions from good to bad.
+
+### recover_action
+The name of the action to trigger when the state transitions from bad to good.
+
+### recover_placeholders
+Custom placeholders that will be merged with ones of the check and the actions. This one is used for only for the `recover_action`.
+
+### recover_cycles
+Number of good cycles it takes to transition from bad to good state.
+Must be at least 1.
+
+### error_action
+The name of the action to trigger when the state transitions from good or bad to error.
+
+### error_placeholders
+Custom placeholders that will be merged with ones of the check and the actions. This one is used for only for the `error_action`.
+
+### error_repeat_cycles
+If this is non-zero, the action is triggered repeatedly every `error_repeat_cycles` cycles while in the error state.
+If it is zero, the action is only triggered once when the state transitions from good or bad to error.
+
+### invert
+If `true`, inverts the decision based on the check's measurement data. E.g. the FilesystemUsage check may be used to check if there is **less (or equal)** than 20% of the space used **instead of more** than that.
+
+## Generic placeholders (for all alarm types)
+
+### alarm_name
+Name of the alarm that triggered the action.
+
+### alarm_uuid
+UUID of the alarm state.
+This does not change until the alarm state changes.
+You can use this to track an alarm across repeated actions.
+
+### alarm_timestamp
+ISO8601 timestamp of the alarm's state change event.
+
+### alarm_state
+Current state of the alarm.
+
+One of:
+- `Good`
+- `Bad`
+- `Error`
