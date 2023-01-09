@@ -12,23 +12,22 @@ I wrote this because the [existing alternatives](./doc/existing-alternatives.md)
 [![License](https://img.shields.io/github/license/flo-at/minmon)](./LICENSE)
 
 # Checks
+The [checks](./doc/check.md) read the measurement values that will be monitored by MinMon.
 
-Implemented are these checks:
-
-- [Filesystem usage](./doc/check.md#filesystemusage)
-- [Memory usage](./doc/check.md#memoryusage)
-- [Pressure average](./doc/check.md#pressureaverage)
-- [Process exit status](./doc/check.md#processexitstatus)
-- [SystemdUnitStatus](./doc/check.md#systemdunitstatus)
-- [Temperature](./doc/check.md#temperature)
-
-See Roadmap for [further ideas](#check-ideas).
+- [FilesystemUsage](./doc/check/filesystem_usage.md)
+- [MemoryUsage](./doc/check/memory_usage.md)
+- [PressureAverage](./doc/check/pressure_average.md)
+- [ProcessExitStatus](./doc/check/process_exit_status.md)
+- [SystemdUnitStatus](./doc/check/systemd_unit_status.md)
+- [Temperature](./doc/check/temperature.md)
 
 # Actions
-- [Email](./doc/action.md#email)
-- [Log](./doc/action.md#log)
-- [Process](./doc/action.md#process)
-- [Webhook](./doc/action.md#webhook)
+An [action](./doc/action.md) is triggered, when a check's alarm changes its state or a report event is triggered.
+
+- [Email](./doc/action/email.md)
+- [Log](./doc/action/log.md)
+- [Process](./doc/action/process.md)
+- [Webhook](./doc/action/webhook.md)
 
 # Report
 The absence of alarms can mean two things: everything is okay or the monitoring/alarming failed altogether.
@@ -132,14 +131,14 @@ error_action = "Log error"
 name = "Webhook 1"
 type = "Webhook"
 url = "https://example.com/hook1"
-body = """{"text": "{{alarm_name}}: {{check_name}} on mountpoint '{{check_id}}' reached {{level}}%."}"""
+body = """{"text": "{{check_name}}: Alarm '{{alarm_name}}' for mountpoint '{{check_id}}' changed state to *{{alarm_state}}* at {{level}}."}"""
 headers = {"Content-Type" = "application/json"}
 
 [[actions]]
 name = "Log error"
 type = "Log"
 level = "Error"
-template = """{{check_name}} check didn't have valid data for alarm '{{alarm_name}}' and id '{{alarm_id}}'."""
+template = """{{check_name}} check didn't have valid data for alarm '{{alarm_name}}' and id '{{alarm_id}}': {{check_error}}."""
 ```
 
 The webhook text will be rendered into something like "Warning: Filesystem usage on mountpoint '/home' reached 70%."
@@ -164,13 +163,13 @@ graph TD
 ## Some (more exotic) ideas
 Just to give some ideas of what's possible:
 - Run it locally on your workstation and let it send you notifications to your desktop environment using the Process action and `notify-send` when the filesystem fills up.
-- Use the report in combination with the Webhook action and [telepush](https://telepush.dev) and let it send you "I'm still alive, since {{minmon_uptime}} seconds!" once a week to your Telegram messenger for the peace of mind.
+- Use the report in combination with the Webhook action and [telepush](https://telepush.dev) and let it send you "I'm still alive, since {{minmon_uptime_iso}}!" once a week to your Telegram messenger for the peace of mind.
 
 # Placeholders
 To improve the reusability of the actions, it's possible to define custom placeholders for the report, events, checks, alarms and actions.
 When an action is triggered, the placeholders (generic and custom) are merged into the final placeholder map.
 Inside the action (depending on the type of the action) the placeholders can be used in one or more config fields using the `{{placeholder_name}}` syntax.
-There are also some [generic placeholders](./doc/action.md#generic-placeholders) that are always available and some that are specific to the check that triggered the action.
+There are also some [generic placeholders](./doc/placeholders.md) that are always available.
 Placeholders that don't have a value available when the action is triggered will be replaced by an empty string.
 
 # Installation
@@ -203,6 +202,8 @@ Place your config file at path `/etc/minmon.toml`.
 You can enable and start the service with `systemctl daemon-reload && systemctl enable --now minmon.service`.\
 
 # systemd integration (optional)
+Build with `--features systemd` to enable support for systemd.
+
 - Logging to journal.
 - Notify systemd about start-up completion (`Type=notify`).
 - Periodically reset systemd watchdog (`WatchdogSec=x`).
@@ -212,21 +213,6 @@ Build with `--features sensors` to enable support for lm_sensors.\
 For the docker image, optionally mount your lm_sensors config file(s) to `/etc/sensors.d/`.\
 Note: libsensors is not cooperative and might theoretically block the event loop.
 
-# Roadmap
-## Check ideas
-- Filesystem inode usage
-- Folder size
-- S.M.A.R.T.
-- Load
-- Ping
-- HTTP response, keyword, ..
-- HTTPS certificate expiration date
-- Docker/Podman container status
-
-## General ideas
-- Store data/status in time-based database (e.g. rrdtool) and visualize on web interface or ncurses UI. This should be optional and separated from the existing code.
-
 # Contributions
-Contributions are very welcome! Right now MinMon is pretty basic but it's also super easy to extend. Even if it's just a typo in the documentation, I'll be happy to merge your PR. If you're looking for a new check or action type, just open a new issue (if it doesn't exist yet) and tag it with the "enhancement" label.
-
+Contributions are very welcome! MinMon is pretty easy to extend. Even if it's just a typo in the documentation, I'll be happy to merge your PR.
 If you have an idea for a new check or action please use use the [discussions](https://github.com/flo-at/minmon/discussions) page instead of opening a new issue.
