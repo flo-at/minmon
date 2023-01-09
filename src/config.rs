@@ -192,8 +192,8 @@ pub struct Check {
     #[serde(default = "default::check_interval")]
     pub interval: u32,
     pub name: String,
-    #[serde(default = "default::check_timeout")]
-    pub timeout: u32,
+    #[serde(default)]
+    pub timeout: Option<u32>,
     #[serde(default)]
     pub placeholders: PlaceholderMap,
     #[serde(flatten)]
@@ -427,7 +427,7 @@ pub struct AlarmTemperature {
     pub temperature: i16,
 }
 
-mod default {
+pub mod default {
     pub const REPORT_INTERVAL: u32 = 604800;
     pub fn report_interval() -> u32 {
         REPORT_INTERVAL

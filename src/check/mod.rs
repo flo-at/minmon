@@ -52,7 +52,7 @@ where
     fn new(
         interval: std::time::Duration,
         name: String,
-        timeout: std::time::Duration,
+        timeout: Option<std::time::Duration>,
         placeholders: PlaceholderMap,
         data_source: T,
         alarms: Vec<Vec<U>>,
@@ -61,13 +61,18 @@ where
             Err(Error(String::from("'interval' cannot be 0.")))
         } else if name.is_empty() {
             Err(Error(String::from("'name' cannot be empty.")))
-        } else if timeout.is_zero() {
+        } else if matches!(timeout, Some(timeout) if timeout.is_zero()) {
             Err(Error(String::from("'timeout' cannot be 0.")))
-        } else if timeout > interval {
+        } else if matches!(timeout, Some(timeout) if timeout > interval) {
             Err(Error(String::from(
                 "'timeout' cannot be greater than 'interval'.",
             )))
         } else {
+            let timeout = timeout.unwrap_or_else(|| {
+                interval.min(std::time::Duration::from_secs(
+                    config::default::check_timeout().into(),
+                ))
+            });
             Ok(Self {
                 interval,
                 name,
@@ -215,7 +220,9 @@ where
     Ok(Box::new(CheckBase::new(
         std::time::Duration::from_secs(check_config.interval.into()),
         check_config.name.clone(),
-        std::time::Duration::from_secs(check_config.timeout.into()),
+        check_config
+            .timeout
+            .map(|x| std::time::Duration::from_secs(x.into())),
         check_config.placeholders.clone(),
         data_source,
         all_alarms,
