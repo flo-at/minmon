@@ -194,6 +194,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "dasp_ring_buffer"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "07d79e19b89618a543c4adec9c5a347fe378a19041699b3278e616e387511ea1"
+
+[[package]]
 name = "difflib"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -723,6 +729,7 @@ version = "0.3.1"
 dependencies = [
  "async-trait",
  "chrono",
+ "dasp_ring_buffer",
  "env_logger",
  "lettre",
  "libsystemd",
