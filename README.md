@@ -221,7 +221,7 @@ Note: libsensors is not cooperative and might theoretically block the event loop
 - Ping
 - HTTP response, keyword, ..
 - HTTPS certificate expiration date
-- Docker/Podman container status
+- Podman container status
 
 ## General ideas
 - Store data/status in time-based database (e.g. rrdtool) and visualize on web interface or ncurses UI. This should be optional and separated from the existing code.
