@@ -6,8 +6,6 @@ use measurement::Measurement;
 
 const MEMINFO_PATH: &str = "/proc/meminfo";
 
-// TODO rework this to match PressureAverage and add tests
-
 pub struct MemoryUsage {
     id: Vec<String>,
     memory: bool,
