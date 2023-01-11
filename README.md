@@ -3,7 +3,7 @@ This tool is just a single binary and a config file. No database, no GUI, no gra
 I wrote this because the [existing alternatives](./doc/existing-alternatives.md) I could find were too heavy, mainly focused on nice GUIs with graphs (not on alarming), too complex to setup, or targeted at cloud/multi-instance setups.
 
 [![test workflow](https://img.shields.io/github/actions/workflow/status/flo-at/minmon/test.yml?branch=main&label=tests)](https://github.com/flo-at/minmon/actions/workflows/test.yml)
-[![docker workflow](https://img.shields.io/github/actions/workflow/status/flo-at/minmon/docker-publish.yml?branch=main&label=docker)](https://github.com/flo-at/minmon/pkgs/container/minmon)
+[![docker workflow](https://img.shields.io/github/actions/workflow/status/flo-at/minmon/docker-main.yml?branch=main&label=docker)](https://github.com/flo-at/minmon/pkgs/container/minmon)
 [![cargo-deny workflow](https://img.shields.io/github/actions/workflow/status/flo-at/minmon/cargo-deny.yml?branch=main&label=cargo-deny)](https://github.com/flo-at/minmon/actions/workflows/cargo-deny.yml)
 [![dependency status](https://deps.rs/repo/github/flo-at/minmon/status.svg)](https://deps.rs/repo/github/flo-at/minmon)\
 [![Latest SemVer release](https://img.shields.io/github/v/release/flo-at/minmon)](https://github.com/flo-at/minmon/releases)
