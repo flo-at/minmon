@@ -14,7 +14,7 @@ RUN cargo build --release --features sensors
 RUN cargo clean -p minmon
 
 COPY ./src ./src
-RUN cargo install --path .
+RUN cargo install --features sensors --path .
 
 
 FROM debian:bullseye-slim
