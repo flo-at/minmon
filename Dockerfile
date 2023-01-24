@@ -20,6 +20,7 @@ RUN cargo install --path .
 FROM debian:bullseye-slim
 
 RUN apt-get update && apt-get install -y \
+    ca-certificates \
     openssl \
     libsensors5 \
     && rm -rf /var/lib/apt/lists/*
