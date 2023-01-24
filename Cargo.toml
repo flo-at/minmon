@@ -9,7 +9,7 @@ keywords = ["monitoring", "alarming", "uptime"]
 edition = "2021"
 
 [dependencies]
-toml = "0.5"
+toml = "0.6"
 reqwest = { version = "0.11", features = ["json"] }
 tokio = { version = "1.24", features = ["full"] }
 libsystemd = { version = "0.6", optional = true }
