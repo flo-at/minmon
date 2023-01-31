@@ -9,6 +9,7 @@ use async_trait::async_trait;
 
 mod filesystem_usage;
 mod memory_usage;
+mod network_throughput;
 mod pressure_average;
 mod process_exit_status;
 mod systemd_unit_status;
@@ -246,6 +247,9 @@ pub fn from_check_config(
         }
         config::CheckType::MemoryUsage(_) => {
             factory::<memory_usage::MemoryUsage, alarm::Level>(check_config, actions)
+        }
+        config::CheckType::NetworkThroughput(_) => {
+            factory::<network_throughput::NetworkThroughput, alarm::DataSize>(check_config, actions)
         }
         config::CheckType::PressureAverage(_) => {
             factory::<pressure_average::PressureAverage, alarm::Level>(check_config, actions)

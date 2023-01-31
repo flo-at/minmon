@@ -39,6 +39,7 @@ This determines which specific check and alarm options are available.
 One of:
 - [FilesystemUsage](./check/filesystem_usage.md)
 - [MemoryUsage](./check/memory_usage.md)
+- [NetworkThroughput](./check/network_throughput.md)
 - [PressureAverage](./check/pressure_average.md)
 - [ProcessExitStatus](./check/process_exit_status.md)
 - [SystemdUnitStatus](./check/systemd_unit_status.md)
