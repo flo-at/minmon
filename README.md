@@ -16,6 +16,7 @@ The [checks](./doc/check.md) read the measurement values that will be monitored 
 
 - [FilesystemUsage](./doc/check/filesystem_usage.md)
 - [MemoryUsage](./doc/check/memory_usage.md)
+- [NetworkThroughput](./doc/check/network_throughput.md)
 - [PressureAverage](./doc/check/pressure_average.md)
 - [ProcessExitStatus](./doc/check/process_exit_status.md)
 - [SystemdUnitStatus](./doc/check/systemd_unit_status.md)

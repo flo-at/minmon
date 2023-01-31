@@ -207,6 +207,7 @@ pub struct Check {
 pub enum CheckType {
     FilesystemUsage(CheckFilesystemUsage),
     MemoryUsage(CheckMemoryUsage),
+    NetworkThroughput(CheckNetworkThroughput),
     PressureAverage(CheckPressureAverage),
     ProcessExitStatus(CheckProcessExitStatus),
     SystemdUnitStatus(CheckSystemdUnitStatus),
@@ -227,6 +228,26 @@ pub struct CheckMemoryUsage {
     pub memory: bool,
     #[serde(default)]
     pub swap: bool,
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct CheckNetworkThroughput {
+    pub interfaces: Vec<String>,
+    #[serde(default)]
+    pub received: bool,
+    #[serde(default)]
+    pub sent: bool,
+    #[serde(default)]
+    pub log_format: DataSizeFormat,
+}
+
+#[derive(Deserialize, PartialEq, Debug, Clone, Copy, Default)]
+pub enum DataSizeFormat {
+    #[default]
+    Binary,
+    Decimal,
+    Bytes,
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
@@ -395,11 +416,47 @@ pub struct Alarm {
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(untagged)]
 pub enum AlarmType {
+    DataSize(AlarmDataSize),
     Default(AlarmDefault),
     StatusCode(AlarmStatusCode),
     Level(AlarmLevel),
     #[cfg(feature = "sensors")]
     Temperature(AlarmTemperature),
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct AlarmDataSize {
+    #[serde(default)]
+    unit: DataSizeUnit,
+    data_size: u64,
+}
+
+#[derive(Deserialize, PartialEq, Default, Debug)]
+#[serde(deny_unknown_fields)]
+pub enum DataSizeUnit {
+    #[default]
+    Byte,
+    Kilobyte,
+    Megabyte,
+    Gigabyte,
+    Kibibyte,
+    Mebibyte,
+    Gibibyte,
+}
+
+impl AlarmDataSize {
+    pub fn bytes(&self) -> u64 {
+        match self.unit {
+            DataSizeUnit::Byte => self.data_size,
+            DataSizeUnit::Kilobyte => self.data_size * 1000,
+            DataSizeUnit::Megabyte => self.data_size * 1000 * 1000,
+            DataSizeUnit::Gigabyte => self.data_size * 1000 * 1000 * 1000,
+            DataSizeUnit::Kibibyte => self.data_size * 1024,
+            DataSizeUnit::Mebibyte => self.data_size * 1024 * 1024,
+            DataSizeUnit::Gibibyte => self.data_size * 1024 * 1024 * 1024,
+        }
+    }
 }
 
 // This is a dummy that is used if no alarm specific fields are found.

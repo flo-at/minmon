@@ -3,6 +3,7 @@ use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 
 mod binary_state;
+mod data_size;
 mod level;
 mod state_machine;
 mod status_code;
@@ -10,6 +11,7 @@ mod status_code;
 mod temperature;
 
 pub use binary_state::BinaryState;
+pub use data_size::DataSize;
 pub use level::Level;
 pub use state_machine::{StateHandler, StateMachine};
 pub use status_code::StatusCode;
