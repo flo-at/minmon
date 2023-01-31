@@ -62,7 +62,7 @@ impl TryFrom<&config::Check> for SystemdUnitStatus {
 impl DataSource for SystemdUnitStatus {
     type Item = measurement::BinaryState;
 
-    async fn get_data(&self) -> Result<Vec<Result<Self::Item>>> {
+    async fn get_data(&mut self) -> Result<Vec<Result<Self::Item>>> {
         let mut res = Vec::new();
         for process_config in self.process_configs.iter() {
             let (code, _) = process_config.run(None).await?;

@@ -32,7 +32,7 @@ impl TryFrom<&config::Check> for FilesystemUsage {
 impl DataSource for FilesystemUsage {
     type Item = measurement::Level;
 
-    async fn get_data(&self) -> Result<Vec<Result<Self::Item>>> {
+    async fn get_data(&mut self) -> Result<Vec<Result<Self::Item>>> {
         let mut res = Vec::new();
         for mountpoint in self.mountpoints.iter() {
             res.push(match nix::sys::statvfs::statvfs(mountpoint.as_str()) {

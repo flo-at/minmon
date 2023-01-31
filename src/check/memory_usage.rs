@@ -51,7 +51,7 @@ impl TryFrom<&config::Check> for MemoryUsage {
 impl DataSource for MemoryUsage {
     type Item = measurement::Level;
 
-    async fn get_data(&self) -> Result<Vec<Result<Self::Item>>> {
+    async fn get_data(&mut self) -> Result<Vec<Result<Self::Item>>> {
         let buffer = tokio::fs::read_to_string(MEMINFO_PATH)
             .await
             .map_err(|x| Error(format!("Could not open {MEMINFO_PATH} for reading: {x}")))?;

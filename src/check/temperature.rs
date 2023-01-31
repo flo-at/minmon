@@ -110,7 +110,7 @@ impl TryFrom<&config::Check> for Temperature {
 impl DataSource for Temperature {
     type Item = measurement::Temperature;
 
-    async fn get_data(&self) -> Result<Vec<Result<Self::Item>>> {
+    async fn get_data(&mut self) -> Result<Vec<Result<Self::Item>>> {
         Ok(self
             .sensors
             .iter()

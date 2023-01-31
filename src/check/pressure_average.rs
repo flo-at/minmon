@@ -172,7 +172,7 @@ impl TryFrom<&config::Check> for PressureAverage {
 impl DataSource for PressureAverage {
     type Item = Item;
 
-    async fn get_data(&self) -> Result<Vec<Result<Self::Item>>> {
+    async fn get_data(&mut self) -> Result<Vec<Result<Self::Item>>> {
         let mut res = Vec::new();
         if self.cpu {
             self.add_data_from_file(config::PressureChoice::Some, PRESSURE_CPU_PATH, &mut res)
