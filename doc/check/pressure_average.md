@@ -16,10 +16,14 @@ See the [kernel documentation](https://www.kernel.org/doc/html/latest/accounting
 If `true`, the CPU pressure level will be checked.
 
 ### io
-If `true`, the I/O pressure level will be checked.
+If `"Some"`, the "some" value of the I/O pressure level will be checked.
+If `"Full"`, the "full" value of the I/O pressure level will be checked.
+If `"Both"`, the "some" and "full" values of the I/O pressure level will be checked.
 
 ### memory
-If `true`, the memory pressure level will be checked.
+If `"Some"`, the "some" value of the memory pressure level will be checked.
+If `"Full"`, the "full" value of the memory pressure level will be checked.
+If `"Both"`, the "some" and "full" values of the memory pressure level will be checked.
 
 ### avg10
 If `true`, the 10 second average pressure level will be checked.
