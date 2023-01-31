@@ -4,8 +4,8 @@ Reads the system memory (physical RAM) and swap file usage.
 ## Check options
 | name | example | optional | default |
 |:---|:---|:---:|:---|
-| memory | `true` | ✔ | `false` | |
-| swap | `true` | ✔ | `false` | |
+| memory | `true` | ✔ | `false` |
+| swap | `true` | ✔ | `false` |
 
 ### memory
 If `true`, physical RAM usage will be checked.

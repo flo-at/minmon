@@ -5,7 +5,7 @@ This check reads the "available blocks" (not "free blocks") i.e. blocks availabl
 ## Check options
 | name | example | optional | default |
 |:---|:---|:---:|:---|
-| mountpoints | `["/srv", "/home"]` | ❌ | | |
+| mountpoints | `["/srv", "/home"]` | ❌ | |
 
 ### mountpoints
 List of mountpoints to check.
