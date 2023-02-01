@@ -35,7 +35,7 @@ impl DataSource for ProcessExitStatus {
         Ok(vec![Self::Item::new(code)])
     }
 
-    fn format_data(data: &Self::Item) -> String {
+    fn format_data(&self, data: &Self::Item) -> String {
         format!("exit code {data}")
     }
 

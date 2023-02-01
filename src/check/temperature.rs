@@ -118,7 +118,7 @@ impl DataSource for Temperature {
             .collect())
     }
 
-    fn format_data(data: &Self::Item) -> String {
+    fn format_data(&self, data: &Self::Item) -> String {
         format!("temperature {data}")
     }
 

@@ -27,7 +27,7 @@ pub trait DataSource: Send + Sync {
     type Item: Send + Sync + measurement::Measurement;
 
     async fn get_data(&mut self) -> Result<Vec<Result<Self::Item>>>;
-    fn format_data(data: &Self::Item) -> String;
+    fn format_data(&self, data: &Self::Item) -> String;
     fn ids(&self) -> &[String];
 }
 
@@ -116,7 +116,7 @@ where
                 Ok(data) => log::debug!(
                     "Check '{}' got {} for id '{}'.",
                     self.name,
-                    T::format_data(data),
+                    self.data_source.format_data(data),
                     ids[i]
                 ),
                 Err(err) => log::warn!(

@@ -105,7 +105,7 @@ impl DataSource for MemoryUsage {
         Ok(res)
     }
 
-    fn format_data(data: &Self::Item) -> String {
+    fn format_data(&self, data: &Self::Item) -> String {
         format!("usage level {data}")
     }
 
