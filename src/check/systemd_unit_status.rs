@@ -62,13 +62,13 @@ impl TryFrom<&config::Check> for SystemdUnitStatus {
 impl DataSource for SystemdUnitStatus {
     type Item = measurement::BinaryState;
 
-    async fn get_data(&mut self) -> Result<Vec<Result<Self::Item>>> {
+    async fn get_data(&mut self) -> Result<Vec<Result<Option<Self::Item>>>> {
         let mut res = Vec::new();
         for process_config in self.process_configs.iter() {
             let (code, _) = process_config.run(None).await?;
             res.push(match code {
-                0 => Self::Item::new(true),
-                SYSTEMCTL_STATUS_NOT_ACTIVE => Self::Item::new(false),
+                0 => Self::Item::new(true).map(Some),
+                SYSTEMCTL_STATUS_NOT_ACTIVE => Self::Item::new(false).map(Some),
                 SYSTEMCTL_STATUS_NO_SUCH_UNIT => Err(Error(String::from("No such unit."))),
                 code => Err(Error(format!("Unknown error code {code}."))),
             });

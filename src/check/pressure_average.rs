@@ -23,19 +23,19 @@ pub struct PressureAverage {
 }
 
 impl PressureAverage {
-    fn add_data_from_line(&self, line: &PressureFileLine, res: &mut Vec<Result<Item>>) {
+    fn add_data_from_line(&self, line: &PressureFileLine, res: &mut Vec<Result<Option<Item>>>) {
         if self.avg10 {
-            res.push(Item::new(line.avg10));
+            res.push(Item::new(line.avg10).map(Some));
         }
         if self.avg60 {
-            res.push(Item::new(line.avg60));
+            res.push(Item::new(line.avg60).map(Some));
         }
         if self.avg300 {
-            res.push(Item::new(line.avg300));
+            res.push(Item::new(line.avg300).map(Some));
         }
     }
 
-    fn add_data_from_error(&self, error: &Error, res: &mut Vec<Result<Item>>) {
+    fn add_data_from_error(&self, error: &Error, res: &mut Vec<Result<Option<Item>>>) {
         if self.avg10 {
             res.push(Err(error.clone()));
         }
@@ -51,7 +51,7 @@ impl PressureAverage {
         &self,
         choice: config::PressureChoice,
         path: &str,
-        res: &mut Vec<Result<Item>>,
+        res: &mut Vec<Result<Option<Item>>>,
     ) {
         if choice != config::PressureChoice::None {
             match PressureFileContent::try_from_file(path).await {
@@ -172,7 +172,7 @@ impl TryFrom<&config::Check> for PressureAverage {
 impl DataSource for PressureAverage {
     type Item = Item;
 
-    async fn get_data(&mut self) -> Result<Vec<Result<Self::Item>>> {
+    async fn get_data(&mut self) -> Result<Vec<Result<Option<Self::Item>>>> {
         let mut res = Vec::new();
         if self.cpu {
             self.add_data_from_file(config::PressureChoice::Some, PRESSURE_CPU_PATH, &mut res)
