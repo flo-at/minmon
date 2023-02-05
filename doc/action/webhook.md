@@ -1,5 +1,6 @@
 # Webhook
-Trigger a Webhook.
+Trigger a Webhook.\
+This action is only available if MinMon is built with the `http` feature.
 
 ## Options
 | name | example | optional | default | placeholders |

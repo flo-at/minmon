@@ -7,10 +7,12 @@ extern crate log as log_ext;
 mod email;
 mod log;
 mod process;
+#[cfg(feature = "http")]
 mod webhook;
 pub use self::log::Log;
 pub use email::Email;
 pub use process::Process;
+#[cfg(feature = "http")]
 pub use webhook::Webhook;
 
 #[cfg_attr(test, mockall::automock)]
@@ -146,6 +148,7 @@ pub fn from_action_config(action_config: &config::Action) -> Result<std::sync::A
                 action_config.placeholders.clone(),
                 Process::try_from(action_config)?,
             )?),
+            #[cfg(feature = "http")]
             config::ActionType::Webhook(_) => std::sync::Arc::new(ActionBase::new(
                 action_config.name.clone(),
                 std::time::Duration::from_secs(action_config.timeout as u64),

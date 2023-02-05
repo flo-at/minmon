@@ -195,7 +195,6 @@ cargo install --all-features --path .
 Copy the `systemd.minmon.service` file to `/etc/systemd/system/minmon.service` and place your config file at path `/etc/minmon.toml`.
 You can enable and start the service with `systemctl daemon-reload && systemctl enable --now minmon.service`.\
 \
-If you don't want to include the systemd integration, leave out the `--all-features` option.
 
 ## Install for the AUR (Arch Linux)
 Use your package manager of choice to install the [minmon](https://aur.archlinux.org/packages/minmon) package from the AUR.\

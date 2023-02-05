@@ -10,11 +10,11 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 RUN cargo init
 COPY Cargo.toml Cargo.lock ./
-RUN cargo build --release --features sensors
+RUN cargo build --release --features http,sensors
 RUN cargo clean -p minmon
 
 COPY ./src ./src
-RUN cargo install --features sensors --path .
+RUN cargo install --features http,sensors --path .
 
 
 FROM debian:bullseye-slim

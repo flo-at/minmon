@@ -1,5 +1,4 @@
 use crate::{Error, PlaceholderMap};
-use std::collections::HashMap;
 
 use serde::Deserialize;
 
@@ -117,6 +116,7 @@ pub enum ActionType {
     Email(ActionEmail),
     Log(ActionLog),
     Process(ActionProcess),
+    #[cfg(feature = "http")]
     Webhook(ActionWebhook),
 }
 
@@ -162,6 +162,7 @@ pub struct ActionProcess {
     pub process_config: ProcessConfig,
 }
 
+#[cfg(feature = "http")]
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct ActionWebhook {
@@ -169,7 +170,7 @@ pub struct ActionWebhook {
     #[serde(default)]
     pub method: HttpMethod,
     #[serde(default)]
-    pub headers: HashMap<String, String>,
+    pub headers: std::collections::HashMap<String, String>,
     #[serde(default)]
     pub body: String,
 }
@@ -619,7 +620,7 @@ mod test {
             ActionType::Webhook(ActionWebhook {
                 url: String::from("http://example.com/webhook"),
                 method: HttpMethod::GET,
-                headers: HashMap::from([(
+                headers: std::collections::HashMap::from([(
                     String::from("Content-Type"),
                     String::from("application/json")
                 )]),
