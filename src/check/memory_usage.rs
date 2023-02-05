@@ -51,7 +51,7 @@ impl TryFrom<&config::Check> for MemoryUsage {
 impl DataSource for MemoryUsage {
     type Item = measurement::Level;
 
-    async fn get_data(&mut self) -> Result<Vec<Result<Self::Item>>> {
+    async fn get_data(&mut self) -> Result<Vec<Result<Option<Self::Item>>>> {
         let buffer = tokio::fs::read_to_string(MEMINFO_PATH)
             .await
             .map_err(|x| Error(format!("Could not open {MEMINFO_PATH} for reading: {x}")))?;
@@ -92,14 +92,16 @@ impl DataSource for MemoryUsage {
             res.push(
                 mem_usage
                     .ok_or_else(|| Error(String::from("Could not read memory usage.")))
-                    .and_then(Self::Item::new),
+                    .and_then(Self::Item::new)
+                    .map(Some),
             );
         }
         if self.swap {
             res.push(
                 swap_usage
                     .ok_or_else(|| Error(String::from("Could not read swap usage.")))
-                    .and_then(Self::Item::new),
+                    .and_then(Self::Item::new)
+                    .map(Some),
             );
         }
         Ok(res)

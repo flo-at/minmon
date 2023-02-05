@@ -32,14 +32,14 @@ impl TryFrom<&config::Check> for FilesystemUsage {
 impl DataSource for FilesystemUsage {
     type Item = measurement::Level;
 
-    async fn get_data(&mut self) -> Result<Vec<Result<Self::Item>>> {
+    async fn get_data(&mut self) -> Result<Vec<Result<Option<Self::Item>>>> {
         let mut res = Vec::new();
         for mountpoint in self.mountpoints.iter() {
             res.push(match nix::sys::statvfs::statvfs(mountpoint.as_str()) {
                 Err(err) => Err(Error(format!("Call to 'statvfs' failed: {err}"))),
                 Ok(stat) => {
                     let usage = (stat.blocks() - stat.blocks_available()) * 100 / stat.blocks();
-                    Self::Item::new(usage as u8)
+                    Self::Item::new(usage as u8).map(Some)
                 }
             })
         }

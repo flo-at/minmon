@@ -26,7 +26,7 @@ pub trait Check: Send + Sync {
 pub trait DataSource: Send + Sync {
     type Item: Send + Sync + measurement::Measurement;
 
-    async fn get_data(&mut self) -> Result<Vec<Result<Self::Item>>>;
+    async fn get_data(&mut self) -> Result<Vec<Result<Option<Self::Item>>>>;
     fn format_data(&self, data: &Self::Item) -> String;
     fn ids(&self) -> &[String];
 }
@@ -113,12 +113,15 @@ where
         });
         for ((i, data), alarms) in data_vec.iter().enumerate().zip(self.alarms.iter_mut()) {
             match data {
-                Ok(data) => log::debug!(
-                    "Check '{}' got {} for id '{}'.",
-                    self.name,
-                    self.data_source.format_data(data),
-                    ids[i]
-                ),
+                Ok(data) => match data {
+                    Some(data) => log::debug!(
+                        "Check '{}' got {} for id '{}'.",
+                        self.name,
+                        self.data_source.format_data(data),
+                        ids[i]
+                    ),
+                    None => log::debug!("Check '{}' for id '{}' is warming up.", self.name, ids[i]),
+                },
                 Err(err) => log::warn!(
                     "Check '{}' got no data for id '{}': {}",
                     self.name,
@@ -129,7 +132,10 @@ where
             for alarm in alarms.iter_mut() {
                 let mut placeholders = placeholders.clone();
                 let result = match data {
-                    Ok(data) => alarm.put_data(data, placeholders).await,
+                    Ok(data) => match data {
+                        Some(data) => alarm.put_data(data, placeholders).await,
+                        None => Ok(()),
+                    },
                     Err(err) => {
                         placeholders.insert(String::from("check_error"), err.to_string());
                         alarm.put_error(err, placeholders).await

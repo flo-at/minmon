@@ -30,9 +30,9 @@ impl TryFrom<&config::Check> for ProcessExitStatus {
 impl DataSource for ProcessExitStatus {
     type Item = measurement::StatusCode;
 
-    async fn get_data(&mut self) -> Result<Vec<Result<Self::Item>>> {
+    async fn get_data(&mut self) -> Result<Vec<Result<Option<Self::Item>>>> {
         let (code, _) = self.process_config.run(None).await?;
-        Ok(vec![Self::Item::new(code)])
+        Ok(vec![Self::Item::new(code).map(Some)])
     }
 
     fn format_data(&self, data: &Self::Item) -> String {

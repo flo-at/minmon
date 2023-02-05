@@ -23,7 +23,7 @@ impl std::fmt::Display for SensorsId {
 }
 
 impl Temperature {
-    fn get_temperature(sensors_id: &SensorsId) -> Result<Item> {
+    fn get_temperature(sensors_id: &SensorsId) -> Result<Option<Item>> {
         let sensor = sensors::Sensors::new();
         // these unwraps cannot happen here as they are checked in try_from
         for chip in sensor.detected_chips(&sensors_id.sensor).unwrap() {
@@ -39,7 +39,8 @@ impl Temperature {
                             .get_value()
                             .map(|x| x as <Item as Measurement>::Data)
                             .map_err(|x| Error(format!("Could not read temperature: {x}")))?,
-                    );
+                    )
+                    .map(Some);
                 };
             }
         }
@@ -110,7 +111,7 @@ impl TryFrom<&config::Check> for Temperature {
 impl DataSource for Temperature {
     type Item = measurement::Temperature;
 
-    async fn get_data(&mut self) -> Result<Vec<Result<Self::Item>>> {
+    async fn get_data(&mut self) -> Result<Vec<Result<Option<Self::Item>>>> {
         Ok(self
             .sensors
             .iter()
