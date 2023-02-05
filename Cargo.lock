@@ -712,6 +712,7 @@ dependencies = [
  "log",
  "mockall",
  "nix",
+ "rand",
  "reqwest",
  "sensors",
  "serde",

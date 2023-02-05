@@ -40,6 +40,13 @@ fn init_logging(config: &config::Config) -> Result<()> {
     Ok(())
 }
 
+async fn random_interval(max: std::time::Duration) {
+    let delay = rand::random::<f32>() * max.as_secs_f32() + 0.001;
+    let mut delay = tokio::time::interval(std::time::Duration::from_secs_f32(delay));
+    delay.tick().await; // the first tick completes immediately
+    delay.tick().await;
+}
+
 async fn main_wrapper() -> Result<()> {
     minmon::uptime::init()?;
 
@@ -59,8 +66,10 @@ async fn main_wrapper() -> Result<()> {
     }
 
     let (report, checks) = minmon::from_config(&config)?;
+
     for mut check in checks {
         tokio::spawn(async move {
+            random_interval(check.interval()).await;
             let mut interval = tokio::time::interval(check.interval());
             loop {
                 interval.tick().await;
