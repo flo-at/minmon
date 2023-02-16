@@ -351,10 +351,6 @@ mod test {
     async fn test_trigger_error_action() {
         let mut mock_data_sink = MockDataSink::new();
         mock_data_sink.expect_put_data().never();
-        let mut mock_action = action::MockAction::new();
-        mock_action.expect_trigger().never();
-        let mut mock_recover_action = action::MockAction::new();
-        mock_recover_action.expect_trigger().never();
         let mut mock_error_action = action::MockAction::new();
         mock_error_action
             .expect_trigger()
@@ -381,9 +377,9 @@ mod test {
         let mut alarm = AlarmBase::new(
             String::from("Name"),
             String::from("ID"),
-            std::sync::Arc::new(mock_action),
+            times_action(0),
             PlaceholderMap::new(),
-            Some(std::sync::Arc::new(mock_recover_action)),
+            Some(times_action(0)),
             PlaceholderMap::new(),
             Some(std::sync::Arc::new(mock_error_action)),
             PlaceholderMap::from([(String::from("Hello"), String::from("World"))]),
