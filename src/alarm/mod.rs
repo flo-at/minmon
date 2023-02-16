@@ -66,6 +66,8 @@ where
     recover_placeholders: PlaceholderMap,
     error_action: Option<std::sync::Arc<dyn action::Action>>,
     error_placeholders: PlaceholderMap,
+    error_recover_action: Option<std::sync::Arc<dyn action::Action>>,
+    error_recover_placeholders: PlaceholderMap,
     invert: bool,
     state_machine: U,
     data_sink: T,
@@ -87,6 +89,8 @@ where
         recover_placeholders: PlaceholderMap,
         error_action: Option<std::sync::Arc<dyn action::Action>>,
         error_placeholders: PlaceholderMap,
+        error_recover_action: Option<std::sync::Arc<dyn action::Action>>,
+        error_recover_placeholders: PlaceholderMap,
         invert: bool,
         state_machine: U,
         data_sink: T,
@@ -104,6 +108,8 @@ where
                 recover_placeholders,
                 error_action,
                 error_placeholders,
+                error_recover_action,
+                error_recover_placeholders,
                 invert,
                 state_machine,
                 data_sink,
@@ -120,15 +126,23 @@ where
     }
 
     async fn bad(&mut self, placeholders: PlaceholderMap) -> Result<()> {
-        if self.state_machine.bad() {
-            self.trigger(placeholders).await?;
+        let (trigger, trigger_error_recover) = self.state_machine.bad();
+        if trigger {
+            self.trigger(placeholders.clone()).await?;
+        }
+        if trigger_error_recover {
+            self.trigger_error_recover(placeholders).await?;
         }
         Ok(())
     }
 
     async fn good(&mut self, placeholders: PlaceholderMap) -> Result<()> {
-        if self.state_machine.good() {
-            self.trigger_recover(placeholders).await?;
+        let (trigger_recover, trigger_error_recover) = self.state_machine.good();
+        if trigger_recover {
+            self.trigger_recover(placeholders.clone()).await?;
+        }
+        if trigger_error_recover {
+            self.trigger_error_recover(placeholders).await?;
         }
         Ok(())
     }
@@ -151,6 +165,15 @@ where
         self.state_machine.add_placeholders(&mut placeholders);
         crate::merge_placeholders(&mut placeholders, &self.error_placeholders);
         match &self.error_action {
+            Some(action) => action.trigger(placeholders).await,
+            None => Ok(()),
+        }
+    }
+
+    async fn trigger_error_recover(&self, mut placeholders: PlaceholderMap) -> Result<()> {
+        self.state_machine.add_placeholders(&mut placeholders);
+        crate::merge_placeholders(&mut placeholders, &self.error_recover_placeholders);
+        match &self.error_recover_action {
             Some(action) => action.trigger(placeholders).await,
             None => Ok(()),
         }
@@ -256,7 +279,10 @@ mod test {
             }))
             .returning(|_| Ok(()));
         let mut mock_state_machine = state_machine::MockStateHandler::new();
-        mock_state_machine.expect_bad().once().return_const(true);
+        mock_state_machine
+            .expect_bad()
+            .once()
+            .return_const((true, false));
         mock_state_machine
             .expect_add_placeholders()
             .once()
@@ -270,6 +296,8 @@ mod test {
             String::from("ID"),
             std::sync::Arc::new(mock_action),
             PlaceholderMap::from([(String::from("Hello"), String::from("World"))]),
+            Some(times_action(0)),
+            PlaceholderMap::new(),
             Some(times_action(0)),
             PlaceholderMap::new(),
             Some(times_action(0)),
@@ -300,7 +328,10 @@ mod test {
             });
         let mock_data_sink = mock_data_sink();
         let mut mock_state_machine = state_machine::MockStateHandler::new();
-        mock_state_machine.expect_good().once().return_const(true);
+        mock_state_machine
+            .expect_good()
+            .once()
+            .return_const((true, false));
         mock_state_machine
             .expect_add_placeholders()
             .once()
@@ -330,6 +361,8 @@ mod test {
             PlaceholderMap::new(),
             Some(std::sync::Arc::new(mock_recover_action)),
             PlaceholderMap::from([(String::from("Hello"), String::from("World"))]),
+            Some(times_action(0)),
+            PlaceholderMap::new(),
             Some(times_action(0)),
             PlaceholderMap::new(),
             false,
@@ -383,6 +416,8 @@ mod test {
             PlaceholderMap::new(),
             Some(std::sync::Arc::new(mock_error_action)),
             PlaceholderMap::from([(String::from("Hello"), String::from("World"))]),
+            Some(times_action(0)),
+            PlaceholderMap::new(),
             false,
             mock_state_machine,
             mock_data_sink,
@@ -392,6 +427,88 @@ mod test {
         alarm
             .put_error(
                 &Error(String::from("Error")),
+                PlaceholderMap::from([(String::from("Foo"), String::from("Bar"))]),
+            )
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_trigger_error_recover_action() {
+        let _permit = SEMAPHORE.acquire().await.unwrap();
+        let data_sink_ctx = MockDataSink::add_placeholders_context();
+        data_sink_ctx
+            .expect()
+            .returning(|data: &u8, placeholders: &mut PlaceholderMap| {
+                placeholders.insert(String::from("data"), data.to_string());
+            });
+        let mut mock_data_sink = MockDataSink::new();
+        mock_data_sink
+            .expect_put_data()
+            .with(eq(10))
+            .returning(|_| Ok(SinkDecision::Good));
+        let mut mock_action = action::MockAction::new();
+        mock_action.expect_trigger().never();
+        let mut mock_error_action = action::MockAction::new();
+        mock_error_action
+            .expect_trigger()
+            .once()
+            .returning(|_| Ok(()));
+        let mut mock_error_recover_action = action::MockAction::new();
+        mock_error_recover_action
+            .expect_trigger()
+            .once()
+            .with(function(|placeholders: &PlaceholderMap| {
+                assert_eq!(placeholders.get("alarm_name").unwrap(), "Name");
+                assert_eq!(placeholders.get("check_id").unwrap(), "ID");
+                assert_eq!(placeholders.get("Hello").unwrap(), "World");
+                assert_eq!(placeholders.get("Foo").unwrap(), "Bar");
+                assert_eq!(placeholders.get("data").unwrap(), "10");
+                assert_eq!(placeholders.len(), 5);
+                true
+            }))
+            .returning(|_| Ok(()));
+        let mut mock_state_machine = state_machine::MockStateHandler::new();
+        mock_state_machine.expect_error().once().return_const(true);
+        mock_state_machine
+            .expect_add_placeholders()
+            .times(2)
+            .with(function(|placeholders: &PlaceholderMap| {
+                assert_eq!(placeholders.get("Foo").unwrap(), "Bar");
+                true
+            }))
+            .return_const(());
+        mock_state_machine
+            .expect_good()
+            .once()
+            .return_const((false, true));
+        let mut alarm = AlarmBase::new(
+            String::from("Name"),
+            String::from("ID"),
+            times_action(0),
+            PlaceholderMap::new(),
+            Some(times_action(0)),
+            PlaceholderMap::new(),
+            Some(std::sync::Arc::new(mock_error_action)),
+            PlaceholderMap::new(),
+            Some(std::sync::Arc::new(mock_error_recover_action)),
+            PlaceholderMap::from([(String::from("Hello"), String::from("World"))]),
+            false,
+            mock_state_machine,
+            mock_data_sink,
+            String::from(""),
+        )
+        .unwrap();
+        alarm
+            .put_error(
+                &Error(String::from("Error")),
+                PlaceholderMap::from([(String::from("Foo"), String::from("Bar"))]),
+            )
+            .await
+            .unwrap();
+        alarm
+            .put_data(
+                &10,
                 PlaceholderMap::from([(String::from("Foo"), String::from("Bar"))]),
             )
             .await
@@ -409,8 +526,14 @@ mod test {
             });
         let mock_data_sink = mock_data_sink();
         let mut mock_state_machine = state_machine::MockStateHandler::new();
-        mock_state_machine.expect_bad().once().return_const(true);
-        mock_state_machine.expect_good().once().return_const(true);
+        mock_state_machine
+            .expect_bad()
+            .once()
+            .return_const((true, false));
+        mock_state_machine
+            .expect_good()
+            .once()
+            .return_const((true, false));
         mock_state_machine
             .expect_add_placeholders()
             .times(2)
@@ -419,6 +542,8 @@ mod test {
             String::from("Name"),
             String::from("ID"),
             times_action(1),
+            PlaceholderMap::new(),
+            Some(times_action(0)),
             PlaceholderMap::new(),
             Some(times_action(0)),
             PlaceholderMap::new(),

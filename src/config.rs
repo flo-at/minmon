@@ -409,6 +409,10 @@ pub struct Alarm {
     #[serde(default)]
     pub error_repeat_cycles: u32,
     #[serde(default)]
+    pub error_recover_action: Option<String>,
+    #[serde(default)]
+    pub error_recover_placeholders: PlaceholderMap,
+    #[serde(default)]
     pub invert: bool,
     #[serde(flatten)]
     pub type_: AlarmType,

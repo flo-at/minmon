@@ -86,7 +86,7 @@ During the "Bad" state, `action` will be triggered again every `repeat_cycles` c
 \
 The "Error" state is a bit special as it only "shadows" the other states.
 An error means that there is no data available at all, e.g. the filesystem usage for `/home` could not be determined.
-Since this should rarely ever happen, the transition to the error state always triggers the `error_action` on the first cycle. If there is valid data on the next cycle, the state machine continues as if the error state did not exist.
+Since this should rarely ever happen, the transition to the error state always triggers the `error_action` on the first cycle. If there is valid data on the next cycle, the state machine continues as if the error state did not exist and the `error_recover_action` is triggered.
 
 ```mermaid
 stateDiagram-v2
@@ -101,8 +101,8 @@ stateDiagram-v2
     Bad --> Bad: repeat_action/repeat_cycles
     Bad --> Error: error_action
 
-    Error --> Good
-    Error --> Bad
+    Error --> Good: error_recover_action
+    Error --> Bad: error_recover_action
     Error --> Error: error_repeat_action/error_repeat_cycles
 ```
 

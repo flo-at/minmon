@@ -6,8 +6,8 @@ pub trait StateHandler: Send + Sync + Sized {
     fn add_placeholders(&self, placeholders: &mut PlaceholderMap);
 
     fn error(&mut self) -> bool;
-    fn bad(&mut self) -> bool;
-    fn good(&mut self) -> bool;
+    fn bad(&mut self) -> (bool, bool);
+    fn good(&mut self) -> (bool, bool);
 }
 
 pub struct StateMachine {
@@ -169,8 +169,9 @@ impl StateHandler for StateMachine {
         trigger
     }
 
-    fn bad(&mut self) -> bool {
+    fn bad(&mut self) -> (bool, bool) {
         let mut trigger = false;
+        let mut trigger_error_recover = false;
         self.state = match &self.state {
             State::Good(good) => {
                 if good.bad_cycles + 1 == self.cycles {
@@ -208,17 +209,19 @@ impl StateHandler for StateMachine {
 
             State::Error(error) => {
                 self.state = *error.shadowed_state.clone();
-                let shadowed_trigger = self.bad();
+                let (shadowed_trigger, _) = self.bad();
                 trigger = shadowed_trigger;
+                trigger_error_recover = true;
                 log::warn!("{} changing from error to bad state.", self.log_id);
                 self.state.clone()
             }
         };
-        trigger
+        (trigger, trigger_error_recover)
     }
 
-    fn good(&mut self) -> bool {
+    fn good(&mut self) -> (bool, bool) {
         let mut trigger = false;
+        let mut trigger_error_recover = false;
         self.state = match &self.state {
             State::Good(good) => State::Good(good.clone()),
 
@@ -243,13 +246,14 @@ impl StateHandler for StateMachine {
 
             State::Error(error) => {
                 self.state = *error.shadowed_state.clone();
-                let shadowed_trigger = self.good();
+                let (shadowed_trigger, _) = self.good();
                 trigger = shadowed_trigger;
+                trigger_error_recover = true;
                 log::info!("{} changing from error to good state.", self.log_id);
                 self.state.clone()
             }
         };
-        trigger
+        (trigger, trigger_error_recover)
     }
 }
 
@@ -272,27 +276,27 @@ mod test {
     #[test]
     fn test_trigger_action() {
         let mut state_machine = StateMachine::new(1, 0, 1, 0, String::from("")).unwrap();
-        assert!(state_machine.bad());
+        assert_eq!((true, false), state_machine.bad());
     }
 
     #[test]
     fn test_trigger_action_repeat() {
         let mut state_machine = StateMachine::new(1, 7, 1, 0, String::from("")).unwrap();
-        assert!(state_machine.bad());
+        assert_eq!((true, false), state_machine.bad());
         for _ in 0..6 {
-            assert!(!state_machine.bad());
+            assert_eq!((false, false), state_machine.bad());
         }
-        assert!(state_machine.bad());
+        assert_eq!((true, false), state_machine.bad());
     }
 
     #[test]
     fn test_trigger_recover_action() {
         let mut state_machine = StateMachine::new(1, 0, 5, 0, String::from("")).unwrap();
-        assert!(state_machine.bad());
+        assert_eq!((true, false), state_machine.bad());
         for _ in 0..4 {
-            assert!(!state_machine.good());
+            assert_eq!((false, false), state_machine.good());
         }
-        assert!(state_machine.good());
+        assert_eq!((true, false), state_machine.good());
     }
 
     #[test]
@@ -309,6 +313,13 @@ mod test {
             assert!(!state_machine.error());
         }
         assert!(state_machine.error());
+    }
+
+    #[test]
+    fn test_trigger_error_recover_action() {
+        let mut state_machine = StateMachine::new(1, 0, 1, 0, String::from("")).unwrap();
+        state_machine.error();
+        assert_eq!((false, true), state_machine.good());
     }
 
     #[test]
