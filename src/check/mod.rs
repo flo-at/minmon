@@ -215,6 +215,11 @@ where
                     None => None,
                 },
                 alarm_config.error_placeholders.clone(),
+                match &alarm_config.error_recover_action {
+                    Some(action) => Some(action::get_action(action, actions)?),
+                    None => None,
+                },
+                alarm_config.error_recover_placeholders.clone(),
                 alarm_config.invert,
                 alarm_state_machine,
                 data_sink,

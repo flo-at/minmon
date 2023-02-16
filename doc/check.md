@@ -79,6 +79,8 @@ Besides the generic options listed below, alarms have additional options that ar
 | error_action | `"FooAction"` | ✔ | |
 | error_placeholders | `{"internal_alarm_id" = "id_foobar"}` | ✔ | |
 | error_repeat_cycles | `100` | ✔ | |
+| error_recover_action | `"FooAction"` | ✔ | |
+| error_recover_placeholders | `{"internal_alarm_id" = "id_foobar"}` | ✔ | |
 | invert | `true` | ✔ | `false` |
 
 ### disable
@@ -115,11 +117,17 @@ Must be at least 1.
 The name of the action to trigger when the state transitions from good or bad to error.
 
 ### error_placeholders
-Custom placeholders that will be merged with ones of the check and the actions. This one is used for only for the `error_action`.
+Custom placeholders that will be merged with the ones of the check and the actions. This one is used only for the `error_action`.
 
 ### error_repeat_cycles
 If this is non-zero, the action is triggered repeatedly every `error_repeat_cycles` cycles while in the error state.
 If it is zero, the action is only triggered once when the state transitions from good or bad to error.
+
+### error_recover_action
+The name of the action to trigger when the state transitions from error to good or bad.
+
+### error_recover_placeholders
+Custom placeholders that will be merged with the ones of the check and the actions. This one is used only for the `error_recover_action`.
 
 ### invert
 If `true`, inverts the decision based on the check's measurement data. E.g. the FilesystemUsage check may be used to check if there is **less (or equal)** than 20% of the space used **instead of more** than that.
