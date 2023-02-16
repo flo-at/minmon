@@ -30,7 +30,7 @@ The maximum time in seconds a check may take to return its measurement data befo
 Has to be less or equal to the interval.
 
 ### placeholders
-Custom placeholders that will be merged with ones of the alarms/actions.
+Custom placeholders that will be merged with the ones of the alarms/actions.
 
 ### type
 Type of the check as listed below.
@@ -91,7 +91,7 @@ The name of the alarm. It is used for logging and the `alarm_name` placeholder. 
 The name of the action to trigger when the state transitions from good to bad.
 
 ### placeholders
-Custom placeholders that will be merged with ones of the check and the actions. This one is used for all actions.
+Custom placeholders that will be merged with the ones of the check and the actions. This one is used for all actions.
 
 ### cycles
 Number of bad cycles it takes to transition from good to bad state.
@@ -105,7 +105,7 @@ If it is zero, the action is only triggered once when the state transitions from
 The name of the action to trigger when the state transitions from bad to good.
 
 ### recover_placeholders
-Custom placeholders that will be merged with ones of the check and the actions. This one is used for only for the `recover_action`.
+Custom placeholders that will be merged with the ones of the check and the actions. This one is used only for the `recover_action`.
 
 ### recover_cycles
 Number of good cycles it takes to transition from bad to good state.
