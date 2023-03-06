@@ -39,6 +39,7 @@ rustls-tls = ["__rustls"]
 http = ["reqwest"]
 smtp = ["lettre"]
 systemd = ["dep:libsystemd", "dep:systemd-journal-logger"]
+full = ["http", "sensors", "smtp", "systemd"]
 
 [profile.release]
 strip = true
