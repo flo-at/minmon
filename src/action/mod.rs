@@ -4,12 +4,14 @@ use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 extern crate log as log_ext;
 
+#[cfg(feature = "smtp")]
 mod email;
 mod log;
 mod process;
 #[cfg(feature = "http")]
 mod webhook;
 pub use self::log::Log;
+#[cfg(feature = "smtp")]
 pub use email::Email;
 pub use process::Process;
 #[cfg(feature = "http")]
@@ -130,6 +132,7 @@ pub fn from_action_config(action_config: &config::Action) -> Result<std::sync::A
         )?))
     } else {
         Ok(match &action_config.type_ {
+            #[cfg(feature = "smtp")]
             config::ActionType::Email(_) => std::sync::Arc::new(ActionBase::new(
                 action_config.name.clone(),
                 std::time::Duration::from_secs(action_config.timeout as u64),

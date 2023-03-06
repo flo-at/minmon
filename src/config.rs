@@ -113,6 +113,7 @@ pub struct Action {
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(tag = "type")]
 pub enum ActionType {
+    #[cfg(feature = "smtp")]
     Email(ActionEmail),
     Log(ActionLog),
     Process(ActionProcess),
@@ -120,6 +121,7 @@ pub enum ActionType {
     Webhook(ActionWebhook),
 }
 
+#[cfg(feature = "smtp")]
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct ActionEmail {
@@ -138,6 +140,7 @@ pub struct ActionEmail {
     pub password: String,
 }
 
+#[cfg(feature = "smtp")]
 #[derive(Deserialize, PartialEq, Debug, Clone, Copy, Default)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum SmtpSecurity {
@@ -175,6 +178,7 @@ pub struct ActionWebhook {
     pub body: String,
 }
 
+#[cfg(feature = "http")]
 #[derive(Deserialize, PartialEq, Debug, Clone, Copy, Default)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum HttpMethod {

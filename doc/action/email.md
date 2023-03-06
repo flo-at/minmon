@@ -1,5 +1,6 @@
 # Email
 Send an email.
+This action is only available if MinMon is built with the `smtp` feature.
 
 ## Options
 | name | example | optional | default | placeholders |
