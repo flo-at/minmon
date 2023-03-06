@@ -10,7 +10,7 @@ edition = "2021"
 
 [dependencies]
 toml = "0.7"
-reqwest = { version = "0.11", optional = true }
+reqwest = { version = "0.11", optional = true, default-features = false }
 tokio = { version = "1.25", features = ["full"] }
 libsystemd = { version = "0.6", optional = true }
 systemd-journal-logger = { version = "0.7", optional = true }
@@ -22,7 +22,7 @@ env_logger = { version = "0.10", features = ["humantime"], default-features = fa
 async-trait = "0.1"
 text_placeholder = "0.4"
 chrono = { version = "0.4", features = ["std", "clock"], default-features = false }
-lettre = { version = "0.10", features = ["smtp-transport", "tokio1-native-tls", "builder"], default-features = false, optional = true }
+lettre = { version = "0.10", features = ["smtp-transport", "builder"], default-features = false, optional = true }
 sensors = { version = "0.2", optional = true }
 rand = "0.8"
 
@@ -30,8 +30,14 @@ rand = "0.8"
 mockall = "0.11"
 
 [features]
-http = ["dep:reqwest"]
-smtp = ["dep:lettre"]
+__rustls = ["lettre?/tokio1-rustls-tls", "reqwest?/rustls-tls"]
+__tls = ["lettre?/tokio1-native-tls", "reqwest?/native-tls"]
+default = ["default-tls"]
+default-tls = ["native-tls"]
+native-tls = ["__tls"]
+rustls-tls = ["__rustls"]
+http = ["reqwest"]
+smtp = ["lettre"]
 sensors = ["dep:sensors"]
 systemd = ["dep:libsystemd", "dep:systemd-journal-logger"]
 
