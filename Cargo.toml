@@ -38,7 +38,6 @@ native-tls = ["__tls"]
 rustls-tls = ["__rustls"]
 http = ["reqwest"]
 smtp = ["lettre"]
-sensors = ["dep:sensors"]
 systemd = ["dep:libsystemd", "dep:systemd-journal-logger"]
 
 [profile.release]
