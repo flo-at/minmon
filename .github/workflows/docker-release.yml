@@ -49,13 +49,6 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
 
-      # Workaround: https://github.com/docker/buildx/issues/395
-      - name: Run Docker on tmpfs
-        uses: JonasAlfredsson/docker-on-tmpfs@v1
-        with:
-          tmpfs_size: 5
-          swap_size: 4
-
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@v4
@@ -63,7 +56,8 @@ jobs:
           context: .
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
+          platforms: linux/amd64,linux/arm64/v8
+          # linux/arm/v7 disabled temporarily
           cache-from: type=gha
           cache-to: type=gha,mode=max
           push: true
