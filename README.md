@@ -40,7 +40,7 @@ That's why MinMon can trigger regular [report](./doc/report.md) events to let yo
 - No fancy config directory structure - just a single TOML file.
 - No users, groups or roles.
 - No cryptic abbreviations. The few extra letters in the config file won't hurt anyone.
-- There are no predefined threshold names like "Warning" or "Critical". You might might want more than just two, or only one. So that's up to you to define in the config.
+- There are no predefined threshold names like "Warning" or "Critical". You might want more than just two, or only one. So that's up to you to define in the config.
 - The same check plugin can be used multiple times. You might want different levels to trigger different actions for different filesystems at different intervals.
 - Alarms are timed in "cycles" (i.e. multiples of the `interval` of the check) instead of seconds. It's not very user-friendly but helps to keep the internal processing and the code simple and efficient.
 - Alarms stand for themselves - they are not related. This means that depending on your configuration, two (or more) events may be triggered at the same time for the same check. There are cases where this could be undesirable.
@@ -49,7 +49,7 @@ That's why MinMon can trigger regular [report](./doc/report.md) events to let yo
 - All times and dates are UTC. No fiddling with local times and time zones.
 - No internal state is stored between restarts.
 - As of now it's only for Linux but it should be easy to adapt to other *NIXes or maybe even Windows.
-- Some of the things mentioned above may change in the future (see [Roadmap](#roadmap)).
+- Some of the things mentioned above may change in the future (see [Roadmap](https://github.com/users/flo-at/projects/2)).
 
 # Config file
 The config file uses the [TOML](https://toml.io) format and has the following sections:
