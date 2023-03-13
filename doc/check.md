@@ -69,10 +69,10 @@ Besides the generic options listed below, alarms have additional options that ar
 | name | example | optional | default |
 |:---|:---|:---:|:---|
 | disable | `true` | ✔ | `false` |
-| name | `"Fooba"r` | ❌ | |
+| name | `"Foobar"` | ❌ | |
 | action | `"FooAction"` | ❌ | |
 | placeholders | `{"internal_alarm_id" = "id_foobar"}` | ✔ | |
-| cycles | `3` | ❌ | `1` |
+| cycles | `3` | ✔ | `1` |
 | repeat_cycles | `100` | ✔ | |
 | recover_action | `"FooAction"` | ✔ | |
 | recover_placeholders | `{"internal_alarm_id" = "id_foobar"}` | ✔ | |
