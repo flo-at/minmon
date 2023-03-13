@@ -141,6 +141,18 @@ name = "Log error"
 type = "Log"
 level = "Error"
 template = """{{check_name}} check didn't have valid data for alarm '{{alarm_name}}' and id '{{alarm_id}}': {{check_error}}."""
+
+# This is a block comment. It demonstrates how to add another check and alarm.
+# [[checks]]
+# name = "System pressure"
+# type = "PressureAverage"
+# cpu = true
+# avg60 = true
+#
+# [[checks.alarms]]
+# name = "Warning"
+# level = 80
+# action = "Another action"
 ```
 
 The webhook text will be rendered into something like "Warning: Filesystem usage on mountpoint '/home' reached 70%."
