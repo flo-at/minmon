@@ -1,8 +1,7 @@
 FROM rust:slim-bullseye as builder
-ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
+ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
 
 RUN apt-get update && apt-get install -y \
-    git \
     pkg-config \
     libc-dev \
     libssl-dev \
