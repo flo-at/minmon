@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get -y install libsystemd-dev libsensors-dev
+        run: sudo apt-get update && sudo apt-get -y install libssl-dev libsystemd-dev libsensors-dev
 
       - name: Cache cargo dependencies
         id: cache-cargo
