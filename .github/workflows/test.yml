@@ -28,6 +28,12 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
 
+      - name: Formatting
+        run: cargo fmt --check --all
+
+      - name: Clippy
+        run: cargo clippy --all-features
+
       - name: Build
         run: cargo build --verbose --all-features
 
