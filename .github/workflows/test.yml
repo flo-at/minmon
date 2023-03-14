@@ -32,13 +32,13 @@ jobs:
         run: cargo fmt --check --all
 
       - name: Clippy
-        run: cargo clippy --all-features
+        run: cargo clippy --all-targets --all-features
 
       - name: Build
-        run: cargo build --verbose --all-features
+        run: cargo build --all-features --all-targets
 
       - name: Run tests
-        run: cargo test --verbose --all-features
+        run: cargo test --all-features
 
       - if: steps.cache-cargo.outputs.cache-hit != 'true'
         name: Clean cargo dependencies
