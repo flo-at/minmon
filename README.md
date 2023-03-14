@@ -227,5 +227,4 @@ For the docker image, optionally mount your lm_sensors config file(s) to `/etc/s
 Note: libsensors is not cooperative and might theoretically block the event loop.
 
 # Contributions
-Contributions are very welcome! MinMon is pretty easy to extend. Even if it's just a typo in the documentation, I'll be happy to merge your PR.
-If you have an idea for a new check or action please use use the [discussions](https://github.com/flo-at/minmon/discussions) page instead of opening a new issue.
+See [CONTRIBUTING.md](./CONTRIBUTING.md)
