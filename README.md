@@ -9,7 +9,7 @@ I wrote this because the [existing alternatives](./doc/existing-alternatives.md)
 [![Latest SemVer release](https://img.shields.io/github/v/release/flo-at/minmon)](https://github.com/flo-at/minmon/releases)
 [![crates.io](https://img.shields.io/crates/v/minmon)](https://crates.io/crates/minmon)
 [![AUR version](https://img.shields.io/aur/version/minmon)](https://aur.archlinux.org/packages/minmon)
-[![License](https://img.shields.io/github/license/flo-at/minmon)](./LICENSE)
+![License](https://img.shields.io/badge/license-Apache--2.0%20%7C%20MIT-green)
 
 # Checks
 The [checks](./doc/check.md) read the measurement values that will be monitored by MinMon.
