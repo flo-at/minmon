@@ -35,6 +35,7 @@ fn init_logging(config: &config::Config) -> Result<()> {
         #[cfg(feature = "systemd")]
         config::LogTarget::Journal => {
             systemd::init_journal()?;
+            log::set_max_level(log::LevelFilter::from(config.log.level));
         }
     }
     Ok(())
