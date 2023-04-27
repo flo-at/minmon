@@ -209,7 +209,7 @@ Copy the `systemd.minmon.service` file to `/etc/systemd/system/minmon.service` a
 You can enable and start the service with `systemctl daemon-reload && systemctl enable --now minmon.service`.\
 \
 
-## Install for the AUR (Arch Linux)
+## Install from the AUR (Arch Linux)
 Use your package manager of choice to install the [minmon](https://aur.archlinux.org/packages/minmon) package from the AUR.\
 Place your config file at path `/etc/minmon.toml`.
 You can enable and start the service with `systemctl daemon-reload && systemctl enable --now minmon.service`.\
