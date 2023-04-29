@@ -58,6 +58,7 @@ impl From<LogLevel> for log::Level {
 pub enum LogTarget {
     #[default]
     Stdout,
+    Stderr,
     #[cfg(feature = "systemd")]
     Journal,
 }

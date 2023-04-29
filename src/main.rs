@@ -15,7 +15,12 @@ fn get_config_file_path() -> Result<std::path::PathBuf> {
 
 fn init_logging(config: &config::Config) -> Result<()> {
     match config.log.target {
-        config::LogTarget::Stdout => {
+        config::LogTarget::Stdout | config::LogTarget::Stderr => {
+            let target = if config.log.target == config::LogTarget::Stdout {
+                env_logger::Target::Stdout
+            } else {
+                env_logger::Target::Stderr
+            };
             let mut builder = env_logger::Builder::from_default_env();
             builder
                 .filter_level(log::LevelFilter::from(config.log.level))
@@ -29,7 +34,7 @@ fn init_logging(config: &config::Config) -> Result<()> {
                         record.args()
                     )
                 })
-                .target(env_logger::Target::Stdout)
+                .target(target)
                 .format_timestamp_secs()
                 .init();
         }

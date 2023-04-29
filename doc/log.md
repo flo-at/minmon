@@ -21,4 +21,5 @@ Target the log message is sent to.
 
 One of:
 - `Stdout`: Standard output.
+- `Stderr`: Standard error.
 - `Journal`: Systemd journal (only available if MinMon is built with the `systemd` feature).
