@@ -29,6 +29,7 @@ fn init_logging(config: &config::Config) -> Result<()> {
                         record.args()
                     )
                 })
+                .target(env_logger::Target::Stdout)
                 .format_timestamp_secs()
                 .init();
         }
