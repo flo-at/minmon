@@ -12,7 +12,8 @@ pub fn init() {
 }
 
 pub fn init_journal() -> Result<()> {
-    systemd_journal_logger::init()
+    systemd_journal_logger::JournalLog::default()
+        .install()
         .map_err(|x| Error(format!("Could not initialize journal logger: {}", x)))
 }
 
