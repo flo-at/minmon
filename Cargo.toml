@@ -20,7 +20,7 @@ nix = "0.26"
 log = { version = "0.4", features = ["std"] }
 env_logger = { version = "0.10", features = ["humantime"], default-features = false }
 async-trait = "0.1"
-text_placeholder = "0.4"
+text_placeholder = "0.5"
 chrono = { version = "0.4", features = ["std", "clock"], default-features = false }
 lettre = { version = "0.10", features = ["smtp-transport", "builder"], default-features = false, optional = true }
 sensors = { version = "0.2", optional = true }
