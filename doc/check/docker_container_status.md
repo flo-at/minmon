@@ -1,6 +1,9 @@
 # DockerContainerStatus
 Checks whether a docker container is running (and healthy).\
-This check is only available if MinMon is built with the `docker` feature.
+This check is only available if MinMon is built with the `docker` feature.\
+
+If MinMon is running inside a docker container, the docker socket has to be mounted for this check to work.\
+This can be done by adding the argument `-v /var/run/docker.sock:/var/run/docker.sock` to the docker run command.
 
 ## Check options
 | name | example | optional | default |

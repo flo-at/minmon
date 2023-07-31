@@ -5,3 +5,5 @@ services:
     image: ghcr.io/flo-at/minmon:latest
     volumes:
       - ./minmon.toml:/etc/minmon.toml:ro
+      # The following line is required for the DockerContainerStatus check.
+      #- /var/run/docker.sock:/var/run/docker.sock
