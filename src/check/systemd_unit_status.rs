@@ -6,6 +6,7 @@ use async_trait::async_trait;
 use measurement::Measurement;
 
 const SYSTEMCTL_BINARY: &str = "/usr/bin/systemctl";
+const SYSTEMD_RUN_BINARY: &str = "/usr/bin/systemd-run";
 const USER_ARG: &str = "--user";
 const STATUS_ARG: &str = "status";
 
@@ -19,6 +20,40 @@ pub struct SystemdUnitStatus {
     process_configs: Vec<ProcessConfig>,
 }
 
+fn process_config_system(unit: &str) -> Result<ProcessConfig> {
+    let arguments = vec![STATUS_ARG.into(), unit.into()];
+    ProcessConfig::new(
+        SYSTEMCTL_BINARY.into(),
+        arguments,
+        std::collections::HashMap::new(),
+        None,
+        None,
+        None,
+    )
+}
+
+fn process_config_user(uid: u32, unit: &str) -> Result<ProcessConfig> {
+    let arguments = vec![
+        "--quiet".into(),
+        "--pipe".into(),
+        "--wait".into(),
+        "--user".into(),
+        format!("--machine={uid}@.host"),
+        SYSTEMCTL_BINARY.into(),
+        USER_ARG.into(),
+        STATUS_ARG.into(),
+        unit.into(),
+    ];
+    ProcessConfig::new(
+        SYSTEMD_RUN_BINARY.into(),
+        arguments,
+        std::collections::HashMap::new(),
+        None,
+        None,
+        None,
+    )
+}
+
 impl TryFrom<&config::Check> for SystemdUnitStatus {
     type Error = Error;
 
@@ -27,26 +62,13 @@ impl TryFrom<&config::Check> for SystemdUnitStatus {
             let mut id = Vec::new();
             let mut process_configs = Vec::new();
             for unit in unit_status.units.iter() {
-                let mut arguments = Vec::new();
-                arguments.push(STATUS_ARG.into());
                 if unit.uid() != 0 {
-                    arguments.push(USER_ARG.into());
                     id.push(format!("{}[{}]", unit.unit(), unit.uid()));
+                    process_configs.push(process_config_user(unit.uid(), unit.unit())?);
                 } else {
-                    id.push(unit.unit().to_string());
+                    id.push(unit.unit().into());
+                    process_configs.push(process_config_system(unit.unit())?);
                 }
-                arguments.push(unit.unit().to_string());
-                process_configs.push(ProcessConfig::new(
-                    SYSTEMCTL_BINARY.into(),
-                    arguments,
-                    std::collections::HashMap::new(),
-                    None,
-                    match unit.uid() {
-                        0 => None,
-                        uid => Some(uid),
-                    },
-                    None,
-                )?);
             }
             Ok(Self {
                 id,
