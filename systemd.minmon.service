@@ -1,6 +1,6 @@
 [Unit]
 Description=MinMon monitoring and alarming daemon
-After=local-fs.target network-online.target
+After=local-fs.target network-online.target systemd-resolved.service
 
 [Service]
 ExecStart=/usr/bin/minmon /etc/minmon.toml
