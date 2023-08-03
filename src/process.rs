@@ -45,6 +45,7 @@ impl ProcessConfig {
         if let Some(gid) = self.gid {
             command.gid(gid);
         }
+        command.env_remove("NOTIFY_SOCKET");
         log::debug!("Calling process: {}", self.path.display());
         let output = command
             .output()
