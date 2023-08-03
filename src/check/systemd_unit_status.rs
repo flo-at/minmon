@@ -37,6 +37,7 @@ fn process_config_user(uid: u32, unit: &str) -> Result<ProcessConfig> {
         "--quiet".into(),
         "--pipe".into(),
         "--wait".into(),
+        "--collect".into(),
         "--user".into(),
         format!("--machine={uid}@.host"),
         SYSTEMCTL_BINARY.into(),
