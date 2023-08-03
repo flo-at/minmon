@@ -138,11 +138,6 @@ If `true`, inverts the decision based on the check's measurement data. E.g. the 
 ### alarm_name
 Name of the alarm that triggered the action.
 
-### alarm_uuid
-UUID of the alarm state.
-This does not change until the alarm state changes.
-You can use this to track an alarm across repeated actions.
-
 ### alarm_timestamp
 ISO8601 timestamp of the alarm's state change event.
 

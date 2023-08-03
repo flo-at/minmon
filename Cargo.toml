@@ -15,7 +15,6 @@ tokio = { version = "1.29", features = ["full"] }
 libsystemd = { version = "0.6", optional = true }
 systemd-journal-logger = { version = "1.0", optional = true }
 serde = { version = "1.0", features = ["derive"] }
-uuid = { version = "1.4", features = ["v4", "fast-rng"] }
 nix = "0.26"
 log = { version = "0.4", features = ["std"] }
 env_logger = { version = "0.10", features = ["humantime"], default-features = false }

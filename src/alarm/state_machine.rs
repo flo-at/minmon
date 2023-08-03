@@ -52,7 +52,6 @@ impl Default for GoodState {
 #[derive(Clone)]
 struct BadState {
     timestamp: std::time::SystemTime,
-    uuid: String,
     cycles: u32,
     good_cycles: u32,
 }
@@ -60,7 +59,6 @@ struct BadState {
 #[derive(Clone)]
 struct ErrorState {
     timestamp: std::time::SystemTime,
-    uuid: String,
     shadowed_state: Box<State>,
     cycles: u32,
 }
@@ -99,13 +97,11 @@ impl StateHandler for StateMachine {
                     String::from("alarm_timestamp"),
                     crate::datetime_iso8601(bad.timestamp),
                 );
-                placeholders.insert(String::from("alarm_uuid"), bad.uuid.clone());
             }
 
             State::Good(good) => {
                 placeholders.insert(String::from("alarm_state"), String::from("Good"));
                 if let Some(last_alarm) = &good.last_alarm {
-                    placeholders.insert(String::from("alarm_uuid"), last_alarm.uuid.clone());
                     placeholders.insert(
                         String::from("alarm_timestamp"),
                         crate::datetime_iso8601(last_alarm.timestamp),
@@ -117,7 +113,6 @@ impl StateHandler for StateMachine {
 
             State::Error(error) => {
                 placeholders.insert(String::from("alarm_state"), String::from("Error"));
-                placeholders.insert(String::from("error_uuid"), error.uuid.clone());
                 placeholders.insert(
                     String::from("error_timestamp"),
                     crate::datetime_iso8601(error.timestamp),
@@ -134,7 +129,6 @@ impl StateHandler for StateMachine {
                 log::warn!("{} changing from good to error state.", self.log_id);
                 State::Error(ErrorState {
                     timestamp: std::time::SystemTime::now(),
-                    uuid: uuid::Uuid::new_v4().to_string(),
                     shadowed_state: Box::new(self.state.clone()),
                     cycles: 1,
                 })
@@ -145,7 +139,6 @@ impl StateHandler for StateMachine {
                 log::warn!("{} changing from bad to error state.", self.log_id);
                 State::Error(ErrorState {
                     timestamp: std::time::SystemTime::now(),
-                    uuid: uuid::Uuid::new_v4().to_string(),
                     shadowed_state: Box::new(self.state.clone()),
                     cycles: 1,
                 })
@@ -160,7 +153,6 @@ impl StateHandler for StateMachine {
                 };
                 State::Error(ErrorState {
                     timestamp: error.timestamp,
-                    uuid: error.uuid.clone(),
                     shadowed_state: error.shadowed_state.clone(),
                     cycles,
                 })
@@ -179,7 +171,6 @@ impl StateHandler for StateMachine {
                     log::warn!("{} changing from good to bad state.", self.log_id);
                     State::Bad(BadState {
                         timestamp: std::time::SystemTime::now(),
-                        uuid: uuid::Uuid::new_v4().to_string(),
                         cycles: 1,
                         good_cycles: 0,
                     })
@@ -201,7 +192,6 @@ impl StateHandler for StateMachine {
                 };
                 State::Bad(BadState {
                     timestamp: bad.timestamp,
-                    uuid: bad.uuid.clone(),
                     cycles,
                     good_cycles: 0,
                 })
@@ -231,13 +221,11 @@ impl StateHandler for StateMachine {
                     log::info!("{} changing from bad to good state.", self.log_id);
                     State::Good(GoodState {
                         timestamp: std::time::SystemTime::now(),
-                        last_alarm: Some(bad.clone()),
                         bad_cycles: 0,
                     })
                 } else {
                     State::Bad(BadState {
                         timestamp: bad.timestamp,
-                        uuid: bad.uuid.clone(),
                         cycles: bad.cycles + 1,
                         good_cycles: bad.good_cycles + 1,
                     })
@@ -330,12 +318,11 @@ mod test {
         state_machine.bad();
         state_machine.good();
         state_machine.add_placeholders(&mut placeholders);
-        uuid::Uuid::parse_str(placeholders.get("alarm_uuid").unwrap()).unwrap();
         use std::str::FromStr;
         chrono::DateTime::<chrono::Utc>::from_str(placeholders.get("alarm_timestamp").unwrap())
             .unwrap();
         assert_eq!(placeholders.get("alarm_state").unwrap(), "Good");
-        assert_eq!(placeholders.len(), 3);
+        assert_eq!(placeholders.len(), 2);
     }
 
     #[test]
@@ -344,12 +331,11 @@ mod test {
         let mut placeholders = PlaceholderMap::new();
         state_machine.bad();
         state_machine.add_placeholders(&mut placeholders);
-        uuid::Uuid::parse_str(placeholders.get("alarm_uuid").unwrap()).unwrap();
         use std::str::FromStr;
         chrono::DateTime::<chrono::Utc>::from_str(placeholders.get("alarm_timestamp").unwrap())
             .unwrap();
         assert_eq!(placeholders.get("alarm_state").unwrap(), "Bad");
-        assert_eq!(placeholders.len(), 3);
+        assert_eq!(placeholders.len(), 2);
     }
 
     #[test]
@@ -358,12 +344,11 @@ mod test {
         let mut placeholders = PlaceholderMap::new();
         state_machine.error();
         state_machine.add_placeholders(&mut placeholders);
-        uuid::Uuid::parse_str(placeholders.get("error_uuid").unwrap()).unwrap();
         use std::str::FromStr;
         chrono::DateTime::<chrono::Utc>::from_str(placeholders.get("error_timestamp").unwrap())
             .unwrap();
         assert_eq!(placeholders.get("alarm_state").unwrap(), "Error");
-        assert_eq!(placeholders.len(), 3);
+        assert_eq!(placeholders.len(), 2);
     }
 
     #[test]
