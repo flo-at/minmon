@@ -106,9 +106,6 @@ impl StateHandler for StateMachine {
                         String::from("alarm_timestamp"),
                         crate::datetime_iso8601(last_alarm.timestamp),
                     );
-                } else {
-                    panic!();
-                }
             }
 
             State::Error(error) => {
