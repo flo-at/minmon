@@ -35,7 +35,6 @@ impl Default for State {
 #[derive(Clone)]
 struct GoodState {
     timestamp: std::time::SystemTime,
-    last_alarm: Option<BadState>,
     bad_cycles: u32,
 }
 
@@ -43,7 +42,6 @@ impl Default for GoodState {
     fn default() -> Self {
         Self {
             timestamp: std::time::SystemTime::now(),
-            last_alarm: None,
             bad_cycles: 0,
         }
     }
@@ -101,17 +99,16 @@ impl StateHandler for StateMachine {
 
             State::Good(good) => {
                 placeholders.insert(String::from("alarm_state"), String::from("Good"));
-                if let Some(last_alarm) = &good.last_alarm {
-                    placeholders.insert(
-                        String::from("alarm_timestamp"),
-                        crate::datetime_iso8601(last_alarm.timestamp),
-                    );
+                placeholders.insert(
+                    String::from("alarm_timestamp"),
+                    crate::datetime_iso8601(good.timestamp),
+                );
             }
 
             State::Error(error) => {
                 placeholders.insert(String::from("alarm_state"), String::from("Error"));
                 placeholders.insert(
-                    String::from("error_timestamp"),
+                    String::from("alarm_timestamp"),
                     crate::datetime_iso8601(error.timestamp),
                 );
             }
@@ -174,7 +171,6 @@ impl StateHandler for StateMachine {
                 } else {
                     State::Good(GoodState {
                         timestamp: good.timestamp,
-                        last_alarm: None,
                         bad_cycles: good.bad_cycles + 1,
                     })
                 }
@@ -342,7 +338,7 @@ mod test {
         state_machine.error();
         state_machine.add_placeholders(&mut placeholders);
         use std::str::FromStr;
-        chrono::DateTime::<chrono::Utc>::from_str(placeholders.get("error_timestamp").unwrap())
+        chrono::DateTime::<chrono::Utc>::from_str(placeholders.get("alarm_timestamp").unwrap())
             .unwrap();
         assert_eq!(placeholders.get("alarm_state").unwrap(), "Error");
         assert_eq!(placeholders.len(), 2);
