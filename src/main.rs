@@ -69,7 +69,7 @@ async fn main_wrapper() -> Result<()> {
 
     #[cfg(feature = "systemd")]
     {
-        systemd::init();
+        systemd::init().await;
     }
 
     let (report, checks) = minmon::from_config(&config)?;

@@ -1,14 +1,17 @@
 use crate::{Error, Result};
 
-const GENERIC_ERROR: &str = "Could not connect to systemd.";
+const SD_STATE_READY: &str = "READY=1";
+const SD_STATE_WATCHDOG: &str = "WATCHDOG=1";
 
-pub fn init() {
+pub async fn init() {
     if !libsystemd::daemon::booted() {
         log::info!("Could not detect systemd. Skipping notification and watchdog initialization.");
         return;
     }
     spawn_watchdog_task();
-    notify_ready();
+    if let Err(err) = sd_notify(&[SD_STATE_READY]).await {
+        log::error!("Failed to notify systemd: {}", err);
+    }
 }
 
 pub fn init_journal() -> Result<()> {
@@ -17,9 +20,34 @@ pub fn init_journal() -> Result<()> {
         .map_err(|x| Error(format!("Could not initialize journal logger: {}", x)))
 }
 
-fn notify_ready() {
-    libsystemd::daemon::notify(false, &[libsystemd::daemon::NotifyState::Ready])
-        .expect(GENERIC_ERROR);
+async fn sd_notify(state: &[&str]) -> Result<bool> {
+    let env_sock = match std::env::var("NOTIFY_SOCKET").ok() {
+        None => return Ok(false),
+        Some(v) => v,
+    };
+
+    let socket = tokio::net::UnixDatagram::unbound()
+        .map_err(|x| Error(format!("Failed to open Unix datagram socket: {x}")))?;
+
+    let msg = state
+        .iter()
+        .fold(String::new(), |res, s| res + &format!("{}\n", s))
+        .into_bytes();
+
+    let sent_len = socket
+        .send_to(&msg, env_sock)
+        .await
+        .map_err(|x| Error(format!("Failed to send notify datagram: {x}")))?;
+
+    if sent_len != msg.len() {
+        return Err(Error(format!(
+            "Incomplete notify message: sent {} out of {}",
+            sent_len,
+            msg.len()
+        )));
+    }
+
+    Ok(true)
 }
 
 fn spawn_watchdog_task() {
@@ -36,10 +64,7 @@ fn spawn_watchdog_task() {
                 let mut interval = tokio::time::interval(reset_interval);
                 loop {
                     interval.tick().await;
-                    if let Err(err) = libsystemd::daemon::notify(
-                        false,
-                        &[libsystemd::daemon::NotifyState::Watchdog],
-                    ) {
+                    if let Err(err) = sd_notify(&[SD_STATE_WATCHDOG]).await {
                         log::error!("Failed to reset systemd watchdog: {}", err);
                     }
                 }
