@@ -22,6 +22,7 @@ impl ProcessConfig {
 
     pub async fn run(&self, placeholders: Option<PlaceholderMap>) -> Result<(u8, Option<String>)> {
         let mut command = tokio::process::Command::new(&self.path);
+        command.kill_on_drop(true);
         if let Some(placeholders) = placeholders {
             for argument in self.arguments.iter() {
                 let argument = crate::fill_placeholders(argument.as_str(), &placeholders);
