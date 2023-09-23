@@ -240,6 +240,6 @@ mod test {
         let line = "0 1 2 3 4 5";
         assert_eq!(get_number::<u32>("error", line, 0).unwrap(), 0);
         assert_eq!(get_number::<u32>("error", line, 5).unwrap(), 5);
-        assert!(matches!(get_number::<u32>("error", line, 6), Err(_)));
+        assert!(get_number::<u32>("error", line, 6).is_err());
     }
 }

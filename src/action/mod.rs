@@ -223,9 +223,6 @@ mod test {
             TimeoutMockAction {},
         )
         .unwrap();
-        assert!(matches!(
-            action.trigger(PlaceholderMap::new()).await,
-            Err(_)
-        ));
+        assert!(action.trigger(PlaceholderMap::new()).await.is_err());
     }
 }
