@@ -802,7 +802,7 @@ dependencies = [
  "hmac",
  "libc",
  "log",
- "nix",
+ "nix 0.26.4",
  "nom",
  "once_cell",
  "serde",
@@ -884,7 +884,7 @@ dependencies = [
  "libsystemd",
  "log",
  "mockall",
- "nix",
+ "nix 0.27.1",
  "rand",
  "reqwest",
  "sensors",
@@ -961,7 +961,17 @@ dependencies = [
  "cfg-if",
  "libc",
  "memoffset",
- "pin-utils",
+]
+
+[[package]]
+name = "nix"
+version = "0.27.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2eb04e9c688eff1c89d72b407f168cf79bb9e867a9d3323ed6c01519eb9cc053"
+dependencies = [
+ "bitflags 2.4.0",
+ "cfg-if",
+ "libc",
 ]
 
 [[package]]
