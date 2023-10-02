@@ -1603,11 +1603,11 @@ dependencies = [
 
 [[package]]
 name = "systemd-journal-logger"
-version = "1.0.0"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "356b5cb52ce54916cbfaee19b07d305c7ea8ce5435a088c58743d4a0211f3eff"
+checksum = "c3bc8d9cb948f3d3a78f6f9515710015404a8760be8f23874dbad8b21ce01302"
 dependencies = [
- "libsystemd",
+ "libc",
  "log",
 ]
 
