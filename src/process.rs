@@ -10,6 +10,12 @@ pub struct ProcessConfig {
     gid: Option<u32>,
 }
 
+pub struct ProcessResult {
+    pub code: u8,
+    pub stdout: String,
+    pub stderr: String,
+}
+
 impl ProcessConfig {
     pub fn file_name(&self) -> Result<&str> {
         let error_str = "Could not parse file name from path.";
@@ -20,7 +26,7 @@ impl ProcessConfig {
             .ok_or_else(|| Error(error_str.into()))
     }
 
-    pub async fn run(&self, placeholders: Option<PlaceholderMap>) -> Result<(u8, Option<String>)> {
+    pub async fn run(&self, placeholders: Option<PlaceholderMap>) -> Result<ProcessResult> {
         let mut command = tokio::process::Command::new(&self.path);
         command.kill_on_drop(true);
         if let Some(placeholders) = placeholders {
@@ -56,16 +62,15 @@ impl ProcessConfig {
         match output.status.code() {
             Some(code) => {
                 let code = (code & 0xff) as u8;
-                if output.stderr.is_empty() {
-                    Ok((code, None))
-                } else {
-                    Ok((
-                        code,
-                        std::str::from_utf8(&output.stderr[..])
-                            .map(|x| x.into())
-                            .ok(),
-                    ))
-                }
+                Ok(ProcessResult {
+                    code,
+                    stdout: String::from_utf8_lossy(&output.stdout[..])
+                        .trim()
+                        .to_owned(),
+                    stderr: String::from_utf8_lossy(&output.stderr[..])
+                        .trim()
+                        .to_owned(),
+                })
             }
             None => Err(Error(String::from("Process was terminated by a signal."))),
         }

@@ -25,12 +25,14 @@ impl TryFrom<&config::Action> for Process {
 #[async_trait]
 impl Action for Process {
     async fn trigger(&self, placeholders: PlaceholderMap) -> Result<()> {
-        let (code, stderr) = self.process_config.run(Some(placeholders)).await?;
+        let result = self.process_config.run(Some(placeholders)).await?;
+        let code = result.code;
         if code != 0 {
-            return match stderr {
-                None => Err(Error(format!("Process failed with code {code}."))),
-                Some(stderr) => Err(Error(format!("Process failed with code {code}: {stderr}"))),
-            };
+            return Err(Error(if result.stderr.is_empty() {
+                format!("Process failed with code {code}.")
+            } else {
+                format!("Process failed with code {code}: {}", result.stderr)
+            }));
         }
         Ok(())
     }
