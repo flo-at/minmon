@@ -8,6 +8,8 @@ pub struct ProcessConfig {
     working_directory: Option<String>,
     uid: Option<u32>,
     gid: Option<u32>,
+    stdout_max: u32,
+    stderr_max: u32,
 }
 
 pub struct ProcessResult {
@@ -54,7 +56,7 @@ impl ProcessConfig {
         }
         command.env_remove("NOTIFY_SOCKET");
         log::debug!("Calling process: {}", self.path.display());
-        let output = command
+        let mut output = command
             .output()
             .await
             .map_err(|x| Error(format!("Failed to run process: {x}")))?;
@@ -62,6 +64,8 @@ impl ProcessConfig {
         match output.status.code() {
             Some(code) => {
                 let code = (code & 0xff) as u8;
+                output.stdout.truncate(self.stdout_max as usize);
+                output.stderr.truncate(self.stderr_max as usize);
                 Ok(ProcessResult {
                     code,
                     stdout: String::from_utf8_lossy(&output.stdout[..])
@@ -83,6 +87,8 @@ impl ProcessConfig {
         working_directory: Option<String>,
         uid: Option<u32>,
         gid: Option<u32>,
+        stdout_max: u32,
+        stderr_max: u32,
     ) -> Result<Self> {
         if !path.is_file() {
             Err(Error(format!("'path' is not a file: {}.", path.display())))
@@ -94,6 +100,8 @@ impl ProcessConfig {
                 working_directory,
                 uid,
                 gid,
+                stdout_max,
+                stderr_max,
             })
         }
     }
@@ -110,6 +118,8 @@ impl TryFrom<&config::ProcessConfig> for ProcessConfig {
             process.working_directory.clone(),
             process.uid,
             process.gid,
+            process.stdout_max,
+            process.stderr_max,
         )
     }
 }

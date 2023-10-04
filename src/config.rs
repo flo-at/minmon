@@ -398,6 +398,10 @@ pub struct ProcessConfig {
     pub uid: Option<u32>,
     #[serde(default)]
     pub gid: Option<u32>,
+    #[serde(default = "default::process_config_stdout_max")]
+    pub stdout_max: u32,
+    #[serde(default = "default::process_config_stderr_max")]
+    pub stderr_max: u32,
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
@@ -539,6 +543,16 @@ pub mod default {
     pub const DOCKER_SOCKET_PATH: &str = "/var/run/docker.sock";
     pub fn docker_socket_path() -> String {
         DOCKER_SOCKET_PATH.into()
+    }
+
+    pub const PROCESS_CONFIG_STDOUT_MAX: u32 = 512;
+    pub fn process_config_stdout_max() -> u32 {
+        PROCESS_CONFIG_STDOUT_MAX
+    }
+
+    pub const PROCESS_CONFIG_STDERR_MAX: u32 = 512;
+    pub fn process_config_stderr_max() -> u32 {
+        PROCESS_CONFIG_STDERR_MAX
     }
 }
 

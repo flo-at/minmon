@@ -10,6 +10,8 @@ Runs a process and checks its exit status code.
 | working_directory | `"/home/user/"` | ✔ | inherited (\*) |
 | uid | `1000` | ✔ | inherited (*) |
 | gid | `1000` | ✔ | inherited (*) |
+| stdout_max | `256` | ✔ | 512 |
+| stderr_max | `256` | ✔ | 512 |
 
 (\*) Inherited from MinMon's process.
 
@@ -33,6 +35,12 @@ The new process will inherit MinMon's user ID if this is not set.
 ### gid
 Group ID the process will be run with.
 The new process will inherit MinMon's group ID if this is not set.
+
+### stdout_max
+Maximum number of bytes read from standard output.
+
+### stderr_max
+Maximum number of bytes read from standard error.
 
 ## Alarm options
 | name | example | optional | default |
