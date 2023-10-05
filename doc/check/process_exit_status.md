@@ -56,3 +56,5 @@ Name of the file given by the path.
 
 ## Placeholders
 - `status_code`: Process exit status code.
+- `stdout`: Text read from process standard output without leading and trailing whitespace.
+- `stderr`: Text read from process standard error without leading and trailing whitespace.

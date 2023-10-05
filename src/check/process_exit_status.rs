@@ -32,9 +32,11 @@ impl DataSource for ProcessExitStatus {
 
     async fn get_data(
         &mut self,
-        _placeholders: &mut PlaceholderMap,
+        placeholders: &mut PlaceholderMap,
     ) -> Result<Vec<Result<Option<Self::Item>>>> {
         let result = self.process_config.run(None).await?;
+        placeholders.insert(String::from("stdout"), result.stdout);
+        placeholders.insert(String::from("stderr"), result.stderr);
         Ok(vec![Self::Item::new(result.code).map(Some)])
     }
 
