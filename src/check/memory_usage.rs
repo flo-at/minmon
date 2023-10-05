@@ -1,6 +1,6 @@
 use super::DataSource;
 use crate::{config, measurement};
-use crate::{Error, Result};
+use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 use measurement::Measurement;
 
@@ -47,7 +47,10 @@ impl TryFrom<&config::Check> for MemoryUsage {
 impl DataSource for MemoryUsage {
     type Item = measurement::Level;
 
-    async fn get_data(&mut self) -> Result<Vec<Result<Option<Self::Item>>>> {
+    async fn get_data(
+        &mut self,
+        _placeholders: &mut PlaceholderMap,
+    ) -> Result<Vec<Result<Option<Self::Item>>>> {
         let meminfo = MeminfoFileContent::try_from_file(MEMINFO_PATH).await?;
         let mut res = Vec::new();
         if self.memory {

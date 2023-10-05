@@ -1,6 +1,6 @@
 use super::DataSource;
 use crate::{config, measurement};
-use crate::{Error, Result};
+use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 use measurement::Measurement;
 
@@ -32,7 +32,10 @@ impl TryFrom<&config::Check> for FilesystemUsage {
 impl DataSource for FilesystemUsage {
     type Item = measurement::Level;
 
-    async fn get_data(&mut self) -> Result<Vec<Result<Option<Self::Item>>>> {
+    async fn get_data(
+        &mut self,
+        _placeholders: &mut PlaceholderMap,
+    ) -> Result<Vec<Result<Option<Self::Item>>>> {
         let mut res = Vec::new();
         for mountpoint in self.mountpoints.iter() {
             res.push(match nix::sys::statvfs::statvfs(mountpoint.as_str()) {

@@ -1,7 +1,7 @@
 use super::DataSource;
 use crate::process::ProcessConfig;
 use crate::{config, measurement};
-use crate::{Error, Result};
+use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 use measurement::Measurement;
 
@@ -30,7 +30,10 @@ impl TryFrom<&config::Check> for ProcessExitStatus {
 impl DataSource for ProcessExitStatus {
     type Item = measurement::StatusCode;
 
-    async fn get_data(&mut self) -> Result<Vec<Result<Option<Self::Item>>>> {
+    async fn get_data(
+        &mut self,
+        _placeholders: &mut PlaceholderMap,
+    ) -> Result<Vec<Result<Option<Self::Item>>>> {
         let result = self.process_config.run(None).await?;
         Ok(vec![Self::Item::new(result.code).map(Some)])
     }

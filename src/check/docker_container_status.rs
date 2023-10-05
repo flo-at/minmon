@@ -1,6 +1,6 @@
 use super::DataSource;
 use crate::{config, measurement};
-use crate::{Error, Result};
+use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 use measurement::Measurement;
 
@@ -67,7 +67,10 @@ impl TryFrom<&config::Check> for DockerContainerStatus {
 impl DataSource for DockerContainerStatus {
     type Item = measurement::BinaryState;
 
-    async fn get_data(&mut self) -> Result<Vec<Result<Option<Self::Item>>>> {
+    async fn get_data(
+        &mut self,
+        _placeholders: &mut PlaceholderMap,
+    ) -> Result<Vec<Result<Option<Self::Item>>>> {
         let docker = bollard::Docker::connect_with_unix(
             &self.socket_path,
             u64::MAX,

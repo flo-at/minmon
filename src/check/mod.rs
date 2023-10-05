@@ -29,7 +29,10 @@ pub trait Check: Send + Sync {
 pub trait DataSource: Send + Sync {
     type Item: Send + Sync + measurement::Measurement;
 
-    async fn get_data(&mut self) -> Result<Vec<Result<Option<Self::Item>>>>;
+    async fn get_data(
+        &mut self,
+        placeholders: &mut PlaceholderMap,
+    ) -> Result<Vec<Result<Option<Self::Item>>>>;
     fn format_data(&self, data: &Self::Item) -> String;
     fn ids(&self) -> &[String];
 }
@@ -98,7 +101,8 @@ where
         let mut placeholders = crate::global_placeholders();
         crate::merge_placeholders(&mut placeholders, &self.placeholders);
         placeholders.insert(String::from("check_name"), self.name.clone());
-        let res = tokio::time::timeout(self.timeout, self.data_source.get_data()).await;
+        let res =
+            tokio::time::timeout(self.timeout, self.data_source.get_data(&mut placeholders)).await;
         let ids = self.data_source.ids();
         let data_vec = match res {
             Ok(inner) => inner,

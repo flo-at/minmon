@@ -1,7 +1,7 @@
 use super::DataSource;
 use crate::measurement::Measurement;
 use crate::{config, measurement};
-use crate::{Error, Result};
+use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 
 type Item = measurement::Temperature;
@@ -111,7 +111,10 @@ impl TryFrom<&config::Check> for Temperature {
 impl DataSource for Temperature {
     type Item = measurement::Temperature;
 
-    async fn get_data(&mut self) -> Result<Vec<Result<Option<Self::Item>>>> {
+    async fn get_data(
+        &mut self,
+        _placeholders: &mut PlaceholderMap,
+    ) -> Result<Vec<Result<Option<Self::Item>>>> {
         Ok(self
             .sensors
             .iter()

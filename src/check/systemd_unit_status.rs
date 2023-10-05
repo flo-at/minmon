@@ -1,7 +1,7 @@
 use super::DataSource;
 use crate::process::ProcessConfig;
 use crate::{config, measurement};
-use crate::{Error, Result};
+use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
 use measurement::Measurement;
 
@@ -89,7 +89,10 @@ impl TryFrom<&config::Check> for SystemdUnitStatus {
 impl DataSource for SystemdUnitStatus {
     type Item = measurement::BinaryState;
 
-    async fn get_data(&mut self) -> Result<Vec<Result<Option<Self::Item>>>> {
+    async fn get_data(
+        &mut self,
+        _placeholders: &mut PlaceholderMap,
+    ) -> Result<Vec<Result<Option<Self::Item>>>> {
         let mut res = Vec::new();
         for process_config in self.process_configs.iter() {
             let result = process_config.run(None).await?;

@@ -1,4 +1,5 @@
 #![deny(warnings)]
+#![allow(clippy::too_many_arguments)]
 #[cfg(not(target_os = "linux"))]
 compile_error!("Only Linux is supported");
 
