@@ -15,9 +15,10 @@ pub async fn init() {
 }
 
 pub fn init_journal() -> Result<()> {
-    systemd_journal_logger::JournalLog::default()
+    systemd_journal_logger::JournalLog::new()
+        .map_err(|x| Error(format!("Could not create new journal logger: {}", x)))?
         .install()
-        .map_err(|x| Error(format!("Could not initialize journal logger: {}", x)))
+        .map_err(|x| Error(format!("Could not install journal logger: {}", x)))
 }
 
 async fn sd_notify(state: &[&str]) -> Result<bool> {
