@@ -29,8 +29,8 @@ fn process_config_system(unit: &str) -> Result<ProcessConfig> {
         None,
         None,
         None,
-        config::default::PROCESS_CONFIG_STDOUT_MAX,
-        config::default::PROCESS_CONFIG_STDERR_MAX,
+        0,
+        0,
     )
 }
 
@@ -54,8 +54,8 @@ fn process_config_user(uid: u32, unit: &str) -> Result<ProcessConfig> {
         None,
         None,
         None,
-        config::default::PROCESS_CONFIG_STDOUT_MAX,
-        config::default::PROCESS_CONFIG_STDERR_MAX,
+        0,
+        0,
     )
 }
 
