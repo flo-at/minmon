@@ -234,7 +234,7 @@ where
                 check_config
                     .filter
                     .as_ref()
-                    .map(T::Item::factory)
+                    .map(T::Item::filter_factory)
                     .transpose()?,
                 match &alarm_config.recover_action {
                     Some(action) => Some(action::get_action(action, actions)?),
@@ -265,7 +265,7 @@ where
         .as_ref()
         .map(|x| {
             (0..data_source.ids().len())
-                .map(|_| T::Item::factory(x))
+                .map(|_| T::Item::filter_factory(x))
                 .collect()
         })
         .transpose()?;

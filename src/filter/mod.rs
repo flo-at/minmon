@@ -17,13 +17,13 @@ where
 }
 
 pub trait FilterFactory {
-    fn factory(filter_config: &config::Filter) -> Result<Box<dyn Filter<Self>>>;
+    fn filter_factory(filter_config: &config::Filter) -> Result<Box<dyn Filter<Self>>>;
 }
 
 macro_rules! make_factory {
     ($T:ty, $( $U:ident ),*) => (
-        impl FilterFactory for $T { // TODO rename info fn filter_factory
-            fn factory(filter_config: &config::Filter) -> Result<Box<dyn Filter<Self>>> {
+        impl FilterFactory for $T {
+            fn filter_factory(filter_config: &config::Filter) -> Result<Box<dyn Filter<Self>>> {
                 #[allow(unreachable_patterns)]
                 match filter_config {
                     $(config::Filter::$U(config) => {
