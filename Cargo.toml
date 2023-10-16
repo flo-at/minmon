@@ -21,7 +21,7 @@ env_logger = { version = "0.10", features = ["humantime"], default-features = fa
 async-trait = "0.1"
 text_placeholder = "0.5"
 chrono = { version = "0.4", features = ["std", "clock"], default-features = false }
-lettre = { version = "0.10", features = ["smtp-transport", "builder"], default-features = false, optional = true }
+lettre = { version = "0.11", features = ["smtp-transport", "builder"], default-features = false, optional = true }
 sensors = { version = "0.2", optional = true }
 rand = "0.8"
 bollard = { version = "0.15", optional = true }
