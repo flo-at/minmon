@@ -12,7 +12,7 @@ edition = "2021"
 toml = "0.8"
 reqwest = { version = "0.11", optional = true, default-features = false }
 tokio = { version = "1.33", features = ["full"] }
-libsystemd = { version = "0.6", optional = true }
+libsystemd = { version = "0.7", optional = true }
 systemd-journal-logger = { version = "2.1", optional = true }
 serde = { version = "1.0", features = ["derive"] }
 nix = { version = "0.27", features = ["fs"] }
