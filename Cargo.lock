@@ -1653,9 +1653,9 @@ dependencies = [
 
 [[package]]
 name = "systemd-journal-logger"
-version = "2.1.0"
+version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb65c37bfdf7a8ae8d1793cfed716088dee377cfafdb29cb6941e808cea958ba"
+checksum = "b5f3848dd723f2a54ac1d96da793b32923b52de8dfcced8722516dac312a5b2a"
 dependencies = [
  "log",
  "rustix",
