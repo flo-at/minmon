@@ -9,29 +9,43 @@ pub struct DockerContainerStatus {
     containers: Vec<String>,
 }
 
+enum ContainerStatus {
+    NotFound,
+    Found(bollard::models::ContainerState),
+}
+
 impl DockerContainerStatus {
-    async fn container_state(
-        docker: &bollard::Docker,
-        container: &str,
-    ) -> Result<bollard::models::ContainerState> {
-        docker
+    async fn container_state(docker: &bollard::Docker, container: &str) -> Result<ContainerStatus> {
+        let response = docker
             .inspect_container(
                 container,
                 Some(bollard::container::InspectContainerOptions { size: false }),
             )
-            .await
+            .await;
+        if let Err(bollard::errors::Error::DockerResponseServerError {
+            status_code: 404,
+            message: _,
+        }) = response
+        {
+            return Ok(ContainerStatus::NotFound);
+        }
+        response
             .map_err(|x| Error(format!("Docker error: {x}")))
             .and_then(|x| {
                 x.state
                     .ok_or_else(|| Error(String::from("Could not read container state.")))
             })
+            .map(ContainerStatus::Found)
     }
 
     async fn container_running_and_healthy(
         docker: &bollard::Docker,
         container: &str,
     ) -> Result<bool> {
-        let state = Self::container_state(docker, container).await?;
+        let state = match Self::container_state(docker, container).await? {
+            ContainerStatus::NotFound => return Ok(false),
+            ContainerStatus::Found(state) => state,
+        };
         let status = state
             .status
             .ok_or_else(|| Error(String::from("Could not read container status.")))
