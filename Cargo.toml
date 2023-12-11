@@ -30,7 +30,7 @@ num-bigint = "0.4"
 num-integer = "0.1"
 
 [dev-dependencies]
-mockall = "0.11"
+mockall = "0.12"
 
 [features]
 __rustls = ["lettre?/tokio1-rustls-tls", "reqwest?/rustls-tls"]
