@@ -70,6 +70,7 @@ graph TD
     E -->|cycles, repeat_cycles| G(Action)
     E -->|recover_cycles| H(Recover action)
     E -->|error_repeat_cycles| I(Error action)
+    E --> J(Error recover action)
 
     style C fill:green;
     style D fill:green;
@@ -78,6 +79,7 @@ graph TD
     style G fill:blue;
     style H fill:blue;
     style I fill:blue;
+    style J fill:blue;
 ```
 
 ## Alarm state machine
