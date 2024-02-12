@@ -149,6 +149,12 @@ Name of the alarm that triggered the action.
 ### alarm_timestamp
 ISO8601 timestamp of the alarm's state change event.
 
+### alarm_last_duration
+Duration the last state lasted in seconds.
+
+### alarm_last_duration_iso
+Duration the last state lasted as ISO8601 duration.
+
 ### alarm_state
 Current state of the alarm.
 
