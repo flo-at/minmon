@@ -32,6 +32,16 @@ impl Default for State {
     }
 }
 
+impl State {
+    fn name(&self) -> &str {
+        match self {
+            State::Good(_) => "good",
+            State::Bad(_) => "bad",
+            State::Error(_) => "error",
+        }
+    }
+}
+
 #[derive(Clone)]
 struct GoodState {
     timestamp: std::time::SystemTime,
@@ -194,7 +204,11 @@ impl StateHandler for StateMachine {
                 let (shadowed_trigger, _) = self.bad();
                 trigger = shadowed_trigger;
                 trigger_error_recover = true;
-                log::warn!("{} changing from error to bad state.", self.log_id);
+                log::warn!(
+                    "{} changing from error to {} state.",
+                    self.log_id,
+                    self.state.name(),
+                );
                 self.state.clone()
             }
         };
@@ -229,7 +243,11 @@ impl StateHandler for StateMachine {
                 let (shadowed_trigger, _) = self.good();
                 trigger = shadowed_trigger;
                 trigger_error_recover = true;
-                log::info!("{} changing from error to good state.", self.log_id);
+                log::info!(
+                    "{} changing from error to {} state.",
+                    self.log_id,
+                    self.state.name(),
+                );
                 self.state.clone()
             }
         };
