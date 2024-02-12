@@ -146,9 +146,8 @@ impl StateHandler for StateMachine {
                     error.cycles + 1
                 };
                 State::Error(ErrorState {
-                    timestamp: error.timestamp,
-                    shadowed_state: error.shadowed_state.clone(),
                     cycles,
+                    ..error.clone()
                 })
             }
         };
@@ -170,8 +169,8 @@ impl StateHandler for StateMachine {
                     })
                 } else {
                     State::Good(GoodState {
-                        timestamp: good.timestamp,
                         bad_cycles: good.bad_cycles + 1,
+                        ..good.clone()
                     })
                 }
             }
@@ -184,9 +183,9 @@ impl StateHandler for StateMachine {
                     bad.cycles + 1
                 };
                 State::Bad(BadState {
-                    timestamp: bad.timestamp,
                     cycles,
                     good_cycles: 0,
+                    ..bad.clone()
                 })
             }
 
@@ -218,9 +217,9 @@ impl StateHandler for StateMachine {
                     })
                 } else {
                     State::Bad(BadState {
-                        timestamp: bad.timestamp,
                         cycles: bad.cycles + 1,
                         good_cycles: bad.good_cycles + 1,
+                        ..bad.clone()
                     })
                 }
             }
