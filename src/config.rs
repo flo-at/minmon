@@ -10,6 +10,8 @@ trait Validate {
 #[serde(deny_unknown_fields)]
 pub struct Config {
     #[serde(default)]
+    pub general: General,
+    #[serde(default)]
     pub log: Log,
     #[serde(default)]
     pub report: Report,
@@ -17,6 +19,15 @@ pub struct Config {
     pub actions: Vec<Action>,
     #[serde(default)]
     pub checks: Vec<Check>,
+}
+
+#[derive(Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct General {
+    #[serde(default)]
+    pub boot_delay: Option<u32>,
+    #[serde(default)]
+    pub start_delay: Option<u32>,
 }
 
 #[derive(Default, Deserialize)]

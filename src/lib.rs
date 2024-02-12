@@ -183,6 +183,24 @@ pub fn from_config(config: &config::Config) -> Result<ConfigState> {
     Ok((report, checks))
 }
 
+pub fn start_delay(config: &config::Config) -> Option<std::time::Duration> {
+    let uptime = uptime::system();
+    let boot_delay = config
+        .general
+        .boot_delay
+        .map(|x| std::time::Duration::from_secs(x.into()))
+        .filter(|x| x > &uptime)
+        .map(|x| x - uptime);
+    let start_delay = config
+        .general
+        .start_delay
+        .map(|x| std::time::Duration::from_secs(x.into()));
+
+    boot_delay.map_or(start_delay, |x| {
+        start_delay.map_or(boot_delay, |y| Some(x.max(y)))
+    })
+}
+
 fn get_number<T>(error_message: &str, line: &str, column: usize) -> Result<T>
 where
     T: std::str::FromStr,
