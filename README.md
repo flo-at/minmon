@@ -53,6 +53,7 @@ That's why MinMon can trigger regular [report](./doc/report.md) events to let yo
 
 # Config file
 The config file uses the [TOML](https://toml.io) format and has the following sections:
+- [general](./doc/general.md)
 - [log](./doc/log.md)
 - [report](./doc/report.md)
 - [actions](./doc/action.md)

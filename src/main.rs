@@ -74,6 +74,14 @@ async fn main_wrapper() -> Result<()> {
 
     let (report, checks) = minmon::from_config(&config)?;
 
+    if let Some(start_delay) = minmon::start_delay(&config) {
+        log::info!(
+            "Waiting {} seconds before starting..",
+            start_delay.as_secs()
+        );
+        tokio::time::sleep(start_delay).await;
+    }
+
     for mut check in checks {
         tokio::spawn(async move {
             random_interval(check.interval()).await;
