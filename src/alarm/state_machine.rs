@@ -1,5 +1,4 @@
-use crate::PlaceholderMap;
-use crate::{Error, Result};
+use crate::{duration_iso8601, Error, PlaceholderMap, Result};
 
 #[cfg_attr(test, mockall::automock)]
 pub trait StateHandler: Send + Sync + Sized {
@@ -45,6 +44,8 @@ impl State {
 #[derive(Clone)]
 struct GoodState {
     timestamp: std::time::SystemTime,
+    instant: std::time::Instant,
+    last_state_duration: Option<std::time::Duration>,
     bad_cycles: u32,
 }
 
@@ -52,6 +53,8 @@ impl Default for GoodState {
     fn default() -> Self {
         Self {
             timestamp: std::time::SystemTime::now(),
+            instant: std::time::Instant::now(),
+            last_state_duration: None,
             bad_cycles: 0,
         }
     }
@@ -60,6 +63,8 @@ impl Default for GoodState {
 #[derive(Clone)]
 struct BadState {
     timestamp: std::time::SystemTime,
+    instant: std::time::Instant,
+    last_state_duration: std::time::Duration,
     cycles: u32,
     good_cycles: u32,
 }
@@ -67,6 +72,7 @@ struct BadState {
 #[derive(Clone)]
 struct ErrorState {
     timestamp: std::time::SystemTime,
+    last_state_duration: std::time::Duration,
     shadowed_state: Box<State>,
     cycles: u32,
 }
@@ -105,6 +111,14 @@ impl StateHandler for StateMachine {
                     String::from("alarm_timestamp"),
                     crate::datetime_iso8601(bad.timestamp),
                 );
+                placeholders.insert(
+                    String::from("alarm_last_duration"),
+                    bad.last_state_duration.as_secs().to_string(),
+                );
+                placeholders.insert(
+                    String::from("alarm_last_duration_iso"),
+                    duration_iso8601(bad.last_state_duration),
+                );
             }
 
             State::Good(good) => {
@@ -113,6 +127,16 @@ impl StateHandler for StateMachine {
                     String::from("alarm_timestamp"),
                     crate::datetime_iso8601(good.timestamp),
                 );
+                if let Some(last_state_duration) = good.last_state_duration {
+                    placeholders.insert(
+                        String::from("alarm_last_duration"),
+                        last_state_duration.as_secs().to_string(),
+                    );
+                    placeholders.insert(
+                        String::from("alarm_last_duration_iso"),
+                        duration_iso8601(last_state_duration),
+                    );
+                }
             }
 
             State::Error(error) => {
@@ -121,6 +145,14 @@ impl StateHandler for StateMachine {
                     String::from("alarm_timestamp"),
                     crate::datetime_iso8601(error.timestamp),
                 );
+                placeholders.insert(
+                    String::from("alarm_last_duration"),
+                    error.last_state_duration.as_secs().to_string(),
+                );
+                placeholders.insert(
+                    String::from("alarm_last_duration_iso"),
+                    duration_iso8601(error.last_state_duration),
+                );
             }
         }
     }
@@ -128,21 +160,23 @@ impl StateHandler for StateMachine {
     fn error(&mut self) -> bool {
         let mut trigger = false;
         self.state = match &self.state {
-            State::Good(_) => {
+            State::Good(good) => {
                 trigger = true;
                 log::warn!("{} changing from good to error state.", self.log_id);
                 State::Error(ErrorState {
                     timestamp: std::time::SystemTime::now(),
+                    last_state_duration: good.instant.elapsed(),
                     shadowed_state: Box::new(self.state.clone()),
                     cycles: 1,
                 })
             }
 
-            State::Bad(_) => {
+            State::Bad(bad) => {
                 trigger = true;
                 log::warn!("{} changing from bad to error state.", self.log_id);
                 State::Error(ErrorState {
                     timestamp: std::time::SystemTime::now(),
+                    last_state_duration: bad.instant.elapsed(),
                     shadowed_state: Box::new(self.state.clone()),
                     cycles: 1,
                 })
@@ -174,6 +208,8 @@ impl StateHandler for StateMachine {
                     log::warn!("{} changing from good to bad state.", self.log_id);
                     State::Bad(BadState {
                         timestamp: std::time::SystemTime::now(),
+                        instant: std::time::Instant::now(),
+                        last_state_duration: good.instant.elapsed(),
                         cycles: 1,
                         good_cycles: 0,
                     })
@@ -227,6 +263,8 @@ impl StateHandler for StateMachine {
                     log::info!("{} changing from bad to good state.", self.log_id);
                     State::Good(GoodState {
                         timestamp: std::time::SystemTime::now(),
+                        instant: std::time::Instant::now(),
+                        last_state_duration: Some(bad.instant.elapsed()),
                         bad_cycles: 0,
                     })
                 } else {
@@ -322,11 +360,8 @@ mod test {
 
     #[test]
     fn test_add_placeholders_good() {
-        let mut state_machine = StateMachine::new(1, 0, 1, 0, String::from("")).unwrap();
+        let state_machine = StateMachine::new(1, 0, 1, 0, String::from("")).unwrap();
         let mut placeholders = PlaceholderMap::new();
-        // starts in good state without "last alarm"
-        state_machine.bad();
-        state_machine.good();
         state_machine.add_placeholders(&mut placeholders);
         use std::str::FromStr;
         chrono::DateTime::<chrono::Utc>::from_str(placeholders.get("alarm_timestamp").unwrap())
@@ -345,7 +380,9 @@ mod test {
         chrono::DateTime::<chrono::Utc>::from_str(placeholders.get("alarm_timestamp").unwrap())
             .unwrap();
         assert_eq!(placeholders.get("alarm_state").unwrap(), "Bad");
-        assert_eq!(placeholders.len(), 2);
+        assert!(placeholders.contains_key("alarm_last_duration"));
+        assert!(placeholders.contains_key("alarm_last_duration_iso"));
+        assert_eq!(placeholders.len(), 4);
     }
 
     #[test]
@@ -358,7 +395,9 @@ mod test {
         chrono::DateTime::<chrono::Utc>::from_str(placeholders.get("alarm_timestamp").unwrap())
             .unwrap();
         assert_eq!(placeholders.get("alarm_state").unwrap(), "Error");
-        assert_eq!(placeholders.len(), 2);
+        assert!(placeholders.contains_key("alarm_last_duration"));
+        assert!(placeholders.contains_key("alarm_last_duration_iso"));
+        assert_eq!(placeholders.len(), 4);
     }
 
     #[test]
