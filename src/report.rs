@@ -1,21 +1,47 @@
+use std::str::FromStr;
+
 use crate::action;
 use crate::config;
 use crate::ActionMap;
 use crate::{Error, PlaceholderMap, Result};
 
 pub struct Report {
-    interval: u32,
+    pub when: ReportWhen,
     placeholders: PlaceholderMap,
     events: Vec<Event>,
 }
 
+#[derive(Clone)]
+pub enum ReportWhen {
+    Interval(std::time::Duration),
+    Cron(cron::Schedule),
+}
+
 impl Report {
-    fn new(interval: u32, placeholders: PlaceholderMap, events: Vec<Event>) -> Result<Self> {
-        if interval == 0 {
+    fn new(
+        when: &config::ReportWhen,
+        placeholders: PlaceholderMap,
+        events: Vec<Event>,
+    ) -> Result<Self> {
+        if when.interval.is_some() && when.cron.is_some() {
+            Err(Error(String::from(
+                "'interval' and 'cron' cannot be set both.",
+            )))
+        } else if let Some(0) = when.interval {
             Err(Error(String::from("'interval' cannot be 0.")))
         } else {
+            let when = if let Some(interval) = when.interval {
+                ReportWhen::Interval(std::time::Duration::from_secs(interval.into()))
+            } else if let Some(cron) = when.cron.as_ref() {
+                let schedule = cron::Schedule::from_str(cron).map_err(|x| Error(x.to_string()))?;
+                ReportWhen::Cron(schedule)
+            } else {
+                ReportWhen::Interval(std::time::Duration::from_secs(
+                    config::default::report_interval().into(),
+                ))
+            };
             Ok(Self {
-                interval,
+                when,
                 placeholders,
                 events,
             })
@@ -31,10 +57,6 @@ impl Report {
                 log::error!("Error in report event '{}': {}", event.name, err);
             }
         }
-    }
-
-    pub fn interval(&self) -> std::time::Duration {
-        std::time::Duration::from_secs(self.interval.into())
     }
 }
 
@@ -90,7 +112,7 @@ pub fn from_report_config(report_config: &config::Report, actions: &ActionMap) -
         events.push(event);
     }
     Report::new(
-        report_config.interval,
+        &report_config.when,
         report_config.placeholders.clone(),
         events,
     )
@@ -102,8 +124,12 @@ mod test {
 
     #[test]
     fn test_report_validation() {
+        let invalid_interval = config::ReportWhen {
+            interval: Some(0),
+            ..Default::default()
+        };
         assert!(matches!(
-            Report::new(0, PlaceholderMap::new(), Vec::new()),
+            Report::new(&invalid_interval, PlaceholderMap::new(), Vec::new()),
             Err(Error(_))
         ));
     }

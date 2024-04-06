@@ -79,8 +79,11 @@ pub enum LogTarget {
 pub struct Report {
     #[serde(default)]
     pub disable: bool,
-    #[serde(default = "default::report_interval")]
-    pub interval: u32,
+    // flattening enums does not work with default values due to an issue in serde
+    // see https://github.com/serde-rs/serde/issues/1626
+    //#[serde(default, flatten)]
+    #[serde(flatten)]
+    pub when: ReportWhen,
     #[serde(default)]
     pub placeholders: PlaceholderMap,
     #[serde(default)]
@@ -91,11 +94,36 @@ impl Default for Report {
     fn default() -> Self {
         Self {
             disable: true,
-            interval: default::REPORT_INTERVAL,
+            when: ReportWhen::default(),
             events: Vec::new(),
             placeholders: PlaceholderMap::new(),
         }
     }
+}
+
+// FIXME see note above for details
+//#[derive(Deserialize, PartialEq, Debug)]
+//#[serde(deny_unknown_fields)]
+//pub enum ReportWhen {
+//    #[serde(rename = "interval")]
+//    Interval(u32),
+//    #[serde(rename = "cron")]
+//    Cron(String),
+//}
+//
+//impl Default for ReportWhen {
+//    fn default() -> Self {
+//        Self::Interval(default::report_interval())
+//    }
+//}
+
+#[derive(Deserialize, PartialEq, Debug, Default)]
+#[serde(deny_unknown_fields)]
+pub struct ReportWhen {
+    #[serde(default)]
+    pub interval: Option<u32>,
+    #[serde(default)]
+    pub cron: Option<String>,
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
@@ -639,7 +667,7 @@ mod test {
         assert_eq!(config.log.level, LogLevel::default());
         assert_eq!(config.log.target, LogTarget::default());
         assert!(config.report.disable);
-        assert_eq!(config.report.interval, default::REPORT_INTERVAL);
+        assert_eq!(config.report.when, ReportWhen::default());
         assert_eq!(config.report.events.len(), 0);
         assert_eq!(config.actions.len(), 0);
         assert_eq!(config.checks.len(), 0);
@@ -692,7 +720,13 @@ mod test {
         assert_eq!(config.log.target, LogTarget::Journal);
         assert_eq!(config.log.level, LogLevel::Error);
         assert!(config.report.disable);
-        assert_eq!(config.report.interval, 12345);
+        assert_eq!(
+            config.report.when,
+            ReportWhen {
+                interval: Some(12345),
+                ..Default::default()
+            }
+        );
 
         assert_eq!(config.report.events.len(), 1);
         let event = config.report.events.first().unwrap();

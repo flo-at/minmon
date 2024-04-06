@@ -17,6 +17,7 @@ mod window_buffer;
 pub type Result<T> = std::result::Result<T, Error>;
 type PlaceholderMap = std::collections::HashMap<String, String>;
 type ActionMap = std::collections::HashMap<String, std::sync::Arc<dyn action::Action>>;
+pub type ReportWhen = report::ReportWhen;
 
 pub fn user_agent() -> String {
     format!("MinMon/v{}", env!("CARGO_PKG_VERSION"))
@@ -141,10 +142,17 @@ fn init_report(config: &config::Config, actions: &ActionMap) -> Result<Option<re
         return Ok(None);
     }
     let report = report::from_report_config(report_config, actions)?;
-    log::info!(
-        "Report will be triggered every {} seconds.",
-        report.interval().as_secs()
-    );
+    match &report.when {
+        report::ReportWhen::Interval(interval) => {
+            log::info!(
+                "Report will be triggered every {} seconds.",
+                interval.as_secs()
+            )
+        }
+        report::ReportWhen::Cron(schedule) => {
+            log::info!("Report will be triggered by cron schedule '{}'.", schedule)
+        }
+    }
     Ok(Some(report))
 }
 

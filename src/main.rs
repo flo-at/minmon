@@ -95,10 +95,28 @@ async fn main_wrapper() -> Result<()> {
 
     if let Some(mut report) = report {
         tokio::spawn(async move {
-            let mut interval = tokio::time::interval(report.interval());
-            loop {
-                interval.tick().await;
-                report.trigger().await;
+            match report.when.clone() {
+                minmon::ReportWhen::Interval(interval) => {
+                    let mut interval = tokio::time::interval(interval);
+                    loop {
+                        interval.tick().await;
+                        report.trigger().await;
+                    }
+                }
+                minmon::ReportWhen::Cron(schedule) => {
+                    report.trigger().await;
+                    for datetime in schedule.upcoming(chrono::Local) {
+                        // here we split long sleep durations into smaller ones to compensate for
+                        // clock drift and system standby/hibernation
+                        let duration = datetime.signed_duration_since(chrono::Local::now());
+                        if duration > chrono::TimeDelta::minutes(10) {
+                            tokio::time::sleep(std::time::Duration::from_secs(9 * 60)).await;
+                            continue;
+                        }
+                        tokio::time::sleep(duration.to_std().unwrap()).await;
+                        report.trigger().await;
+                    }
+                }
             }
         });
     }
