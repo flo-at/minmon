@@ -105,10 +105,10 @@ async fn main_wrapper() -> Result<()> {
                 }
                 minmon::ReportWhen::Cron(schedule) => {
                     report.trigger().await;
-                    for datetime in schedule.upcoming(chrono::Local) {
+                    for datetime in schedule.upcoming(chrono::Utc) {
                         // here we split long sleep durations into smaller ones to compensate for
                         // clock drift and system standby/hibernation
-                        let duration = datetime.signed_duration_since(chrono::Local::now());
+                        let duration = datetime.signed_duration_since(chrono::Utc::now());
                         if duration > chrono::TimeDelta::minutes(10) {
                             tokio::time::sleep(std::time::Duration::from_secs(9 * 60)).await;
                             continue;

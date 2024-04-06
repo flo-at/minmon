@@ -18,7 +18,7 @@ The time between two consecutive reports in seconds.
 Set either this or `cron`, but not both.
 
 ### cron
-Report schedule in [cron-like](https://github.com/zslayton/cron) syntax: `sec  min   hour   day of month   month   day of week   year` where `year` is optional and the local time zone is used.
+Report schedule in [cron-like](https://github.com/zslayton/cron) syntax: `sec  min   hour   day of month   month   day of week   year` where `year` is optional and the time zone is UTC.
 Set either this or `interval`, but not both.
 
 ### placeholders
