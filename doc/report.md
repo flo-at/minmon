@@ -6,7 +6,7 @@ The report can be triggered on an interval just like the checks. Its main purpos
 |:---|:---|:---:|:---|
 | disable | `true` | ✔ | `false` |
 | interval | `60` | ✔ | `604800` |
-| cron | `0 * * * * *` | ✔` | |
+| cron | `0 * * * * *` | ✔ | |
 | placeholders | `{"hostname" = "foobar"}` | ✔ | |
 | events | List of [Event](#event) | ✔ | |
 
