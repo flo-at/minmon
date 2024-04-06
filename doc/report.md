@@ -6,6 +6,7 @@ The report can be triggered on an interval just like the checks. Its main purpos
 |:---|:---|:---:|:---|
 | disable | `true` | ✔ | `false` |
 | interval | `60` | ✔ | `604800` |
+| cron | `0 * * * * *` | ✔` | |
 | placeholders | `{"hostname" = "foobar"}` | ✔ | |
 | events | List of [Event](#event) | ✔ | |
 
@@ -14,6 +15,11 @@ If `true`, the report is disabled and will not be triggered.
 
 ### interval
 The time between two consecutive reports in seconds.
+Set either this or `cron`, but not both.
+
+### cron
+Report schedule in [cron-like](https://github.com/zslayton/cron) syntax: `sec  min   hour   day of month   month   day of week   year` where `year` is optional and the local time zone is used.
+Set either this or `interval`, but not both.
 
 ### placeholders
 Custom placeholders that will be merged with ones of the events/actions.
