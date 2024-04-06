@@ -10,7 +10,7 @@ edition = "2021"
 
 [dependencies]
 toml = "0.8"
-reqwest = { version = "0.11", optional = true, default-features = false }
+reqwest = { version = "0.12", optional = true, default-features = false }
 tokio = { version = "1.37", features = ["full"] }
 libsystemd = { version = "0.7", optional = true }
 systemd-journal-logger = { version = "2.1", optional = true }
