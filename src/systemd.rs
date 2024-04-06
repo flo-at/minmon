@@ -5,7 +5,7 @@ const SD_STATE_WATCHDOG: &str = "WATCHDOG=1";
 
 pub async fn init() {
     if !libsystemd::daemon::booted() {
-        log::info!("Could not detect systemd. Skipping notification and watchdog initialization.");
+        log::debug!("Could not detect systemd. Skipping notification and watchdog initialization.");
         return;
     }
     spawn_watchdog_task();
@@ -70,7 +70,7 @@ fn spawn_watchdog_task() {
                     }
                 }
             });
-            log::info!(
+            log::debug!(
                 "Systemd watchdog will be reset every {} milliseconds.",
                 reset_interval.as_millis()
             );
