@@ -108,10 +108,10 @@ async fn main_wrapper() -> Result<()> {
                     for datetime in schedule.upcoming(chrono::Utc) {
                         // here we split long sleep durations into smaller ones to compensate for
                         // clock drift and system standby/hibernation
-                        let duration = datetime.signed_duration_since(chrono::Utc::now());
-                        if duration > chrono::TimeDelta::minutes(10) {
+                        let mut duration = datetime.signed_duration_since(chrono::Utc::now());
+                        while duration > chrono::TimeDelta::minutes(10) {
                             tokio::time::sleep(std::time::Duration::from_secs(9 * 60)).await;
-                            continue;
+                            duration = datetime.signed_duration_since(chrono::Utc::now());
                         }
                         tokio::time::sleep(duration.to_std().unwrap()).await;
                         report.trigger().await;
