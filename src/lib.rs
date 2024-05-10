@@ -33,8 +33,24 @@ impl std::fmt::Display for Error {
     }
 }
 
+static mut ENV_VARS: Option<std::collections::HashMap<String, String>> = None;
+
+static INIT_ENV_VARS: std::sync::Once = std::sync::Once::new();
+
+pub fn init_env_vars(config: &config::Config) {
+    INIT_ENV_VARS.call_once(|| unsafe {
+        let mut env_vars = PlaceholderMap::new();
+        for (name, value) in std::env::vars() {
+            if name.starts_with(&config.general.env_var_prefix) {
+                env_vars.insert(format!("env:{name}"), value);
+            }
+        }
+        ENV_VARS = Some(env_vars);
+    });
+}
+
 fn global_placeholders() -> PlaceholderMap {
-    let mut res = PlaceholderMap::new();
+    let mut res = unsafe { ENV_VARS.as_ref() }.unwrap().clone();
     let system_uptime = uptime::system();
     let minmon_uptime = uptime::process();
     res.insert(

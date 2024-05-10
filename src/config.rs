@@ -17,13 +17,22 @@ pub struct Config {
     pub checks: Vec<Check>,
 }
 
-#[derive(Default, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Deserialize)]
+#[serde(default, deny_unknown_fields)]
 pub struct General {
-    #[serde(default)]
     pub boot_delay: Option<u32>,
-    #[serde(default)]
     pub start_delay: Option<u32>,
+    pub env_var_prefix: String,
+}
+
+impl Default for General {
+    fn default() -> Self {
+        Self {
+            boot_delay: None,
+            start_delay: None,
+            env_var_prefix: default::env_var_prefix(),
+        }
+    }
 }
 
 #[derive(Default, Deserialize)]
@@ -580,6 +589,11 @@ pub struct AlarmTemperature {
 }
 
 pub mod default {
+    pub const ENV_VAR_PREFIX: &str = "MINMON_";
+    pub fn env_var_prefix() -> String {
+        ENV_VAR_PREFIX.into()
+    }
+
     pub const REPORT_INTERVAL: u32 = 604800;
     pub fn report_interval() -> u32 {
         REPORT_INTERVAL
