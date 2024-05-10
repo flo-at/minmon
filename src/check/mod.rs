@@ -231,7 +231,7 @@ where
                 id.clone(),
                 action::get_action(&alarm_config.action, actions)?,
                 alarm_config.placeholders.clone(),
-                check_config
+                alarm_config
                     .filter
                     .as_ref()
                     .map(T::Item::filter_factory)
