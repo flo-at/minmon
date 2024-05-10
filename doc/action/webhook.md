@@ -7,7 +7,7 @@ This action is only available if MinMon is built with the `http` feature.
 |:---|:---|:---:|:---|:---:|
 | url | `"http://example.com/webhook?alarm={{alarm_name}}"` | ❌ | | ✔ |
 | method | `"GET"`, `"POST"`, `"PUT"`, `"DELETE"`, `"PATCH"` | ✔ | `"POST"` | ❌ |
-| headers | `{"Content-Type" = "application/json"}` | ✔ | | ❌ |
+| headers | `{"Content-Type" = "application/json"}` | ✔ | | ✔ (values only) |
 | body | `{"text": "Triggered from check '{{check_name}}'."}`  | ✔ | | ✔ |
 
 ### url
