@@ -2,10 +2,6 @@ use crate::{Error, PlaceholderMap};
 
 use serde::Deserialize;
 
-trait Validate {
-    fn validate(&self) -> bool;
-}
-
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
