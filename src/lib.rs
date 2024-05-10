@@ -77,7 +77,7 @@ fn datetime_iso8601(system_time: std::time::SystemTime) -> String {
     date_time.format("%FT%TZ").to_string()
 }
 
-// only up to "days" because the number of days in a month/year are not defined in the standard
+// only up to "days" because the number of days in a month/year is not defined in the standard
 fn duration_iso8601(duration: std::time::Duration) -> String {
     const SECONDS_PER_MINUTE: u64 = 60;
     const MINUTES_PER_HOUR: u64 = 60;
