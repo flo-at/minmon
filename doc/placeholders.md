@@ -13,3 +13,7 @@ MinMon's uptime in seconds.
 ## minmon_uptime_iso
 MinMon's uptime as ISO8601 duration.
 This does not use the month and year fields because they are ambiguous.
+
+## env:MINMON_HELLO
+Value of the environment variable `MINMON_HELLO`.
+Only variables that match the prefix configured in the general config section are evaluated.

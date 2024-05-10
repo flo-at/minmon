@@ -72,6 +72,8 @@ async fn main_wrapper() -> Result<()> {
         systemd::init().await;
     }
 
+    minmon::init_env_vars(&config);
+
     let (report, checks) = minmon::from_config(&config)?;
 
     if let Some(start_delay) = minmon::start_delay(&config) {
