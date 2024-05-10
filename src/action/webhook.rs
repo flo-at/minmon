@@ -4,27 +4,26 @@ use super::Action;
 use crate::config;
 use crate::{Error, PlaceholderMap, Result};
 use async_trait::async_trait;
+use reqwest::header::HeaderValue;
 
 pub struct Webhook {
     url: String,
     method: reqwest::Method,
-    headers: reqwest::header::HeaderMap<reqwest::header::HeaderValue>,
+    headers: reqwest::header::HeaderMap<String>,
     body: String,
 }
 
 impl Webhook {
     fn transform_header_map(
         headers: &HashMap<String, String>,
-    ) -> Result<reqwest::header::HeaderMap<reqwest::header::HeaderValue>> {
+    ) -> Result<reqwest::header::HeaderMap<String>> {
         use std::str::FromStr;
         headers
             .iter()
             .map(|(k, v)| {
                 let name = reqwest::header::HeaderName::from_str(k)
                     .map_err(|x| Error(format!("Could not parse header name: {x}")))?;
-                let value = reqwest::header::HeaderValue::from_str(v)
-                    .map_err(|x| Error(format!("Could not parse header value: {x}")))?;
-                Ok((name, value))
+                Ok((name, v.clone()))
             })
             .collect()
     }
@@ -59,11 +58,20 @@ impl TryFrom<&config::Action> for Webhook {
 impl Action for Webhook {
     async fn trigger(&self, placeholders: PlaceholderMap) -> Result<()> {
         let url = crate::fill_placeholders(self.url.as_str(), &placeholders);
+        let headers: reqwest::header::HeaderMap = self
+            .headers
+            .iter()
+            .map(|(k, v)| {
+                let value = HeaderValue::from_str(&crate::fill_placeholders(v, &placeholders))
+                    .map_err(|x| Error(format!("Could not parse header value: {x}")))?;
+                Ok((k.clone(), value))
+            })
+            .collect::<Result<_>>()?;
         let body = crate::fill_placeholders(self.body.as_str(), &placeholders);
         let client = reqwest::Client::new();
         let response = client
             .request(self.method.clone(), &url)
-            .headers(self.headers.clone())
+            .headers(headers)
             .body(body)
             .send()
             .await
