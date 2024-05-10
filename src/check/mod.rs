@@ -48,7 +48,7 @@ where
     name: String,
     timeout: std::time::Duration,
     placeholders: PlaceholderMap,
-    filters: Option<Vec<Box<dyn filter::Filter<T::Item>>>>,
+    filter: Option<Vec<Box<dyn filter::Filter<T::Item>>>>,
     data_source: T,
     alarms: Vec<Vec<U>>,
 }
@@ -63,7 +63,7 @@ where
         name: String,
         timeout: Option<std::time::Duration>,
         placeholders: PlaceholderMap,
-        filters: Option<Vec<Box<dyn filter::Filter<T::Item>>>>,
+        filter: Option<Vec<Box<dyn filter::Filter<T::Item>>>>,
         data_source: T,
         alarms: Vec<Vec<U>>,
     ) -> Result<Self> {
@@ -88,7 +88,7 @@ where
                 name,
                 timeout,
                 placeholders,
-                filters,
+                filter,
                 data_source,
                 alarms,
             })
@@ -123,10 +123,10 @@ where
             }
             res
         });
-        if let Some(filters) = &mut self.filters {
+        if let Some(filter) = &mut self.filter {
             data_vec = data_vec
                 .into_iter()
-                .zip(filters.iter_mut())
+                .zip(filter.iter_mut())
                 .map(|(data, filter)| match data {
                     Ok(Some(data)) => Ok(Some(filter.filter(data))),
                     Ok(None) => Ok(None),
@@ -260,7 +260,7 @@ where
         }
         all_alarms.push(alarms);
     }
-    let filters = check_config
+    let filter = check_config
         .filter
         .as_ref()
         .map(|x| {
@@ -276,7 +276,7 @@ where
             .timeout
             .map(|x| std::time::Duration::from_secs(x.into())),
         check_config.placeholders.clone(),
-        filters,
+        filter,
         data_source,
         all_alarms,
     )?))
