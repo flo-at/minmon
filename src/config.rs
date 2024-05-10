@@ -27,11 +27,9 @@ pub struct General {
 }
 
 #[derive(Default, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(default, deny_unknown_fields)]
 pub struct Log {
-    #[serde(default)]
     pub level: LogLevel,
-    #[serde(default)]
     pub target: LogTarget,
 }
 
@@ -114,11 +112,9 @@ impl Default for Report {
 //}
 
 #[derive(Deserialize, PartialEq, Debug, Default)]
-#[serde(deny_unknown_fields)]
+#[serde(default, deny_unknown_fields)]
 pub struct ReportWhen {
-    #[serde(default)]
     pub interval: Option<u32>,
-    #[serde(default)]
     pub cron: Option<String>,
 }
 
