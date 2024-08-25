@@ -1,25 +1,10 @@
 [advisories]
-vulnerability = "deny"
-unmaintained = "warn"
-notice = "deny"
-unsound = "deny"
 yanked = "deny"
 
 [licenses]
-unlicensed = "deny"
-copyleft = "deny"
-allow-osi-fsf-free = "both"
 unused-allowed-license = "warn"
 confidence-threshold = 0.95
-allow = ["Unicode-DFS-2016", "0BSD", "MirOS"]
-
-[[licenses.exceptions]]
-allow = ["MPL-2.0"]
-name = "webpki-roots"
-
-[[licenses.exceptions]]
-allow = ["OpenSSL"]
-name = "ring"
+allow = ["BSD-2-Clause", "Apache-2.0", "MIT", "Unicode-DFS-2016", "0BSD"]
 
 [[licenses.clarify]]
 name = "rustls-webpki"
