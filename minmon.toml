@@ -1,0 +1,47 @@
+[general]
+# The minimum system uptime (in seconds) MinMon awaits when it starts before the checks begin.
+# Use this to give the monitored services some time to start after the system booted.
+boot_delay = 60
+# MinMon waits this many seconds when it starts before the checks begin.
+start_delay = 10
+
+[log]
+# Minimum level for log messages to be sent to the log
+# Can contain the following values: Debug,Info,Warning,Error
+level = "Warning"
+# Target the log message is sent to.
+#  Stdout: Standard output.
+#  Stderr: Standard error.
+#  Journal: Systemd journal (only available if MinMon is built with the systemd feature).
+target = "Journal"
+
+[[checks]]
+interval = 60
+name = "Filesystem usage"
+type = "FilesystemUsage"
+mountpoints = ["/home"]
+placeholders = {"hostname" = "foobar"}
+
+[[checks.alarms]]
+name = "Warning"
+level = 70
+cycles = 3
+repeat_cycles = 100
+action = "Webhook 1"
+recover_cycles = 5
+recover_action = "Webhook 1"
+error_repeat_cycles = 200
+error_action = "Log error"
+
+[[actions]]
+name = "Webhook 1"
+type = "Webhook"
+url = "https://example.com/hook1"
+body = """{"text": "{{check_name}}: Alarm '{{alarm_name}}' for mountpoint '{{check_id}}' changed state to *{{alarm_state}}* at {{level}}."}"""
+headers = {"Content-Type" = "application/json"}
+
+[[actions]]
+name = "Log error"
+type = "Log"
+level = "Error"
+template = """{{check_name}} check didn't have valid data for alarm '{{alarm_name}}' and id '{{alarm_id}}': {{check_error}}."""
