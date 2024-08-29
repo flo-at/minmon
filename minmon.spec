@@ -5,11 +5,9 @@ Summary:        A minimalistic monitoring tool
 
 License:        Apache 2.0, MIT
 URL:            https://github.com/flo-at/minmon
-Source0:        https://github.com/flo-at/minmon/archive/v0.9.1.tar.gz
-Source1:        minmon-0.9.1.tar.gz
+Source0:        minmon-0.9.1.tar.gz
 
 BuildRequires:  cargo
-Requires:       sh
 Requires:       glibc
 Requires:       openssl-libs
 Requires:       libgcc
@@ -22,7 +20,8 @@ Provides:       minmon(x86_64) = 0.9.1
 %description
 A minimalistic monitoring tool.
 
-%license %{name}/LICENSE # Add LICENSE file if relevant  
+%license %{name}/LICENSE-APACHE
+%license %{name}/LICENSE-MIT
 
 %global debug_package %{nil}
 %prep
