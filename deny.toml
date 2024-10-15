@@ -4,7 +4,7 @@ yanked = "deny"
 [licenses]
 unused-allowed-license = "warn"
 confidence-threshold = 0.95
-allow = ["BSD-2-Clause", "BSD-3-Clause", "Apache-2.0", "MIT", "Unicode-DFS-2016", "0BSD", "MirOS", "ISC"]
+allow = ["BSD-2-Clause", "BSD-3-Clause", "Apache-2.0", "MIT", "Unicode-DFS-2016", "0BSD", "MirOS", "ISC", "Unicode-3.0"]
 
 [[licenses.exceptions]]
 allow = ["MPL-2.0"]
