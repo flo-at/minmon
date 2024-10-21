@@ -988,9 +988,6 @@ name = "log"
 version = "0.4.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a7a70ba024b9dc04c27ea2f0c0548feb474ec5c54bba33a7f72f873a39d07b24"
-dependencies = [
- "value-bag",
-]
 
 [[package]]
 name = "memchr"
@@ -1821,9 +1818,9 @@ dependencies = [
 
 [[package]]
 name = "systemd-journal-logger"
-version = "2.1.1"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5f3848dd723f2a54ac1d96da793b32923b52de8dfcced8722516dac312a5b2a"
+checksum = "c18918ae65f3d828ec9ab7f4714b8c564149045f47407e319dd25cadfaf9d0cf"
 dependencies = [
  "log",
  "rustix",
@@ -2125,12 +2122,6 @@ checksum = "81dfa00651efa65069b0b6b651f4aaa31ba9e3c3ce0137aaad053604ee7e0314"
 dependencies = [
  "serde",
 ]
-
-[[package]]
-name = "value-bag"
-version = "1.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a84c137d37ab0142f0f2ddfe332651fdbf252e7b7dbb4e67b6c1f1b2e925101"
 
 [[package]]
 name = "vcpkg"
