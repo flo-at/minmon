@@ -61,6 +61,11 @@ The config file uses the [TOML](https://toml.io) format and has the following se
 - [actions](./doc/action.md)
 - [checks](./doc/check.md)
 
+## Config directory
+MinMon also supports loading configuration from a directory instead of a single file.\
+When a directory path is provided, MinMon reads all files in that directory (in alphabetical order, non-recursively), concatenates them, and parses the result as a single merged configuration.\
+For more details, see [issue #26](https://github.com/flo-at/minmon/issues/26).
+
 # Architecture
 ## System overview
 ```mermaid
