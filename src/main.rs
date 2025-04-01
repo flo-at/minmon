@@ -5,11 +5,11 @@ mod systemd;
 
 use minmon::{config, Error, Result};
 
-fn get_config_file_path() -> Result<std::path::PathBuf> {
+fn get_config_path() -> Result<std::path::PathBuf> {
     if let Some(path_str) = std::env::args().nth(1) {
         Ok(std::path::PathBuf::from(path_str))
     } else {
-        Err(Error(String::from("Config file path not specified.")))
+        Err(Error(String::from("Config path not specified.")))
     }
 }
 
@@ -57,9 +57,9 @@ async fn random_interval(max: std::time::Duration) {
 async fn main_wrapper() -> Result<()> {
     minmon::uptime::init()?;
 
-    let config_file_path = get_config_file_path()?;
-    let config = config::Config::try_from(config_file_path.as_path())
-        .map_err(|x| Error(format!("Failed to parse config file: {x}")))?;
+    let config_path = get_config_path()?;
+    let config = config::Config::try_from(config_path.as_path())
+        .map_err(|x| Error(format!("Failed to parse config:\n{x}")))?;
 
     init_logging(&config)?;
 
@@ -139,7 +139,7 @@ async fn main_wrapper() -> Result<()> {
 async fn main() {
     if let Err(error) = main_wrapper().await {
         log::error!("Exiting due to error: {error}");
-        // Also print to stderr here because logging might not be initialized if the config file
+        // Also print to stderr here because logging might not be initialized if the config
         // cannot be parsed.
         eprintln!("Exiting due to error: {error}");
         std::process::exit(1);

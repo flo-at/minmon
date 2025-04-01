@@ -696,12 +696,76 @@ impl TryFrom<&std::path::Path> for Config {
 
     fn try_from(path: &std::path::Path) -> Result<Self, Self::Error> {
         use std::io::Read;
-        let mut file = std::fs::File::open(path).map_err(|x| Error(x.to_string()))?;
-        let mut content = String::new();
-        file.read_to_string(&mut content)
-            .map_err(|x| Error(x.to_string()))?;
-        Config::try_from(content.as_str())
+        if path.is_file() {
+            let mut file = std::fs::File::open(path).map_err(|x| Error(x.to_string()))?;
+            let mut content = String::new();
+            file.read_to_string(&mut content)
+                .map_err(|x| Error(x.to_string()))?;
+            Self::try_from(content.as_str())
+        } else if path.is_dir() {
+            // Config directories are parsed by concatenating all files in the directory in
+            // alphabetical order.This way, serde correctly handles the validation across the whole
+            // config. The downside is that line numbers in error messages don't reflect actual
+            // lines in the files anymore. The line number is parsed from the serde error message
+            // to detect the file that caused it and the line offset is shown to the user.
+            let mut file_offsets = Vec::new();
+            let mut content = String::new();
+            let mut entries: Vec<_> = path
+                .read_dir()
+                .map_err(|x| Error(x.to_string()))?
+                .filter_map(|entry| entry.ok())
+                .filter(|entry| entry.path().is_file())
+                .collect::<Vec<_>>();
+            entries.sort_by_key(|entry| entry.file_name());
+            for entry in entries {
+                file_offsets.push((entry.file_name(), content.lines().count()));
+                let path = entry.path();
+                content.push_str(&std::fs::read_to_string(path).map_err(|x| Error(x.to_string()))?);
+                content.push('\n');
+            }
+            Self::try_from(content.as_str()).map_err(|x| fixup_error(x, &file_offsets))
+        } else {
+            Err(Error("Config not found on filesystem".to_string()))
+        }
     }
+}
+
+fn fixup_error(error: Error, file_offsets: &[(std::ffi::OsString, usize)]) -> Error {
+    if file_offsets.len() < 2 {
+        // For a single file we don't do anything here.
+        return error;
+    }
+    /* example:
+    TOML parse error at line 61, column 1
+       |
+    61 | [log]
+       | ^
+    invalid table header
+    duplicate key `log` in document root
+    */
+    // try to find the line of the error in the concatenated file
+    let re_line = regex::Regex::new(r"parse error at line (\d+),").unwrap();
+    let error_str = error.to_string();
+    if let Some(captures) = re_line.captures(&error_str) {
+        let line: usize = captures.get(1).unwrap().as_str().parse().unwrap(); // TODO fallback!
+        let result = file_offsets
+            .iter()
+            .rev()
+            .find(|(_, offset)| *offset < line)
+            .unwrap();
+        return Error(format!(
+            "In file '{}' (line offset {}):\n\n{error}",
+            result.0.to_string_lossy(),
+            result.1
+        ));
+    }
+    // fallback: print all file offsets and let the user decide
+    let output = file_offsets
+        .iter()
+        .map(|(path, offset)| format!("'{}': offset {}", path.to_string_lossy(), offset))
+        .collect::<Vec<_>>()
+        .join("\n");
+    Error(format!("File line offsets:\n{output}\n\n{error}"))
 }
 
 #[cfg(test)]
