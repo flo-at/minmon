@@ -23,7 +23,7 @@ text_placeholder = "0.5"
 chrono = { version = "0.4", features = ["std", "clock"], default-features = false }
 lettre = { version = "0.11", features = ["smtp-transport", "builder"], default-features = false, optional = true }
 sensors = { version = "0.2", optional = true }
-rand = "0.8"
+rand = "0.9"
 bollard = { version = "0.17", optional = true }
 dasp_ring_buffer = "0.11"
 num-bigint = "0.4"
