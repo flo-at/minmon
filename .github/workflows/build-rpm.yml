@@ -1,0 +1,22 @@
+name: RPM Build
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: build RPM package
+      id: rpm
+      uses: antedebaas/rpmbuild@v1.0.0
+      with:
+        spec_file: "minmon.spec"
+        # additional_repos: '["http://www.percona.com/downloads/percona-release/redhat/0.1-3/percona-release-0.1-3.noarch.rpm"]'
+        additional_packages: '["cargo"]'
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1.0.0
+      with:
+        name: Binary RPM
+        path: ${{ steps.rpm.outputs.rpm_dir_path }}
