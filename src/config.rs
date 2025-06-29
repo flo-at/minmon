@@ -261,6 +261,7 @@ pub enum CheckType {
     PressureAverage(CheckPressureAverage),
     ProcessExitStatus(CheckProcessExitStatus),
     ProcessOutputInteger(CheckProcessOutputInteger),
+    ProcessOutputMatch(CheckProcessOutputMatch),
     SystemdUnitStatus(CheckSystemdUnitStatus),
     #[cfg(feature = "sensors")]
     Temperature(CheckTemperature),
@@ -436,6 +437,18 @@ pub struct CheckProcessOutputInteger {
     pub output_source: OutputSource,
     #[serde(default)]
     pub output_regex: Option<String>,
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct CheckProcessOutputMatch {
+    #[serde(flatten)]
+    pub process_config: ProcessConfig,
+    #[serde(default)]
+    pub output_source: OutputSource,
+    pub output_regex: String,
+    #[serde(default)]
+    pub invert_match: bool,
 }
 
 #[derive(Deserialize, PartialEq, Clone, Default, Debug)]

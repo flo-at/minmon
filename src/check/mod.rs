@@ -17,6 +17,7 @@ mod network_throughput;
 mod pressure_average;
 mod process_exit_status;
 mod process_output_integer;
+mod process_output_match;
 mod systemd_unit_status;
 #[cfg(feature = "sensors")]
 mod temperature;
@@ -313,6 +314,10 @@ pub fn from_check_config(
         config::CheckType::ProcessOutputInteger(_) => factory::<
             process_output_integer::ProcessOutputInteger,
             alarm::Integer,
+        >(check_config, actions),
+        config::CheckType::ProcessOutputMatch(_) => factory::<
+            process_output_match::ProcessOutputMatch,
+            alarm::BinaryState,
         >(check_config, actions),
         config::CheckType::SystemdUnitStatus(_) => factory::<
             systemd_unit_status::SystemdUnitStatus,

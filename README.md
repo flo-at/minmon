@@ -21,6 +21,7 @@ The [checks](./doc/check.md) read the measurement values that will be monitored 
 - [PressureAverage](./doc/check/pressure_average.md)
 - [ProcessExitStatus](./doc/check/process_exit_status.md)
 - [ProcessOutputInteger](./doc/check/process_output_integer.md)
+- [ProcessOutputMatch](./doc/check/process_output_match.md)
 - [SystemdUnitStatus](./doc/check/systemd_unit_status.md)
 - [Temperature](./doc/check/temperature.md)
 
