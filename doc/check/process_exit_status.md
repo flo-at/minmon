@@ -49,7 +49,7 @@ Maximum number of bytes read from standard error.
 
 ### status_codes
 List of all possible "good" process exit status codes.
-All other exist status codes will be considered "bad".
+All other exit status codes will be considered "bad".
 
 ## IDs
 Name of the file given by the path.
