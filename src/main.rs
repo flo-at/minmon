@@ -59,13 +59,13 @@ async fn main_wrapper() -> Result<()> {
 
     let config_file_path = get_config_file_path()?;
     let config = config::Config::try_from(config_file_path.as_path())
-        .map_err(|x| Error(format!("Failed to parse config file: {}", x)))?;
+        .map_err(|x| Error(format!("Failed to parse config file: {x}")))?;
 
     init_logging(&config)?;
 
     const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-    log::info!("Starting MinMon v{}..", VERSION);
+    log::info!("Starting MinMon v{VERSION}..");
 
     #[cfg(feature = "systemd")]
     {
@@ -138,10 +138,10 @@ async fn main_wrapper() -> Result<()> {
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
     if let Err(error) = main_wrapper().await {
-        log::error!("Exiting due to error: {}", error);
+        log::error!("Exiting due to error: {error}");
         // Also print to stderr here because logging might not be initialized if the config file
         // cannot be parsed.
-        eprintln!("Exiting due to error: {}", error);
+        eprintln!("Exiting due to error: {error}");
         std::process::exit(1);
     }
 }
