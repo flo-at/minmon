@@ -29,6 +29,7 @@ dasp_ring_buffer = "0.11"
 num-bigint = "0.4"
 num-integer = "0.1"
 cron = "0.15"
+regex = "1.11"
 
 [dev-dependencies]
 mockall = "0.13"
