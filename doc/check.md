@@ -47,6 +47,7 @@ One of:
 - [NetworkThroughput](./check/network_throughput.md)
 - [PressureAverage](./check/pressure_average.md)
 - [ProcessExitStatus](./check/process_exit_status.md)
+- [ProcessOutputInteger](./check/process_output_integer.md)
 - [SystemdUnitStatus](./check/systemd_unit_status.md)
 - [Temperature](./check/temperature.md)
 

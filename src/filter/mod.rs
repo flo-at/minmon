@@ -37,6 +37,7 @@ macro_rules! make_factory {
 }
 make_factory!(measurement::BinaryState,);
 make_factory!(measurement::DataSize, Average, Peak, Sum);
+make_factory!(measurement::Integer, Average, Peak, Sum);
 make_factory!(measurement::Level, Average, Peak);
 make_factory!(measurement::StatusCode,);
 make_factory!(measurement::Temperature, Average, Peak);

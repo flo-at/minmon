@@ -199,6 +199,55 @@ impl Measurement for Temperature {
     }
 }
 
+#[derive(PartialEq, PartialOrd, Eq, Ord, Copy, Clone, Default, Debug)]
+pub struct Integer {
+    data: i64,
+}
+
+impl_Display!(Integer);
+
+impl Measurement for Integer {
+    type Data = i64;
+    const UNIT: &'static str = "";
+
+    fn new(data: Self::Data) -> Result<Self> {
+        Ok(Self { data })
+    }
+
+    fn data(&self) -> Self::Data {
+        self.data
+    }
+}
+
+impl std::ops::Add for Integer {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self::Output {
+        Self {
+            data: self.data + other.data,
+        }
+    }
+}
+
+impl std::iter::Sum<Integer> for Integer {
+    fn sum<I>(iter: I) -> Self
+    where
+        I: Iterator<Item = Integer>,
+    {
+        iter.fold(Self::default(), |a, b| a + b)
+    }
+}
+
+impl std::ops::Sub for Integer {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
+        Self {
+            data: self.data - other.data,
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
