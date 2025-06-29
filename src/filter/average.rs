@@ -38,7 +38,7 @@ where
             .filter_map(|x| x.map(|x| num_bigint::BigInt::from(x.data())))
             .sum::<num_bigint::BigInt>()
             .div_rem(&num_values.into());
-        let average = if remainder >= ((num_values + 1) / 2).into() {
+        let average = if remainder >= (num_values.div_ceil(2)).into() {
             quotient + 1
         } else {
             quotient

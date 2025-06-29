@@ -163,7 +163,7 @@ fn init_report(config: &config::Config, actions: &ActionMap) -> Result<Option<re
             )
         }
         report::ReportWhen::Cron(schedule) => {
-            log::info!("Report will be triggered by cron schedule '{}'.", schedule)
+            log::info!("Report will be triggered by cron schedule '{schedule}'.")
         }
     }
     Ok(Some(report))

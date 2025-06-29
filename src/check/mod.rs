@@ -206,7 +206,7 @@ where
                 alarm_config.name, id, check_config.name
             );
             if alarm_config.disable {
-                log::info!("{} is disabled.", alarm_log_id);
+                log::info!("{alarm_log_id} is disabled.");
                 continue;
             }
             if i == 0 {
