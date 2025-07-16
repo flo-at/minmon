@@ -255,7 +255,10 @@ impl StateHandler for StateMachine {
         let mut trigger = false;
         let mut trigger_error_recover = false;
         self.state = match &self.state {
-            State::Good(good) => State::Good(good.clone()),
+            State::Good(good) => State::Good(GoodState {
+                bad_cycles: 0,
+                ..good.clone()
+            }),
 
             State::Bad(bad) => {
                 if bad.good_cycles + 1 == self.recover_cycles {
@@ -313,6 +316,14 @@ mod test {
     fn test_trigger_action() {
         let mut state_machine = StateMachine::new(1, 0, 1, 0, String::from("")).unwrap();
         assert_eq!((true, false), state_machine.bad());
+    }
+
+    #[test]
+    fn test_reset_bad_cycles_in_good_state() {
+        let mut state_machine = StateMachine::new(2, 0, 1, 0, String::from("")).unwrap();
+        assert_eq!((false, false), state_machine.bad());
+        assert_eq!((false, false), state_machine.good());
+        assert_eq!((false, false), state_machine.bad());
     }
 
     #[test]
