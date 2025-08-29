@@ -260,6 +260,8 @@ pub enum CheckType {
     NetworkThroughput(CheckNetworkThroughput),
     PressureAverage(CheckPressureAverage),
     ProcessExitStatus(CheckProcessExitStatus),
+    ProcessOutputInteger(CheckProcessOutputInteger),
+    ProcessOutputMatch(CheckProcessOutputMatch),
     SystemdUnitStatus(CheckSystemdUnitStatus),
     #[cfg(feature = "sensors")]
     Temperature(CheckTemperature),
@@ -428,6 +430,37 @@ pub struct CheckProcessExitStatus {
 
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
+pub struct CheckProcessOutputInteger {
+    #[serde(flatten)]
+    pub process_config: ProcessConfig,
+    #[serde(default)]
+    pub output_source: OutputSource,
+    #[serde(default)]
+    pub output_regex: Option<String>,
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct CheckProcessOutputMatch {
+    #[serde(flatten)]
+    pub process_config: ProcessConfig,
+    #[serde(default)]
+    pub output_source: OutputSource,
+    pub output_regex: String,
+    #[serde(default)]
+    pub invert_match: bool,
+}
+
+#[derive(Deserialize, PartialEq, Clone, Default, Debug)]
+#[serde(deny_unknown_fields)]
+pub enum OutputSource {
+    #[default]
+    Stdout,
+    Stderr,
+}
+
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
 pub struct ProcessConfig {
     pub path: std::path::PathBuf,
     #[serde(default)]
@@ -522,6 +555,7 @@ pub struct Alarm {
 pub enum AlarmType {
     DataSize(AlarmDataSize),
     Default(AlarmDefault),
+    Integer(AlarmInteger),
     StatusCode(AlarmStatusCode),
     Level(AlarmLevel),
     #[cfg(feature = "sensors")]
@@ -568,6 +602,15 @@ impl AlarmDataSize {
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct AlarmDefault {}
+
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct AlarmInteger {
+    #[serde(default)]
+    pub min: Option<i64>,
+    #[serde(default)]
+    pub max: Option<i64>,
+}
 
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]

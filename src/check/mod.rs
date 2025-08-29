@@ -16,6 +16,8 @@ mod memory_usage;
 mod network_throughput;
 mod pressure_average;
 mod process_exit_status;
+mod process_output_integer;
+mod process_output_match;
 mod systemd_unit_status;
 #[cfg(feature = "sensors")]
 mod temperature;
@@ -206,7 +208,7 @@ where
                 alarm_config.name, id, check_config.name
             );
             if alarm_config.disable {
-                log::info!("{} is disabled.", alarm_log_id);
+                log::info!("{alarm_log_id} is disabled.");
                 continue;
             }
             if i == 0 {
@@ -308,6 +310,14 @@ pub fn from_check_config(
         config::CheckType::ProcessExitStatus(_) => factory::<
             process_exit_status::ProcessExitStatus,
             alarm::StatusCode,
+        >(check_config, actions),
+        config::CheckType::ProcessOutputInteger(_) => factory::<
+            process_output_integer::ProcessOutputInteger,
+            alarm::Integer,
+        >(check_config, actions),
+        config::CheckType::ProcessOutputMatch(_) => factory::<
+            process_output_match::ProcessOutputMatch,
+            alarm::BinaryState,
         >(check_config, actions),
         config::CheckType::SystemdUnitStatus(_) => factory::<
             systemd_unit_status::SystemdUnitStatus,

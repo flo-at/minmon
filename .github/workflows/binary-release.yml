@@ -1,0 +1,92 @@
+name: Binary Release
+
+on:
+  push:
+    tags: [ 'v*.*.*' ]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -C target-feature=+crt-static
+
+jobs:
+  build:
+    permissions:
+      contents: read
+
+    runs-on: ubuntu-latest
+    name: Release for ${{ matrix.platform.target }}
+
+    strategy:
+      matrix:
+        platform:
+          - target: x86_64-unknown-linux-musl
+            name: minmon-linux-x86_64
+            cross: false
+            command: "cargo"
+
+          - target: armv7-unknown-linux-musleabi
+            name: minmon-linux-armv7
+            cross: true
+            command: "cross"
+
+          - target: aarch64-unknown-linux-musl
+            name: minmon-linux-aarch64
+            cross: true
+            command: "cross"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install musl-tools
+        run: sudo apt update && sudo apt install -y musl-tools
+
+      - name: Update rust toolchain
+        run: rustup update
+
+      - name: Install cargo-binstall
+        if: ${{ matrix.platform.cross }}
+        uses: cargo-bins/cargo-binstall@main
+
+      - name: Add rust target
+        run: rustup target add ${{ matrix.platform.target }}
+
+      - name: Install cargo-cross
+        if: ${{ matrix.platform.cross }}
+        run: cargo binstall --no-confirm cross
+
+      - name: Build minmon
+        run: ${{ matrix.platform.command }} build --locked --release --no-default-features --features=rustls-tls,docker,http,smtp,systemd --target=${{ matrix.platform.target }}
+
+      - name: Create compressed tar archive
+        run: tar -czvf ${{ matrix.platform.name }}.tar.gz -C target/${{ matrix.platform.target }}/release minmon
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform.name }}
+          path: ${{ matrix.platform.name }}.tar.gz
+
+  release:
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Attest Build Provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: '*/minmon-*.tar.gz'
+
+      - name: Draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          generate_release_notes: true
+          files: '*/minmon-*.tar.gz'

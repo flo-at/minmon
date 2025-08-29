@@ -10,15 +10,15 @@ pub async fn init() {
     }
     spawn_watchdog_task();
     if let Err(err) = sd_notify(&[SD_STATE_READY]).await {
-        log::error!("Failed to notify systemd: {}", err);
+        log::error!("Failed to notify systemd: {err}");
     }
 }
 
 pub fn init_journal() -> Result<()> {
     systemd_journal_logger::JournalLog::new()
-        .map_err(|x| Error(format!("Could not create new journal logger: {}", x)))?
+        .map_err(|x| Error(format!("Could not create new journal logger: {x}")))?
         .install()
-        .map_err(|x| Error(format!("Could not install journal logger: {}", x)))
+        .map_err(|x| Error(format!("Could not install journal logger: {x}")))
 }
 
 async fn sd_notify(state: &[&str]) -> Result<bool> {
@@ -32,7 +32,7 @@ async fn sd_notify(state: &[&str]) -> Result<bool> {
 
     let msg = state
         .iter()
-        .fold(String::new(), |res, s| res + &format!("{}\n", s))
+        .fold(String::new(), |res, s| res + &format!("{s}\n"))
         .into_bytes();
 
     let sent_len = socket
@@ -66,7 +66,7 @@ fn spawn_watchdog_task() {
                 loop {
                     interval.tick().await;
                     if let Err(err) = sd_notify(&[SD_STATE_WATCHDOG]).await {
-                        log::error!("Failed to reset systemd watchdog: {}", err);
+                        log::error!("Failed to reset systemd watchdog: {err}");
                     }
                 }
             });

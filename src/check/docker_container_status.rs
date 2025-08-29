@@ -19,7 +19,7 @@ impl DockerContainerStatus {
         let response = docker
             .inspect_container(
                 container,
-                Some(bollard::container::InspectContainerOptions { size: false }),
+                Some(bollard::query_parameters::InspectContainerOptions { size: false }),
             )
             .await;
         if let Err(bollard::errors::Error::DockerResponseServerError {

@@ -1,7 +1,7 @@
-FROM rust:slim-bullseye as builder
+FROM rust:slim-bookworm AS builder
 ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install --no-install-recommends --no-install-suggests -y \
     pkg-config \
     libc-dev \
     libssl-dev \
@@ -18,9 +18,9 @@ COPY ./src ./src
 RUN cargo install --features docker,http,sensors,smtp --path .
 
 
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install --no-install-recommends --no-install-suggests -y \
     ca-certificates \
     openssl \
     libsensors5 \

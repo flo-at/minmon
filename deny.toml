@@ -4,19 +4,4 @@ yanked = "deny"
 [licenses]
 unused-allowed-license = "warn"
 confidence-threshold = 0.95
-allow = ["BSD-2-Clause", "BSD-3-Clause", "Apache-2.0", "MIT", "Unicode-DFS-2016", "0BSD", "MirOS", "ISC"]
-
-[[licenses.exceptions]]
-allow = ["MPL-2.0"]
-name = "webpki-roots"
-
-[[licenses.exceptions]]
-allow = ["OpenSSL"]
-name = "ring"
-
-[[licenses.clarify]]
-name = "ring"
-expression = "MIT AND ISC AND OpenSSL"
-license-files = [
-    { path = "LICENSE", hash = 0xbd0eed23 },
-]
+allow = ["BSD-2-Clause", "BSD-3-Clause", "Apache-2.0", "MIT", "0BSD", "MirOS", "ISC", "Unicode-3.0", "CDLA-Permissive-2.0"]
