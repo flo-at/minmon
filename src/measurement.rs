@@ -173,13 +173,16 @@ impl Measurement for StatusCode {
     }
 }
 
+#[cfg(feature = "sensors")]
 #[derive(PartialEq, PartialOrd, Eq, Ord, Copy, Clone, Debug, Default)]
 pub struct Temperature {
     data: i16,
 }
 
+#[cfg(feature = "sensors")]
 impl_Display!(Temperature);
 
+#[cfg(feature = "sensors")]
 impl Measurement for Temperature {
     type Data = i16;
     const UNIT: &'static str = "°C";
