@@ -1,0 +1,78 @@
+[general]
+boot_delay = 30
+start_delay = 7
+
+[log]
+level = "Info"
+target = "Journal"
+
+[[actions]]
+disable = false
+name = "SendServiceNotification"
+type = "Process"
+path = "/bin/echo"
+arguments = [ "{{check_name}}: '{{check_id}}' changed state to *{{alarm_state}}*." ]
+
+[[actions]]
+disable = false
+name = "SendLevelNotificationAction"
+type = "Process"
+path = "/bin/echo"
+arguments = [ "{{check_name}}: '{{check_id}}' changed state to *{{alarm_state}}* with level at {{level}}." ]
+
+[[actions]]
+disable = false
+name = "RestartServiceAction"
+type = "Process"
+path = "/bin/systemctl"
+arguments = [ "restart", "{{service}}" ]
+
+[[checks]]
+interval = 60
+name = "Filesystem usage"
+type = "FilesystemUsage"
+mountpoints = ["/","/boot","/boot/efi","/home"]
+
+[[checks.alarms]]
+disable = false
+name = "FilesystemUsageAlarm"
+action = "SendLevelNotificationAction"
+level = 70
+cycles = 3
+repeat_cycles = 100
+recover_action = "SendLevelNotificationAction"
+recover_cycles = 3
+error_action = "SendLevelNotificationAction"
+error_repeat_cycles = 100
+error_recover_action = "SendLevelNotificationAction"
+invert = false
+
+[[checks]]
+disable = false
+interval = 10
+name = "FirewalldRunning"
+timeout = 5
+type = "SystemdUnitStatus"
+units = ["firewalld.service"]
+
+[[checks.alarms]]
+disable = false
+name = "FirewalldStartAlarm"
+placeholders = { "service" = "firewalld.service" }
+action = "RestartServiceAction"
+cycles = 1
+repeat_cycles = 1
+invert = false
+
+[[checks.alarms]]
+disable = false
+name = "FirewalldRunningAlarm"
+action = "SendServiceNotification"
+cycles = 3
+repeat_cycles = 100
+recover_action = "SendServiceNotification"
+recover_cycles = 3
+error_action = "SendServiceNotification"
+error_repeat_cycles = 100
+error_recover_action = "SendServiceNotification"
+invert = false
