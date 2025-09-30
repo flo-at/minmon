@@ -40,4 +40,5 @@ make_factory!(measurement::DataSize, Average, Peak, Sum);
 make_factory!(measurement::Integer, Average, Peak, Sum);
 make_factory!(measurement::Level, Average, Peak);
 make_factory!(measurement::StatusCode,);
+#[cfg(feature = "sensors")]
 make_factory!(measurement::Temperature, Average, Peak);
