@@ -28,7 +28,7 @@ where
         self.buffer.push(data);
     }
 
-    pub fn iter(&self) -> std::iter::Chain<std::slice::Iter<T>, std::slice::Iter<T>> {
+    pub fn iter(&self) -> std::iter::Chain<std::slice::Iter<'_, T>, std::slice::Iter<'_, T>> {
         self.buffer.iter()
     }
 }
