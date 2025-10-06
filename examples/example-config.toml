@@ -8,71 +8,71 @@ target = "Journal"
 
 [[actions]]
 disable = false
-name = "SendServiceNotification"
+name = "send-service-notification"
 type = "Process"
 path = "/bin/echo"
 arguments = [ "{{check_name}}: '{{check_id}}' changed state to *{{alarm_state}}*." ]
 
 [[actions]]
 disable = false
-name = "SendLevelNotificationAction"
+name = "send-level-notification-action"
 type = "Process"
 path = "/bin/echo"
 arguments = [ "{{check_name}}: '{{check_id}}' changed state to *{{alarm_state}}* with level at {{level}}." ]
 
 [[actions]]
 disable = false
-name = "RestartServiceAction"
+name = "restart-service-action"
 type = "Process"
 path = "/bin/systemctl"
 arguments = [ "restart", "{{service}}" ]
 
 [[checks]]
 interval = 60
-name = "Filesystem usage"
+name = "filesystem-usage"
 type = "FilesystemUsage"
 mountpoints = ["/","/boot","/boot/efi","/home"]
 
 [[checks.alarms]]
 disable = false
-name = "FilesystemUsageAlarm"
-action = "SendLevelNotificationAction"
+name = "filesystem-usage-alarm"
+action = "send-level-notification-action"
 level = 70
 cycles = 3
 repeat_cycles = 100
-recover_action = "SendLevelNotificationAction"
+recover_action = "send-level-notification-action"
 recover_cycles = 3
-error_action = "SendLevelNotificationAction"
+error_action = "send-level-notification-action"
 error_repeat_cycles = 100
-error_recover_action = "SendLevelNotificationAction"
+error_recover_action = "send-level-notification-action"
 invert = false
 
 [[checks]]
 disable = false
 interval = 10
-name = "FirewalldRunning"
+name = "firewalld-service-check"
 timeout = 5
 type = "SystemdUnitStatus"
 units = ["firewalld.service"]
 
 [[checks.alarms]]
 disable = false
-name = "FirewalldStartAlarm"
+name = "firewalld-start-alarm"
 placeholders = { "service" = "firewalld.service" }
-action = "RestartServiceAction"
+action = "restart-service-action"
 cycles = 1
 repeat_cycles = 1
 invert = false
 
 [[checks.alarms]]
 disable = false
-name = "FirewalldRunningAlarm"
-action = "SendServiceNotification"
+name = "firewalld-running-alarm"
+action = "send-service-notification"
 cycles = 3
 repeat_cycles = 100
-recover_action = "SendServiceNotification"
+recover_action = "send-service-notification"
 recover_cycles = 3
-error_action = "SendServiceNotification"
+error_action = "send-service-notification"
 error_repeat_cycles = 100
-error_recover_action = "SendServiceNotification"
+error_recover_action = "send-service-notification"
 invert = false
