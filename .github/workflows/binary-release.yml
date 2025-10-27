@@ -61,7 +61,7 @@ jobs:
         run: tar -czvf ${{ matrix.platform.name }}.tar.gz -C target/${{ matrix.platform.target }}/release minmon
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.platform.name }}
           path: ${{ matrix.platform.name }}.tar.gz
