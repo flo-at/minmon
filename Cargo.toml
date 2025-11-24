@@ -32,7 +32,7 @@ cron = "0.15"
 regex = "1.12"
 
 [dev-dependencies]
-mockall = "0.13"
+mockall = "0.14"
 
 [features]
 __rustls = ["lettre?/tokio1-rustls-tls", "reqwest?/rustls-tls"]
