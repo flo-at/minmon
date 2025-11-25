@@ -35,7 +35,7 @@ jobs:
             command: "cross"
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Install musl-tools
         run: sudo apt update && sudo apt install -y musl-tools
