@@ -162,7 +162,7 @@ pub fn from_action_config(action_config: &config::Action) -> Result<std::sync::A
     }
 }
 
-pub fn get_action(action: &String, actions: &ActionMap) -> Result<std::sync::Arc<dyn Action>> {
+pub fn get_action(action: &str, actions: &ActionMap) -> Result<std::sync::Arc<dyn Action>> {
     if action.is_empty() {
         Err(Error(String::from("'name' cannot be empty.")))
     } else {

@@ -1,12 +1,10 @@
-use crate::{
-    measurement::{self, Measurement},
-    Error, PlaceholderMap, Result,
-};
-
-type Item = measurement::StatusCode;
+use crate::config;
+use crate::measurement::{self, Measurement};
+use crate::{Error, PlaceholderMap, Result};
 
 use super::{DataSink, SinkDecision};
-use crate::config;
+
+type Item = measurement::StatusCode;
 
 pub struct StatusCode {
     status_codes: Vec<Item>,

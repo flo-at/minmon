@@ -42,7 +42,10 @@ impl DataSource for FilesystemUsage {
                 Err(err) => Err(Error(format!("Call to 'statvfs' failed: {err}"))),
                 Ok(stat) => {
                     let usage = (stat.blocks() - stat.blocks_available()) * 100 / stat.blocks();
-                    Self::Item::new(usage as u8).map(Some)
+                    u8::try_from(usage)
+                        .map_err(|_| Error(String::from("Usage percentage out of range.")))
+                        .and_then(Self::Item::new)
+                        .map(Some)
                 }
             })
         }

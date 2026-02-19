@@ -6,7 +6,7 @@ use measurement::Measurement;
 
 const MEMINFO_PATH: &str = "/proc/meminfo";
 
-static PARSE_ERROR: &str = "Could not parse meminfo file.";
+const PARSE_ERROR: &str = "Could not parse meminfo file.";
 
 pub struct MemoryUsage {
     id: Vec<String>,

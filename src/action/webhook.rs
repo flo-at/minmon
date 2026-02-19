@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 
+use async_trait::async_trait;
+use reqwest::header::HeaderValue;
+
 use super::Action;
 use crate::config;
 use crate::{Error, PlaceholderMap, Result};
-use async_trait::async_trait;
-use reqwest::header::HeaderValue;
 
 pub struct Webhook {
     url: String,
