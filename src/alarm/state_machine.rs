@@ -153,6 +153,47 @@ impl StateHandler for StateMachine {
                     String::from("alarm_last_duration_iso"),
                     duration_iso8601(error.last_state_duration),
                 );
+                match error.shadowed_state.as_ref() {
+                    State::Good(good) => {
+                        placeholders
+                            .insert(String::from("alarm_shadowed_state"), String::from("Good"));
+                        placeholders.insert(
+                            String::from("alarm_shadowed_timestamp"),
+                            datetime_iso8601(good.timestamp),
+                        );
+                        if let Some(last_state_duration) = good.last_state_duration {
+                            placeholders.insert(
+                                String::from("alarm_shadowed_last_duration"),
+                                last_state_duration.as_secs().to_string(),
+                            );
+                            placeholders.insert(
+                                String::from("alarm_shadowed_last_duration_iso"),
+                                duration_iso8601(last_state_duration),
+                            );
+                        }
+                    }
+                    State::Bad(bad) => {
+                        placeholders
+                            .insert(String::from("alarm_shadowed_state"), String::from("Bad"));
+                        placeholders.insert(
+                            String::from("alarm_shadowed_timestamp"),
+                            datetime_iso8601(bad.timestamp),
+                        );
+                        placeholders.insert(
+                            String::from("alarm_shadowed_last_duration"),
+                            bad.last_state_duration.as_secs().to_string(),
+                        );
+                        placeholders.insert(
+                            String::from("alarm_shadowed_last_duration_iso"),
+                            duration_iso8601(bad.last_state_duration),
+                        );
+                        placeholders.insert(
+                            String::from("alarm_shadowed_cycles"),
+                            bad.cycles.to_string(),
+                        );
+                    }
+                    State::Error(_) => unreachable!(),
+                }
             }
         }
     }
@@ -397,7 +438,7 @@ mod test {
     }
 
     #[test]
-    fn test_add_placeholders_error_without_bad() {
+    fn test_add_placeholders_error_shadowed_good() {
         let mut state_machine = StateMachine::new(1, 0, 1, 0, String::from("")).unwrap();
         let mut placeholders = PlaceholderMap::new();
         state_machine.error();
@@ -408,7 +449,30 @@ mod test {
         assert_eq!(placeholders.get("alarm_state").unwrap(), "Error");
         assert!(placeholders.contains_key("alarm_last_duration"));
         assert!(placeholders.contains_key("alarm_last_duration_iso"));
-        assert_eq!(placeholders.len(), 4);
+        assert_eq!(placeholders.get("alarm_shadowed_state").unwrap(), "Good");
+        assert!(placeholders.contains_key("alarm_shadowed_timestamp"));
+        assert_eq!(placeholders.len(), 6);
+    }
+
+    #[test]
+    fn test_add_placeholders_error_shadowed_bad() {
+        let mut state_machine = StateMachine::new(1, 0, 1, 0, String::from("")).unwrap();
+        let mut placeholders = PlaceholderMap::new();
+        state_machine.bad();
+        state_machine.error();
+        state_machine.add_placeholders(&mut placeholders);
+        use std::str::FromStr;
+        chrono::DateTime::<chrono::Utc>::from_str(placeholders.get("alarm_timestamp").unwrap())
+            .unwrap();
+        assert_eq!(placeholders.get("alarm_state").unwrap(), "Error");
+        assert!(placeholders.contains_key("alarm_last_duration"));
+        assert!(placeholders.contains_key("alarm_last_duration_iso"));
+        assert_eq!(placeholders.get("alarm_shadowed_state").unwrap(), "Bad");
+        assert!(placeholders.contains_key("alarm_shadowed_timestamp"));
+        assert!(placeholders.contains_key("alarm_shadowed_last_duration"));
+        assert!(placeholders.contains_key("alarm_shadowed_last_duration_iso"));
+        assert!(placeholders.contains_key("alarm_shadowed_cycles"));
+        assert_eq!(placeholders.len(), 9);
     }
 
     #[test]
