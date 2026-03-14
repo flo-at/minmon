@@ -122,43 +122,29 @@ impl Action for DisabledAction {
 }
 
 pub fn from_action_config(action_config: &config::Action) -> Result<std::sync::Arc<dyn Action>> {
+    macro_rules! create_action {
+        ($action:expr) => {
+            Ok(std::sync::Arc::new(ActionBase::new(
+                action_config.name.clone(),
+                std::time::Duration::from_secs(action_config.timeout as u64),
+                action_config.placeholders.clone(),
+                $action,
+            )?) as std::sync::Arc<dyn Action>)
+        };
+    }
+
     if action_config.disable {
         log_ext::info!("Action '{}' is disabled.", action_config.name);
-        Ok(std::sync::Arc::new(ActionBase::new(
-            action_config.name.clone(),
-            std::time::Duration::from_secs(action_config.timeout as u64),
-            action_config.placeholders.clone(),
-            DisabledAction {},
-        )?))
+        create_action!(DisabledAction {})
     } else {
-        Ok(match &action_config.type_ {
+        match &action_config.type_ {
             #[cfg(feature = "smtp")]
-            config::ActionType::Email(_) => std::sync::Arc::new(ActionBase::new(
-                action_config.name.clone(),
-                std::time::Duration::from_secs(action_config.timeout as u64),
-                action_config.placeholders.clone(),
-                Email::try_from(action_config)?,
-            )?),
-            config::ActionType::Log(_) => std::sync::Arc::new(ActionBase::new(
-                action_config.name.clone(),
-                std::time::Duration::from_secs(action_config.timeout as u64),
-                action_config.placeholders.clone(),
-                Log::try_from(action_config)?,
-            )?),
-            config::ActionType::Process(_) => std::sync::Arc::new(ActionBase::new(
-                action_config.name.clone(),
-                std::time::Duration::from_secs(action_config.timeout as u64),
-                action_config.placeholders.clone(),
-                Process::try_from(action_config)?,
-            )?),
+            config::ActionType::Email(_) => create_action!(Email::try_from(action_config)?),
+            config::ActionType::Log(_) => create_action!(Log::try_from(action_config)?),
+            config::ActionType::Process(_) => create_action!(Process::try_from(action_config)?),
             #[cfg(feature = "http")]
-            config::ActionType::Webhook(_) => std::sync::Arc::new(ActionBase::new(
-                action_config.name.clone(),
-                std::time::Duration::from_secs(action_config.timeout as u64),
-                action_config.placeholders.clone(),
-                Webhook::try_from(action_config)?,
-            )?),
-        })
+            config::ActionType::Webhook(_) => create_action!(Webhook::try_from(action_config)?),
+        }
     }
 }
 
