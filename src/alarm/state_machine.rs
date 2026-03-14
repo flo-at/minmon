@@ -1,4 +1,4 @@
-use crate::{duration_iso8601, Error, PlaceholderMap, Result};
+use crate::{datetime_iso8601, duration_iso8601, Error, PlaceholderMap, Result};
 
 #[cfg_attr(test, mockall::automock)]
 pub trait StateHandler: Send + Sync + Sized {
@@ -109,7 +109,7 @@ impl StateHandler for StateMachine {
                 placeholders.insert(String::from("alarm_state"), String::from("Bad"));
                 placeholders.insert(
                     String::from("alarm_timestamp"),
-                    crate::datetime_iso8601(bad.timestamp),
+                    datetime_iso8601(bad.timestamp),
                 );
                 placeholders.insert(
                     String::from("alarm_last_duration"),
@@ -125,7 +125,7 @@ impl StateHandler for StateMachine {
                 placeholders.insert(String::from("alarm_state"), String::from("Good"));
                 placeholders.insert(
                     String::from("alarm_timestamp"),
-                    crate::datetime_iso8601(good.timestamp),
+                    datetime_iso8601(good.timestamp),
                 );
                 if let Some(last_state_duration) = good.last_state_duration {
                     placeholders.insert(
@@ -143,7 +143,7 @@ impl StateHandler for StateMachine {
                 placeholders.insert(String::from("alarm_state"), String::from("Error"));
                 placeholders.insert(
                     String::from("alarm_timestamp"),
-                    crate::datetime_iso8601(error.timestamp),
+                    datetime_iso8601(error.timestamp),
                 );
                 placeholders.insert(
                     String::from("alarm_last_duration"),
