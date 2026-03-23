@@ -9,7 +9,7 @@ keywords = ["monitoring", "alarming", "uptime"]
 edition = "2021"
 
 [dependencies]
-toml = "1.0"
+toml = "1.1"
 reqwest = { version = "0.12", optional = true, default-features = false }
 tokio = { version = "1.50", features = ["full"] }
 libsystemd = { version = "0.7", optional = true }
