@@ -258,16 +258,16 @@ mod test {
     #[test]
     fn test_data_size_as_string_binary() {
         let data_size = DataSize::new(999).unwrap();
-        assert_eq!(format!("{}", data_size.as_string_binary()), "999B");
+        assert_eq!(data_size.as_string_binary().to_string(), "999B");
         let data_size = DataSize::new(9999).unwrap();
-        assert_eq!(format!("{}", data_size.as_string_binary()), "9.765KiB");
+        assert_eq!(data_size.as_string_binary().to_string(), "9.765KiB");
         let data_size = DataSize::new(9999999).unwrap();
-        assert_eq!(format!("{}", data_size.as_string_binary()), "9.537MiB");
+        assert_eq!(data_size.as_string_binary().to_string(), "9.537MiB");
         let data_size = DataSize::new(1024).unwrap();
-        assert_eq!(format!("{}", data_size.as_string_binary()), "1KiB");
+        assert_eq!(data_size.as_string_binary().to_string(), "1KiB");
         let data_size = DataSize::new(1024 * 1024).unwrap();
-        assert_eq!(format!("{}", data_size.as_string_binary()), "1MiB");
+        assert_eq!(data_size.as_string_binary().to_string(), "1MiB");
         let data_size = DataSize::new(1024 * 1024 * 1024).unwrap();
-        assert_eq!(format!("{}", data_size.as_string_binary()), "1GiB");
+        assert_eq!(data_size.as_string_binary().to_string(), "1GiB");
     }
 }
