@@ -26,7 +26,7 @@ sensors = { version = "0.2", optional = true }
 rand = "0.10"
 bollard = { version = "0.21", optional = true }
 dasp_ring_buffer = "0.11"
-num-bigint = "0.4"
+num-bigint = "0.5"
 num-integer = "0.1"
 cron = "0.17"
 regex = "1.12"
